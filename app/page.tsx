@@ -3,21 +3,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, ShieldAlert, ShieldCheck, Shield, Edit, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const INITIAL_PRODUCTS = [
-  { id: 1, name: 'ELFBAR 5000', category: 'Одноразки', price: 15, image: null, is_hidden: false, is_preorder: false,
-    flavors: [{ name: 'Манго', stock: 15 }, { name: 'Виноград', stock: 8 }, { name: 'Холодок', stock: 0 }, { name: 'Яблоко', stock: 12 }, { name: 'Персик', stock: 5 }] },
-  { id: 2, name: 'Жидкость Mango Ice 100ml', category: 'Жидкости', price: 8, image: null, is_hidden: false, is_preorder: false,
-    flavors: [{ name: '3mg', stock: 20 }, { name: '6mg', stock: 15 }] },
-  { id: 3, name: 'XROS 3 Pod System', category: 'POD-системы', price: 25, image: null, is_hidden: false, is_preorder: false,
-    flavors: [{ name: 'Чёрный', stock: 10 }, { name: 'Серебристый', stock: 8 }, { name: 'Розовый', stock: 5 }] },
-  { id: 4, name: 'Снюс Nordic Spirit', category: 'Снюс', price: 3.5, image: null, is_hidden: false, is_preorder: false,
-    flavors: [{ name: 'Мята', stock: 25 }, { name: 'Ягоды', stock: 18 }, { name: 'Кола', stock: 12 }, { name: 'Манго', stock: 9 }] },
-  { id: 5, name: 'Кальян Alpha Hookah', category: 'Кальяны', price: 45, image: null, is_hidden: false, is_preorder: false,
-    flavors: [{ name: 'Чёрный матовый', stock: 3 }, { name: 'Белый', stock: 2 }] },
-  { id: 6, name: 'Испаритель 0.4ohm', category: 'Расходники', price: 2.5, image: null, is_hidden: false, is_preorder: false,
-    flavors: [{ name: 'Стандарт', stock: 50 }] },
-];
-
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
 
@@ -111,21 +96,7 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_cart', JSON.stringify(cart)); }, [cart]);
 
-  // Сохранение тестовых товаров если база пустая
-  const seedProducts = async () => {
-    const { data: existing } = await supabase.from('products').select('id').limit(1);
-    if (existing && existing.length > 0) return;
-    
-    const productsToInsert = INITIAL_PRODUCTS.map(p => ({
-      name: p.name, price: p.price, category: p.category,
-      image_url: p.image, flavors: JSON.stringify(p.flavors),
-      stock_quantity: p.flavors.reduce((s, f) => s + f.stock, 0),
-      is_hidden: false, is_preorder: false,
-    }));
-    await supabase.from('products').insert(productsToInsert);
-  };
-
-  // Загрузка товаров
+  // Загрузка товаров из Supabase
   const loadProducts = useCallback(async (includeHidden = false) => {
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
     if (!includeHidden) query = query.eq('is_hidden', false);
@@ -142,8 +113,8 @@ export default function Home() {
       }));
       setProducts(parsed);
     } else {
-      await seedProducts();
-      setProducts(INITIAL_PRODUCTS.map(p => ({ ...p, image: p.image || null, is_hidden: false, is_preorder: false })));
+      // База пустая - показываем пустой список (пользователь сам добавит товары)
+      setProducts([]);
     }
   }, []);
 
@@ -415,7 +386,7 @@ export default function Home() {
           {/* Вкладки */}
           <div className="flex gap-2 mb-4">
             <button onClick={() => setAdminTab('orders')}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'orders' ? 'bg-gradient-to-r from-pink-500 to-rose-500' : 'bg-white/5 text-gray-400'}`}>
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'orders' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
               Заказы ({allOrders.length})
             </button>
             <button onClick={() => setAdminTab('products')}
@@ -460,19 +431,25 @@ export default function Home() {
                     </div>
                   </div>
                 ))}
+                {products.length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">Товаров нет. Добавь первый!</p>
+                  </div>
+                )}
               </div>
             </>
           ) : (
             <>
               {/* Фильтры заказов */}
               <div className="flex gap-1 mb-3">
-                <button onClick={() => setOrderFilter('all')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'all' ? 'bg-orange-500' : 'bg-white/5'}`}>
+                <button onClick={() => setOrderFilter('all')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'all' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5'}`}>
                   Все ({allOrders.length})
                 </button>
-                <button onClick={() => setOrderFilter('new')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'new' ? 'bg-orange-500' : 'bg-white/5'}`}>
+                <button onClick={() => setOrderFilter('new')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'new' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5'}`}>
                   Новые ({allOrders.filter(o => o.status === 'new').length})
                 </button>
-                <button onClick={() => setOrderFilter('done')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'done' ? 'bg-orange-500' : 'bg-white/5'}`}>
+                <button onClick={() => setOrderFilter('done')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'done' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5'}`}>
                   Выданные ({allOrders.filter(o => o.status === 'done').length})
                 </button>
               </div>
@@ -575,7 +552,7 @@ export default function Home() {
 
               <div className="flex gap-2">
                 <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})}
-                  className={`flex-1 py-1.5 rounded-md text-xs ${editingProduct.is_preorder ? 'bg-orange-500' : 'bg-white/5'}`}>
+                  className={`flex-1 py-1.5 rounded-md text-xs ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5'}`}>
                   Предзаказ
                 </button>
               </div>
@@ -626,18 +603,16 @@ export default function Home() {
               <p className="text-[10px] text-gray-500">premium shop</p>
             </div>
             <div className="ml-auto flex items-center gap-1.5">
-              {/* Кнопка админки - розовая подсветка */}
-              <button onClick={() => setShowAdminLogin(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/30 flex items-center justify-center hover:from-pink-500/30 hover:to-rose-500/30 transition-all">
-                <Shield className="w-4 h-4 text-pink-400" />
+              {/* Все кнопки в одном стиле - оранжевый с розовым */}
+              <button onClick={() => setShowAdminLogin(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
+                <Shield className="w-4 h-4 text-orange-400" />
               </button>
-              {/* Кнопка истории - синяя подсветка */}
-              <button onClick={() => setShowHistory(true)} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center hover:from-blue-500/30 hover:to-purple-500/30 transition-all">
-                <Clock className="w-4 h-4 text-blue-400" />
+              <button onClick={() => setShowHistory(true)} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
+                <Clock className="w-4 h-4 text-orange-400" />
                 {userOrders.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-[9px] font-bold flex items-center justify-center">{userOrders.length}</span>
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-[9px] font-bold flex items-center justify-center">{userOrders.length}</span>
                 )}
               </button>
-              {/* Кнопка корзины - оранжевая подсветка */}
               <button onClick={() => setShowCart(true)} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
                 <ShoppingBag className="w-4 h-4 text-orange-400" />
                 {totalCartItems > 0 && (
