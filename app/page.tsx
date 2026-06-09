@@ -319,14 +319,11 @@ export default function Home() {
     }
   };
 
-  const contactUser = (username: string) => {
-    const link = `https://t.me/${username.replace('@', '')}`;
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(link);
-    } else {
-      window.open(link, '_blank');
-    }
-  };
+  const contactUser = (username?: string) => {
+  if (!username) return;
+  const link = `https://t.me/${username.replace('@', '')
+  }`;
+
 
   // АДМИН ФУНКЦИИ
   const handleAdminLogin = () => {
