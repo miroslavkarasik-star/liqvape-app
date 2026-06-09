@@ -740,25 +740,65 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-2 gap-3 pb-8">
               {filteredProducts.map((p) => {
-                const avail = p.variants.reduce((s, f) => s + getAvailableStock(p.id, f.name), 0);
-                return (
-                  <div key={p.id} onClick={() => avail > 0 && openProductModal(p)}
-                    className={`glass-card p-3 cursor-pointer group ${avail === 0 ? 'opacity-50' : ''}`}>
-                    <div className="w-full h-28 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-2 flex items-center justify-center relative">
-                      {p.image ? <img src={p.image} alt={p.name} className="w-full h-full object-cover rounded-xl" /> :
-                        <Package className="w-8 h-8 text-neutral-700" />}
-                      {avail === 0 && <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl"><span className="text-red-400 font-bold text-xs">Нет</span></div>}
-                      {avail > 0 && avail <= 3 && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-orange-500/20 border border-orange-500/30"><span className="text-[9px] text-orange-400">{avail} шт.</span></div>}
-                      {p.is_preorder && <div className="absolute top-1,5 left-1.5 px-1,5 py-0.5 rounded-md bg-pink-500/20 border border-pink-500/30"><span className="text-[9px] text-pink-400">Предзаказ</span></div>}
-                    </div>
-                    <h3 className="font-semibold text-xs mb-1 line-clamp-2">{p.name}</h3>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold gradient-text">{p.price} BYN</span>
-                      <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">{p.category}</span>
-                    </div>
-                  </div>
-                );
-              })}
+  const avail = p.variants.reduce((s, f) => s + getAvailableStock(p.id, f.name), 0);
+  const isPreorder = p.is_preorder; // Проверяем флаг предзаказа
+  
+  return (
+    <div 
+      key={p.id} 
+      onClick={() => !isPreorder && avail > 0 && openProductModal(p)} // Блокируем клик если предзаказ
+      className={`glass-card p-3 transition-all ${
+        isPreorder 
+          ? 'opacity-60 cursor-not-allowed grayscale-[0.5]' // Темный, полупрозрачный, некликабельный
+          : avail === 0 
+            ? 'opacity-50 cursor-not-allowed' 
+            : 'cursor-pointer group hover:border-orange-500/30'
+      }`}
+    >
+      <div className="w-full h-28 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-2 flex items-center justify-center relative overflow-hidden">
+        {p.image ? (
+          <img src={p.image} alt={p.name} className={`w-full h-full object-cover rounded-xl ${isPreorder ? 'brightness-50' : ''}`} />
+        ) : (
+          <Package className={`w-8 h-8 text-neutral-700 ${isPreorder ? 'opacity-50' : ''}`} />
+        )}
+        
+        {/* Оверлей для предзаказа */}
+        {isPreorder && (
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-10">
+            <span className="text-white font-bold text-sm px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">
+              ПРЕДЗАКАЗ
+            </span>
+          </div>
+        )}
+
+        {/* Обычные бейджи (скрываем если предзаказ) */}
+        {!isPreorder && avail === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+            <span className="text-red-400 font-bold text-xs">Нет</span>
+          </div>
+        )}
+        {!isPreorder && avail > 0 && avail <= 3 && (
+          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-orange-500/20 border border-orange-500/30">
+            <span className="text-[9px] text-orange-400">{avail} шт.</span>
+          </div>
+        )}
+      </div>
+      
+      <h3 className={`font-semibold text-xs mb-1 line-clamp-2 ${isPreorder ? 'text-gray-400' : 'text-white group-hover:text-orange-400'}`}>
+        {p.name}
+      </h3>
+      
+      <div className="flex items-center justify-between">
+        <span className={`text-sm font-bold ${isPreorder ? 'text-gray-500' : 'gradient-text'}`}>
+          {p.price} BYN
+        </span>
+        <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">
+          {p.category}
+        </span>
+      </div>
+    </div>
+  );
+})}
             </div>
           )}
         </div>
