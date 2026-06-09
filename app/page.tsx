@@ -7,12 +7,13 @@ const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Рас�
 const ADMIN_PASSWORD = 'liqvape67';
 const MANAGER_USERNAME = 'zslvape';
 
-interface Flavor { name: string; stock: number; }
+// Типы данных
+interface Variant { name: string; stock: number; } // Было Flavor, стало Variant
 interface Product { 
   id: number; name: string; category: string; price: number; image: string | null; 
-  flavors: Flavor[]; is_hidden: boolean; is_preorder: boolean;
+  variants: Variant[]; is_hidden: boolean; is_preorder: boolean; // Было flavors, стало variants
 }
-interface CartItem { productId: number; productName: string; flavor: string; price: number; quantity: number; }
+interface CartItem { productId: number; productName: string; variant: string; price: number; quantity: number; } // Было flavor, стало variant
 interface Order { 
   id: string; user_id: string; username?: string; order_number: number; order_date: string; 
   items: CartItem[]; total_price: number; status: string; created_at: string;
@@ -38,9 +39,9 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedFlavor, setSelectedFlavor] = useState('');
+  const [selectedVariant, setSelectedVariant] = useState<string>(''); // Было selectedFlavor
   const [quantity, setQuantity] = useState(1);
-  const [showAllFlavors, setShowAllFlavors] = useState(false);
+  const [showAllVariants, setShowAllVariants] = useState(false); // Было showAllFlavors
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -64,7 +65,7 @@ export default function Home() {
   const [orderFilter, setOrderFilter] = useState<'all' | 'new' | 'done'>('all');
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
-  const [formFlavors, setFormFlavors] = useState<Flavor[]>([]);
+  const [formVariants, setFormVariants] = useState<Variant[]>([]); // Было formFlavors
 
   // Инициализация Telegram
   useEffect(() => {
@@ -120,7 +121,8 @@ export default function Home() {
       const parsed = data.map((p: any) => ({
         id: p.id, name: p.name, category: p.category || 'Другое',
         price: Number(p.price), image: p.image_url || null,
-        flavors: typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.flavors || []),
+        // Маппинг старого поля flavors в новое variants для совместимости
+        variants: typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []),
         is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
       }));
       setProducts(parsed);
@@ -159,17 +161,17 @@ export default function Home() {
     setTimeout(() => { setNotificationVisible(false); setTimeout(() => setNotification(null), 300); }, 2500);
   };
 
-  const getCartQuantity = (productId: number, flavor: string) => {
-    const item = cart.find(i => i.productId === productId && i.flavor === flavor);
+  const getCartQuantity = (productId: number, variant: string) => {
+    const item = cart.find(i => i.productId === productId && i.variant === variant);
     return item ? item.quantity : 0;
   };
 
-  const getAvailableStock = useCallback((productId: number, flavor: string) => {
+  const getAvailableStock = useCallback((productId: number, variant: string) => {
     const product = products.find(p => p.id === productId);
     if (!product) return 0;
-    const f = product.flavors.find(x => x.name === flavor);
-    if (!f) return 0;
-    return Math.max(0, f.stock - getCartQuantity(productId, flavor));
+    const v = product.variants.find(x => x.name === variant);
+    if (!v) return 0;
+    return Math.max(0, v.stock - getCartQuantity(productId, variant));
   }, [products, cart]);
 
   const filteredProducts = products.filter(p => {
@@ -180,23 +182,23 @@ export default function Home() {
 
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
-    const first = product.flavors.find(f => getAvailableStock(product.id, f.name) > 0);
-    setSelectedFlavor(first?.name || '');
+    const first = product.variants.find(f => getAvailableStock(product.id, f.name) > 0);
+    setSelectedVariant(first?.name || '');
     setQuantity(1);
-    setShowAllFlavors(false);
+    setShowAllVariants(false);
   };
 
   const addToCart = () => {
-    if (!selectedProduct || !selectedFlavor) return;
-    const avail = getAvailableStock(selectedProduct.id, selectedFlavor);
+    if (!selectedProduct || !selectedVariant) return;
+    const avail = getAvailableStock(selectedProduct.id, selectedVariant);
     if (avail <= 0) { showNotification('Нет в наличии', 'error'); return; }
     if (quantity > avail) { showNotification(`Максимум: ${avail} шт.`, 'error'); setQuantity(avail); return; }
     
-    const idx = cart.findIndex(i => i.productId === selectedProduct.id && i.flavor === selectedFlavor);
+    const idx = cart.findIndex(i => i.productId === selectedProduct.id && i.variant === selectedVariant);
     if (idx >= 0) {
       const nc = [...cart]; nc[idx].quantity += quantity; setCart(nc);
     } else {
-      setCart([...cart, { productId: selectedProduct.id, productName: selectedProduct.name, flavor: selectedFlavor, price: selectedProduct.price, quantity }]);
+      setCart([...cart, { productId: selectedProduct.id, productName: selectedProduct.name, variant: selectedVariant, price: selectedProduct.price, quantity }]);
     }
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.HapticFeedback) {
       window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
@@ -210,9 +212,9 @@ export default function Home() {
   const updateCartQuantity = (i: number, d: number) => {
     const item = cart[i];
     const p = products.find(x => x.id === item.productId);
-    const f = p?.flavors.find(x => x.name === item.flavor);
+    const v = p?.variants.find(x => x.name === item.variant);
     const nq = item.quantity + d;
-    if (f && nq > f.stock) { showNotification(`Максимум: ${f.stock} шт.`, 'error'); return; }
+    if (v && nq > v.stock) { showNotification(`Максимум: ${v.stock} шт.`, 'error'); return; }
     if (nq <= 0) setCart(cart.filter((_, x) => x !== i));
     else { const nc = [...cart]; nc[i].quantity = nq; setCart(nc); }
   };
@@ -242,9 +244,9 @@ export default function Home() {
       const updated = products.map(p => {
         const ci = cart.filter(i => i.productId === p.id);
         if (ci.length === 0) return p;
-        return { ...p, flavors: p.flavors.map(f => {
-          const it = ci.find(i => i.flavor === f.name);
-          return it ? { ...f, stock: Math.max(0, f.stock - it.quantity) } : f;
+        return { ...p, variants: p.variants.map(v => {
+          const it = ci.find(i => i.variant === v.name);
+          return it ? { ...v, stock: Math.max(0, v.stock - it.quantity) } : v;
         })};
       });
       setProducts(updated);
@@ -296,10 +298,10 @@ export default function Home() {
   const openProductForm = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      setFormFlavors([...product.flavors]);
+      setFormVariants([...product.variants]);
     } else {
       setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false });
-      setFormFlavors([]);
+      setFormVariants([]);
     }
     setShowProductForm(true);
   };
@@ -309,7 +311,9 @@ export default function Home() {
     const data = {
       name: editingProduct.name, price: Number(editingProduct.price),
       category: editingProduct.category || 'Другое', image_url: editingProduct.image || null,
-      flavors: JSON.stringify(formFlavors), stock_quantity: formFlavors.reduce((s, f) => s + f.stock, 0),
+      // Сохраняем как flavors для обратной совместимости с БД, если там старая схема
+      flavors: JSON.stringify(formVariants), 
+      stock_quantity: formVariants.reduce((s, f) => s + f.stock, 0),
       is_hidden: editingProduct.is_hidden || false, is_preorder: editingProduct.is_preorder || false,
     };
     
@@ -359,9 +363,9 @@ export default function Home() {
     showNotification('Заказ удалён');
   };
 
-  const sortedFlavors = useMemo(() => {
+  const sortedVariants = useMemo(() => {
     if (!selectedProduct) return [];
-    return [...selectedProduct.flavors].sort((a, b) => {
+    return [...selectedProduct.variants].sort((a, b) => {
       const aa = getAvailableStock(selectedProduct.id, a.name);
       const ba = getAvailableStock(selectedProduct.id, b.name);
       if (aa > 0 && ba === 0) return -1;
@@ -370,9 +374,9 @@ export default function Home() {
     });
   }, [selectedProduct, getAvailableStock]);
 
-  const visibleFlavors = showAllFlavors ? sortedFlavors : sortedFlavors.slice(0, 5);
-  const hiddenFlavorsCount = sortedFlavors.length - 5;
-  const availableStock = selectedProduct && selectedFlavor ? getAvailableStock(selectedProduct.id, selectedFlavor) : 0;
+  const visibleVariants = showAllVariants ? sortedVariants : sortedVariants.slice(0, 5);
+  const hiddenVariantsCount = sortedVariants.length - 5;
+  const availableStock = selectedProduct && selectedVariant ? getAvailableStock(selectedProduct.id, selectedVariant) : 0;
   const totalCartItems = cart.reduce((s, i) => s + i.quantity, 0);
   const totalCartPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
@@ -449,7 +453,7 @@ export default function Home() {
                           {p.is_hidden && <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400">Скрыт</span>}
                           {p.is_preorder && <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400">Предзаказ</span>}
                         </div>
-                        <p className="text-[11px] text-gray-400">{p.price} BYN • {p.category} • {p.flavors.reduce((s, f) => s + f.stock, 0)} шт.</p>
+                        <p className="text-[11px] text-gray-400">{p.price} BYN • {p.category} • {p.variants.reduce((s, f) => s + f.stock, 0)} шт.</p>
                       </div>
                     </div>
                     <div className="flex gap-1">
@@ -510,7 +514,7 @@ export default function Home() {
                     </div>
                     <div className="border-t border-white/10 pt-2 mb-2 space-y-0.5">
                       {o.items.map((item, i) => (
-                        <p key={i} className="text-[11px] text-gray-300">• {item.productName} ({item.flavor}) × {item.quantity}</p>
+                        <p key={i} className="text-[11px] text-gray-300">• {item.productName} ({item.variant}) × {item.quantity}</p>
                       ))}
                     </div>
                     <div className="flex gap-1">
@@ -541,6 +545,7 @@ export default function Home() {
           )}
         </div>
 
+        {/* Форма товара */}
         {showProductForm && editingProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
             <div className="glass-panel w-full max-w-md max-h-[90vh] overflow-y-auto p-4">
@@ -555,13 +560,14 @@ export default function Home() {
                 onChange={e => setEditingProduct({...editingProduct, name: e.target.value})}
                 className="w-full bg-black/50 border border-white/10 rounded-lg p-2 mb-2 text-sm text-white outline-none focus:border-orange-500" />
 
+              {/* ИСПРАВЛЕНИЕ: Поля цены и фото теперь в одну строку, но фото короче */}
               <div className="flex gap-2 mb-2">
                 <input type="number" placeholder="Цена" value={editingProduct.price || ''}
                   onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})}
-                  className="flex-1 bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500" />
+                  className="w-24 bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500" />
                 <input type="text" placeholder="URL фото" value={editingProduct.image || ''}
                   onChange={e => setEditingProduct({...editingProduct, image: e.target.value})}
-                  className="flex-1 bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500" />
+                  className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500 truncate" />
               </div>
 
               <select value={editingProduct.category || 'Другое'}
@@ -572,25 +578,25 @@ export default function Home() {
 
               <div className="mb-3">
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs text-gray-400">Варианты</label>
-                  <span className="text-[10px] text-orange-400">{formFlavors.length} шт.</span>
+                  <label className="text-xs text-gray-400">Варианты (цвет/вкус)</label>
+                  <span className="text-[10px] text-orange-400">{formVariants.length} шт.</span>
                 </div>
                 <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {formFlavors.map((f, i) => (
+                  {formVariants.map((v, i) => (
                     <div key={i} className="flex gap-1">
-                      <input type="text" placeholder="Название" value={f.name}
-                        onChange={e => { const nf = [...formFlavors]; nf[i].name = e.target.value; setFormFlavors(nf); }}
+                      <input type="text" placeholder="Название" value={v.name}
+                        onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }}
                         className="flex-1 bg-black/50 border border-white/10 rounded-md p-1.5 text-xs text-white outline-none" />
-                      <input type="number" placeholder="Кол-во" value={f.stock}
-                        onChange={e => { const nf = [...formFlavors]; nf[i].stock = Number(e.target.value); setFormFlavors(nf); }}
+                      <input type="number" placeholder="Кол-во" value={v.stock}
+                        onChange={e => { const nv = [...formVariants]; nv[i].stock = Number(e.target.value); setFormVariants(nv); }}
                         className="w-16 bg-black/50 border border-white/10 rounded-md p-1.5 text-xs text-white outline-none" />
-                      <button onClick={() => setFormFlavors(formFlavors.filter((_, x) => x !== i))} className="w-8 bg-red-500/20 rounded-md text-red-400 flex items-center justify-center">
+                      <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-8 bg-red-500/20 rounded-md text-red-400 flex items-center justify-center">
                         <X className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => setFormFlavors([...formFlavors, { name: '', stock: 0 }])}
+                <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])}
                   className="w-full mt-1 py-1.5 rounded-md border border-orange-500/30 text-orange-400 text-xs">
                   + Добавить вариант
                 </button>
@@ -734,7 +740,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-2 gap-3 pb-8">
               {filteredProducts.map((p) => {
-                const avail = p.flavors.reduce((s, f) => s + getAvailableStock(p.id, f.name), 0);
+                const avail = p.variants.reduce((s, f) => s + getAvailableStock(p.id, f.name), 0);
                 return (
                   <div key={p.id} onClick={() => avail > 0 && openProductModal(p)}
                     className={`glass-card p-3 cursor-pointer group ${avail === 0 ? 'opacity-50' : ''}`}>
@@ -794,6 +800,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Модалка товара */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProduct(null)}></div>
@@ -805,35 +812,36 @@ export default function Home() {
               <h2 className="text-xl font-bold mb-1">{selectedProduct.name}</h2>
               <p className="text-2xl font-bold gradient-text mb-4">{selectedProduct.price} BYN</p>
 
-              {selectedProduct.flavors.length > 0 && (
+              {selectedProduct.variants.length > 0 && (
                 <div className="mb-4">
+                  {/* ИСПРАВЛЕНИЕ: Текст "Выберите цвет/вариант" вместо "Вкус" */}
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs text-gray-400 font-medium">ВЫБЕРИТЕ ВКУС:</p>
-                    <p className="text-[10px] text-gray-500">{selectedProduct.flavors.filter(f => getAvailableStock(selectedProduct.id, f.name) > 0).length} доступно</p>
+                    <p className="text-xs text-gray-400 font-medium">ВЫБЕРИТЕ ЦВЕТ / ВАРИАНТ:</p>
+                    <p className="text-[10px] text-gray-500">{selectedProduct.variants.filter(f => getAvailableStock(selectedProduct.id, f.name) > 0).length} доступно</p>
                   </div>
                   <div className="space-y-1.5">
-                    {visibleFlavors.map((f, i) => {
-                      const avail = getAvailableStock(selectedProduct.id, f.name);
-                      const inCart = getCartQuantity(selectedProduct.id, f.name);
+                    {visibleVariants.map((v, i) => {
+                      const avail = getAvailableStock(selectedProduct.id, v.name);
+                      const inCart = getCartQuantity(selectedProduct.id, v.name);
                       return (
                         <label key={i} className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer ${
-                          selectedFlavor === f.name ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5'
+                          selectedVariant === v.name ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5'
                         } ${avail === 0 ? 'opacity-50' : ''}`}>
                           <div className="flex items-center gap-2">
-                            <input type="radio" name="flavor" checked={selectedFlavor === f.name}
-                              onChange={() => avail > 0 && setSelectedFlavor(f.name)} className="w-3.5 h-3.5 accent-orange-500" disabled={avail === 0} />
-                            <div><span className="text-xs">{f.name}</span>{inCart > 0 && <span className="ml-1.5 text-[9px] text-orange-400">({inCart} в корзине)</span>}</div>
+                            <input type="radio" name="variant" checked={selectedVariant === v.name}
+                              onChange={() => avail > 0 && setSelectedVariant(v.name)} className="w-3.5 h-3.5 accent-orange-500" disabled={avail === 0} />
+                            <div><span className="text-xs">{v.name}</span>{inCart > 0 && <span className="ml-1.5 text-[9px] text-orange-400">({inCart} в корзине)</span>}</div>
                           </div>
                           <span className={`text-[10px] font-medium ${avail > 0 ? 'text-green-400' : 'text-red-400'}`}>{avail > 0 ? `${avail} шт.` : 'Нет'}</span>
                         </label>
                       );
                     })}
                   </div>
-                  {hiddenFlavorsCount > 0 && !showAllFlavors && (
-                    <button onClick={() => setShowAllFlavors(true)} className="w-full mt-2 py-2 rounded-lg border border-orange-500/30 text-orange-400 text-xs">↓ Показать ещё {hiddenFlavorsCount}</button>
+                  {hiddenVariantsCount > 0 && !showAllVariants && (
+                    <button onClick={() => setShowAllVariants(true)} className="w-full mt-2 py-2 rounded-lg border border-orange-500/30 text-orange-400 text-xs">↓ Показать ещё {hiddenVariantsCount}</button>
                   )}
-                  {showAllFlavors && hiddenFlavorsCount > 0 && (
-                    <button onClick={() => setShowAllFlavors(false)} className="w-full mt-2 py-2 rounded-lg border border-white/10 text-gray-400 text-xs">↑ Свернуть</button>
+                  {showAllVariants && hiddenVariantsCount > 0 && (
+                    <button onClick={() => setShowAllVariants(false)} className="w-full mt-2 py-2 rounded-lg border border-white/10 text-gray-400 text-xs">↑ Свернуть</button>
                   )}
                 </div>
               )}
@@ -880,13 +888,13 @@ export default function Home() {
                   <div className="space-y-2 mb-4">
                     {cart.map((item, i) => {
                       const p = products.find(x => x.id === item.productId);
-                      const f = p?.flavors.find(x => x.name === item.flavor);
-                      const maxS = f?.stock || 0;
+                      const v = p?.variants.find(x => x.name === item.variant);
+                      const maxS = v?.stock || 0;
                       const isMax = item.quantity >= maxS;
                       return (
                         <div key={i} className="glass-card p-3">
                           <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1"><h3 className="font-semibold text-xs">{item.productName}</h3><p className="text-[10px] text-gray-400">{item.flavor}</p></div>
+                            <div className="flex-1"><h3 className="font-semibold text-xs">{item.productName}</h3><p className="text-[10px] text-gray-400">{item.variant}</p></div>
                             <button onClick={() => removeFromCart(i)} className="w-7 h-7 rounded-md bg-red-500/10 flex items-center justify-center"><Trash2 className="w-3 h-3 text-red-400" /></button>
                           </div>
                           <div className="flex items-center justify-between">
@@ -942,7 +950,7 @@ export default function Home() {
                       </div>
                       <div className="border-t border-white/10 pt-2 space-y-0.5">
                         {o.items.map((item, i) => (
-                          <div key={i} className="flex justify-between text-[11px]"><span className="text-gray-300">{item.productName} ({item.flavor})</span><span className="text-gray-400">× {item.quantity}</span></div>
+                          <div key={i} className="flex justify-between text-[11px]"><span className="text-gray-300">{item.productName} ({item.variant})</span><span className="text-gray-400">× {item.quantity}</span></div>
                         ))}
                       </div>
                     </div>
