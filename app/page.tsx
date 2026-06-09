@@ -749,7 +749,7 @@ export default function Home() {
                         <Package className="w-8 h-8 text-neutral-700" />}
                       {avail === 0 && <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl"><span className="text-red-400 font-bold text-xs">Нет</span></div>}
                       {avail > 0 && avail <= 3 && <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-orange-500/20 border border-orange-500/30"><span className="text-[9px] text-orange-400">{avail} шт.</span></div>}
-                      {p.is_preorder && <div className="absolute top-1,5 left-1.5 px-1 py-0.5 rounded-md bg-pink-500/20 border border-pink-500/30"><span className="text-[9px] text-pink-400">Предзаказ</span></div>}
+                      {p.is_preorder && <div className="absolute top-1,5 left-1.5 px-1,5 py-0.5 rounded-md bg-pink-500/20 border border-pink-500/30"><span className="text-[9px] text-pink-400">Предзаказ</span></div>}
                     </div>
                     <h3 className="font-semibold text-xs mb-1 line-clamp-2">{p.name}</h3>
                     <div className="flex items-center justify-between">
