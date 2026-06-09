@@ -1,14 +1,11 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, ShieldAlert, ShieldCheck, Shield, Edit, Eye, EyeOff, MessageCircle, Send, UserCheck } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, ShieldAlert, ShieldCheck, Shield, Edit, Eye, EyeOff, MessageCircle, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-// ⚙️ НАСТРОЙКИ - поменяй при необходимости
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
-const MANAGER_USERNAME = 'zslvape'; // Юзернейм менеджера БЕЗ @
-const CHANNEL_USERNAME = 'zslvape'; // Юзернейм канала БЕЗ @
-const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
+const MANAGER_USERNAME = 'zslvape';
 
 interface Flavor { name: string; stock: number; }
 interface Product { 
@@ -37,10 +34,6 @@ declare global {
 export default function Home() {
   const [ageVerified, setAgeVerified] = useState<boolean | null>(null);
   const [ageDeclined, setAgeDeclined] = useState(false);
-  const [subscriptionChecked, setSubscriptionChecked] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
-  const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
-  const [telegramUsername, setTelegramUsername] = useState<string>('');
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
@@ -58,6 +51,8 @@ export default function Home() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [lastOrderNumber, setLastOrderNumber] = useState<number>(0);
+  const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
+  const [telegramUsername, setTelegramUsername] = useState<string>('');
 
   // Админ
   const [isAdmin, setIsAdmin] = useState(false);
@@ -71,7 +66,7 @@ export default function Home() {
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [formFlavors, setFormFlavors] = useState<Flavor[]>([]);
 
-  // Telegram
+  // Инициализация Telegram
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
@@ -85,7 +80,7 @@ export default function Home() {
     }
   }, []);
 
-  // Возраст
+  // Проверка возраста
   useEffect(() => {
     const v = localStorage.getItem('liqvape_age_verified');
     if (v === 'true') setAgeVerified(true);
@@ -97,50 +92,6 @@ export default function Home() {
     localStorage.setItem('liqvape_age_verified', isAdult.toString());
     setAgeVerified(isAdult);
     if (!isAdult) setAgeDeclined(true);
-  };
-
-  // Проверка подписки на канал
-  const checkSubscription = useCallback(async () => {
-    if (!telegramUserId) {
-      // Если нет Telegram user ID (открыто не в Telegram) - пропускаем проверку
-      setSubscriptionChecked(true);
-      setIsSubscribed(true);
-      return;
-    }
-    
-    try {
-      const response = await fetch('/api/check-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: telegramUserId }),
-      });
-      const data = await response.json();
-      setIsSubscribed(data.subscribed);
-    } catch (error) {
-      console.error('Ошибка проверки подписки:', error);
-      setIsSubscribed(false);
-    } finally {
-      setSubscriptionChecked(true);
-    }
-  }, [telegramUserId]);
-
-  // Запускаем проверку подписки после подтверждения возраста
-  useEffect(() => {
-    if (ageVerified && telegramUserId !== null) {
-      checkSubscription();
-    }
-  }, [ageVerified, telegramUserId, checkSubscription]);
-
-  const handleSubscribe = () => {
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
-      window.Telegram.WebApp.openTelegramLink(CHANNEL_LINK);
-    } else {
-      window.open(CHANNEL_LINK, '_blank');
-    }
-    // Даём время подписаться и проверяем снова через 3 секунды
-    setTimeout(() => {
-      checkSubscription();
-    }, 3000);
   };
 
   // User ID
@@ -163,7 +114,7 @@ export default function Home() {
     if (!includeHidden) query = query.eq('is_hidden', false);
     
     const { data, error } = await query;
-    if (error) { console.error('Ошибка:', error); return; }
+    if (error) { console.error('Ошибка загрузки товаров:', error); return; }
     
     if (data && data.length > 0) {
       const parsed = data.map((p: any) => ({
@@ -190,13 +141,13 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (ageVerified && isSubscribed) {
+    if (ageVerified) {
       loadProducts(isAdmin);
       if (isAdmin) loadAllOrders();
     }
-  }, [ageVerified, isSubscribed, isAdmin, loadProducts, loadAllOrders]);
+  }, [ageVerified, isAdmin, loadProducts, loadAllOrders]);
 
-  useEffect(() => { if (userId && ageVerified && isSubscribed) loadUserOrders(); }, [userId, ageVerified, isSubscribed, loadUserOrders]);
+  useEffect(() => { if (userId && ageVerified) loadUserOrders(); }, [userId, ageVerified, loadUserOrders]);
 
   // Уведомления
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
@@ -320,10 +271,14 @@ export default function Home() {
   };
 
   const contactUser = (username?: string) => {
-  if (!username) return;
-  const link = `https://t.me/${username.replace('@', '')
-  }`;
-
+    if (!username) return;
+    const link = `https://t.me/${username.replace('@', '')}`;
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(link);
+    } else {
+      window.open(link, '_blank');
+    }
+  };
 
   // АДМИН ФУНКЦИИ
   const handleAdminLogin = () => {
@@ -427,13 +382,9 @@ export default function Home() {
     return true;
   });
 
-  // Экран загрузки
-  if (ageVerified === null || !subscriptionChecked) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-gray-500 text-sm">Загрузка...</div>
-      </div>
-    );
+  // Экраны
+  if (ageVerified === null) {
+    return <div className="min-h-screen bg-black flex items-center justify-center"><div className="text-gray-500 text-sm">Загрузка...</div></div>;
   }
   
   if (ageDeclined) return (
@@ -449,40 +400,6 @@ export default function Home() {
       </div>
     </div>
   );
-
-  // Проверка подписки на канал
-  if (ageVerified && isSubscribed === false) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center p-4">
-        <div className="w-full max-w-sm glass-panel p-6 text-center">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
-            <UserCheck className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-xl font-bold text-white mb-2">Подпишись на канал</h1>
-          <p className="text-gray-400 text-xs mb-4 leading-relaxed">
-            Для доступа к магазину необходимо подписаться на наш Telegram канал
-          </p>
-          <div className="glass-card p-3 mb-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-              <Send className="w-5 h-5 text-white" />
-            </div>
-            <div className="text-left flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">@{CHANNEL_USERNAME}</p>
-              <p className="text-[10px] text-gray-400">Наш Telegram канал</p>
-            </div>
-          </div>
-          <button onClick={handleSubscribe}
-            className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
-            <Send className="w-4 h-4" /> Подписаться
-          </button>
-          <button onClick={checkSubscription}
-            className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">
-            Я уже подписался ✓
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // АДМИН ПАНЕЛЬ
   if (showAdminPanel) {
@@ -598,7 +515,7 @@ export default function Home() {
                     </div>
                     <div className="flex gap-1">
                       {o.username && (
-                        <button onClick={() => o.username && contactUser(o.username)}
+                        <button onClick={() => contactUser(o.username)}
                           className="flex-1 py-1.5 rounded-md bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30 text-orange-400 text-[10px] font-medium flex items-center justify-center gap-1">
                           <MessageCircle className="w-3 h-3" /> Написать
                         </button>
@@ -1043,5 +960,4 @@ export default function Home() {
       `}</style>
     </div>
   );
-};
 }
