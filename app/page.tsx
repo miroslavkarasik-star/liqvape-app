@@ -601,7 +601,7 @@ export default function Home() {
                     </div>
                     <div className="flex gap-1">
                       {o.username && (
-                        <button onClick={() => contactUser(o.username)}
+                        <button onClick={() => o.username && contactUser(o.username)}
                           className="flex-1 py-1.5 rounded-md bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30 text-orange-400 text-[10px] font-medium flex items-center justify-center gap-1">
                           <MessageCircle className="w-3 h-3" /> Написать
                         </button>
