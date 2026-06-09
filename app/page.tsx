@@ -1,10 +1,14 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, ShieldAlert, ShieldCheck, Shield, Edit, Eye, EyeOff } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, ShieldAlert, ShieldCheck, Shield, Edit, Eye, EyeOff, MessageCircle, Send, UserCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+// ⚙️ НАСТРОЙКИ - поменяй при необходимости
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
+const MANAGER_USERNAME = 'zslvape'; // Юзернейм менеджера БЕЗ @
+const CHANNEL_USERNAME = 'zslvape'; // Юзернейм канала БЕЗ @
+const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
 
 interface Flavor { name: string; stock: number; }
 interface Product { 
@@ -13,7 +17,7 @@ interface Product {
 }
 interface CartItem { productId: number; productName: string; flavor: string; price: number; quantity: number; }
 interface Order { 
-  id: string; user_id: string; order_number: number; order_date: string; 
+  id: string; user_id: string; username?: string; order_number: number; order_date: string; 
   items: CartItem[]; total_price: number; status: string; created_at: string;
 }
 
@@ -22,8 +26,9 @@ declare global {
     Telegram?: {
       WebApp: {
         ready: () => void; expand: () => void; close: () => void;
+        openTelegramLink: (url: string) => void;
         HapticFeedback: { impactOccurred: (s: string) => void; notificationOccurred: (t: string) => void; };
-        initDataUnsafe?: { user?: { id: number; username?: string; first_name?: string; } };
+        initDataUnsafe?: { user?: { id: number; username?: string; first_name?: string; last_name?: string; } };
       };
     };
   }
@@ -32,6 +37,10 @@ declare global {
 export default function Home() {
   const [ageVerified, setAgeVerified] = useState<boolean | null>(null);
   const [ageDeclined, setAgeDeclined] = useState(false);
+  const [subscriptionChecked, setSubscriptionChecked] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
+  const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
+  const [telegramUsername, setTelegramUsername] = useState<string>('');
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
@@ -47,6 +56,8 @@ export default function Home() {
   const [notification, setNotification] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
   const [notificationVisible, setNotificationVisible] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [lastOrderNumber, setLastOrderNumber] = useState<number>(0);
 
   // Админ
   const [isAdmin, setIsAdmin] = useState(false);
@@ -65,6 +76,12 @@ export default function Home() {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
+      
+      const user = window.Telegram.WebApp.initDataUnsafe?.user;
+      if (user) {
+        setTelegramUserId(user.id);
+        setTelegramUsername(user.username || user.first_name || '');
+      }
     }
   }, []);
 
@@ -82,6 +99,50 @@ export default function Home() {
     if (!isAdult) setAgeDeclined(true);
   };
 
+  // Проверка подписки на канал
+  const checkSubscription = useCallback(async () => {
+    if (!telegramUserId) {
+      // Если нет Telegram user ID (открыто не в Telegram) - пропускаем проверку
+      setSubscriptionChecked(true);
+      setIsSubscribed(true);
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/check-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: telegramUserId }),
+      });
+      const data = await response.json();
+      setIsSubscribed(data.subscribed);
+    } catch (error) {
+      console.error('Ошибка проверки подписки:', error);
+      setIsSubscribed(false);
+    } finally {
+      setSubscriptionChecked(true);
+    }
+  }, [telegramUserId]);
+
+  // Запускаем проверку подписки после подтверждения возраста
+  useEffect(() => {
+    if (ageVerified && telegramUserId !== null) {
+      checkSubscription();
+    }
+  }, [ageVerified, telegramUserId, checkSubscription]);
+
+  const handleSubscribe = () => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(CHANNEL_LINK);
+    } else {
+      window.open(CHANNEL_LINK, '_blank');
+    }
+    // Даём время подписаться и проверяем снова через 3 секунды
+    setTimeout(() => {
+      checkSubscription();
+    }, 3000);
+  };
+
   // User ID
   useEffect(() => {
     let id = localStorage.getItem('liqvape_user_id');
@@ -96,7 +157,7 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_cart', JSON.stringify(cart)); }, [cart]);
 
-  // Загрузка товаров из Supabase
+  // Загрузка товаров
   const loadProducts = useCallback(async (includeHidden = false) => {
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
     if (!includeHidden) query = query.eq('is_hidden', false);
@@ -113,33 +174,29 @@ export default function Home() {
       }));
       setProducts(parsed);
     } else {
-      // База пустая - показываем пустой список (пользователь сам добавит товары)
       setProducts([]);
     }
   }, []);
 
-  // Загрузка заказов пользователя
   const loadUserOrders = useCallback(async () => {
     if (!userId) return;
     const { data } = await supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (data) setUserOrders(data);
   }, [userId]);
 
-  // Загрузка всех заказов для админа
   const loadAllOrders = useCallback(async () => {
     const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
     if (data) setAllOrders(data);
   }, []);
 
-  // Загружаем товары и заказы
   useEffect(() => {
-    if (ageVerified) {
+    if (ageVerified && isSubscribed) {
       loadProducts(isAdmin);
       if (isAdmin) loadAllOrders();
     }
-  }, [ageVerified, isAdmin, loadProducts, loadAllOrders]);
+  }, [ageVerified, isSubscribed, isAdmin, loadProducts, loadAllOrders]);
 
-  useEffect(() => { if (userId && ageVerified) loadUserOrders(); }, [userId, ageVerified, loadUserOrders]);
+  useEffect(() => { if (userId && ageVerified && isSubscribed) loadUserOrders(); }, [userId, ageVerified, isSubscribed, loadUserOrders]);
 
   // Уведомления
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
@@ -220,8 +277,13 @@ export default function Home() {
       const nextNum = todayOrders && todayOrders.length > 0 ? todayOrders[0].order_number + 1 : 1;
       
       const { error } = await supabase.from('orders').insert({
-        user_id: userId, order_number: nextNum, order_date: today,
-        items: cart, total_price: cart.reduce((s, i) => s + i.price * i.quantity, 0), status: 'new',
+        user_id: userId,
+        username: telegramUsername || null,
+        order_number: nextNum, 
+        order_date: today,
+        items: cart, 
+        total_price: cart.reduce((s, i) => s + i.price * i.quantity, 0), 
+        status: 'new',
       });
       
       if (error) { showNotification('Ошибка заказа', 'error'); setIsCheckingOut(false); return; }
@@ -235,12 +297,35 @@ export default function Home() {
         })};
       });
       setProducts(updated);
-      const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-      showNotification(`Заказ №${nextNum} оформлен на ${total} BYN!`);
-      setCart([]); setShowCart(false);
+      
+      setLastOrderNumber(nextNum);
+      setShowOrderSuccess(true);
+      setCart([]); 
+      setShowCart(false);
       await loadUserOrders();
-    } catch(e) { showNotification('Ошибка', 'error'); }
-    finally { setIsCheckingOut(false); }
+    } catch(e) { 
+      showNotification('Ошибка', 'error'); 
+    } finally { 
+      setIsCheckingOut(false); 
+    }
+  };
+
+  const contactManager = () => {
+    const link = `https://t.me/${MANAGER_USERNAME}`;
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(link);
+    } else {
+      window.open(link, '_blank');
+    }
+  };
+
+  const contactUser = (username: string) => {
+    const link = `https://t.me/${username.replace('@', '')}`;
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(link);
+    } else {
+      window.open(link, '_blank');
+    }
   };
 
   // АДМИН ФУНКЦИИ
@@ -345,8 +430,14 @@ export default function Home() {
     return true;
   });
 
-  // Экраны
-  if (ageVerified === null) return <div className="min-h-screen bg-black flex items-center justify-center"><div className="text-gray-500 text-sm">Загрузка...</div></div>;
+  // Экран загрузки
+  if (ageVerified === null || !subscriptionChecked) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-gray-500 text-sm">Загрузка...</div>
+      </div>
+    );
+  }
   
   if (ageDeclined) return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
@@ -362,12 +453,45 @@ export default function Home() {
     </div>
   );
 
+  // Проверка подписки на канал
+  if (ageVerified && isSubscribed === false) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="w-full max-w-sm glass-panel p-6 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
+            <UserCheck className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-xl font-bold text-white mb-2">Подпишись на канал</h1>
+          <p className="text-gray-400 text-xs mb-4 leading-relaxed">
+            Для доступа к магазину необходимо подписаться на наш Telegram канал
+          </p>
+          <div className="glass-card p-3 mb-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+              <Send className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-left flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">@{CHANNEL_USERNAME}</p>
+              <p className="text-[10px] text-gray-400">Наш Telegram канал</p>
+            </div>
+          </div>
+          <button onClick={handleSubscribe}
+            className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
+            <Send className="w-4 h-4" /> Подписаться
+          </button>
+          <button onClick={checkSubscription}
+            className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">
+            Я уже подписался ✓
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // АДМИН ПАНЕЛЬ
   if (showAdminPanel) {
     return (
       <div className="min-h-screen bg-black text-white p-3">
         <div className="max-w-2xl mx-auto">
-          {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center">
@@ -383,7 +507,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Вкладки */}
           <div className="flex gap-2 mb-4">
             <button onClick={() => setAdminTab('orders')}
               className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'orders' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
@@ -441,7 +564,6 @@ export default function Home() {
             </>
           ) : (
             <>
-              {/* Фильтры заказов */}
               <div className="flex gap-1 mb-3">
                 <button onClick={() => setOrderFilter('all')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'all' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5'}`}>
                   Все ({allOrders.length})
@@ -458,12 +580,17 @@ export default function Home() {
                 {filteredOrders.map(o => (
                   <div key={o.id} className="glass-card p-3">
                     <div className="flex items-start justify-between mb-2">
-                      <div>
+                      <div className="flex-1">
                         <h3 className="font-bold text-sm">Заказ #{o.order_number}</h3>
                         <p className="text-[10px] text-gray-400">
                           {new Date(o.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        <p className="text-[9px] text-gray-500 mt-0.5">ID: {o.user_id.slice(0, 8)}...</p>
+                        {o.username && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <MessageCircle className="w-3 h-3 text-orange-400" />
+                            <span className="text-[11px] text-orange-400 font-medium">@{o.username}</span>
+                          </div>
+                        )}
                       </div>
                       <span className="text-base font-bold gradient-text">{o.total_price} BYN</span>
                     </div>
@@ -473,6 +600,12 @@ export default function Home() {
                       ))}
                     </div>
                     <div className="flex gap-1">
+                      {o.username && (
+                        <button onClick={() => contactUser(o.username)}
+                          className="flex-1 py-1.5 rounded-md bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30 text-orange-400 text-[10px] font-medium flex items-center justify-center gap-1">
+                          <MessageCircle className="w-3 h-3" /> Написать
+                        </button>
+                      )}
                       <button onClick={() => updateOrderStatus(o.id, o.status === 'done' ? 'new' : 'done')}
                         className={`flex-1 py-1.5 rounded-md text-[10px] font-medium ${o.status === 'done' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>
                         {o.status === 'done' ? 'Вернуть' : '✓ Выдан'}
@@ -494,7 +627,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Форма товара */}
         {showProductForm && editingProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
             <div className="glass-panel w-full max-w-md max-h-[90vh] overflow-y-auto p-4">
@@ -591,8 +723,44 @@ export default function Home() {
         </div>
       )}
 
+      {/* Окно "Спасибо за заказ" */}
+      {showOrderSuccess && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-6 text-center">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
+              <CheckCircle className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Спасибо за заказ!</h2>
+            <p className="text-gray-400 text-sm mb-2">
+              Ваш заказ <span className="text-orange-400 font-bold">№{lastOrderNumber}</span> успешно оформлен
+            </p>
+            <p className="text-gray-400 text-xs mb-6 leading-relaxed">
+              Для подтверждения заказа напишите нашему менеджеру в Telegram
+            </p>
+            
+            <div className="glass-card p-3 mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <p className="text-sm font-bold text-white">Менеджер</p>
+                <p className="text-[11px] text-orange-400">@{MANAGER_USERNAME}</p>
+              </div>
+            </div>
+
+            <button onClick={contactManager}
+              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
+              <Send className="w-4 h-4" /> Написать менеджеру
+            </button>
+            <button onClick={() => setShowOrderSuccess(false)}
+              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">
+              Закрыть
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto px-3">
-        {/* Header */}
         <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40 pulse-glow">
@@ -603,7 +771,6 @@ export default function Home() {
               <p className="text-[10px] text-gray-500">premium shop</p>
             </div>
             <div className="ml-auto flex items-center gap-1.5">
-              {/* Все кнопки в одном стиле - оранжевый с розовым */}
               <button onClick={() => setShowAdminLogin(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
                 <Shield className="w-4 h-4 text-orange-400" />
               </button>
@@ -631,7 +798,7 @@ export default function Home() {
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-custom">
-            {CATEGORIES.map((c, i) => (
+            {CATEGORIES.map((c) => (
               <button key={c} onClick={() => setSelectedCategory(c)}
                 className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium transition-all ${
                   selectedCategory === c ? 'glass-button-active text-white' : 'glass-button text-gray-400'
@@ -677,7 +844,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Вход админа */}
       {showAdminLogin && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-5">
@@ -694,7 +860,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Проверка возраста */}
       {ageVerified === false && !ageDeclined && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 text-center">
@@ -715,7 +880,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Модалка товара */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProduct(null)}></div>
@@ -783,7 +947,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* Корзина */}
       {showCart && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCart(false)}></div>
@@ -841,7 +1004,6 @@ export default function Home() {
         </div>
       )}
 
-      {/* История */}
       {showHistory && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowHistory(false)}></div>
