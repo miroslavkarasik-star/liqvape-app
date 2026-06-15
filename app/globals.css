@@ -247,3 +247,23 @@ input:focus {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.product-image-glow {
+  position: relative;
+}
+
+.product-image-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, rgba(255, 94, 0, 0.3), rgba(255, 0, 127, 0.3));
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(8px);
+  opacity: 0.6;
+}
+
+.product-image-glow img {
+  position: relative;
+  z-index: 1;
+}
