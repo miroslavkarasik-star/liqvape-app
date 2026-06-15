@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
-const MANAGER_USERNAME = 'zslvape';
+const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'zslvape';
 const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
 
@@ -829,6 +829,7 @@ export default function Home() {
                           ? 'opacity-50 cursor-not-allowed' 
                           : 'cursor-pointer group hover:border-orange-500/30'
                     }`}>
+                    {/* КВАДРАТНАЯ КАРТОЧКА С ЗАКРУГЛЁННОЙ КАРТИНКОЙ */}
                     <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden">
                       {p.image ? (
                         <img src={p.image} alt={p.name} className={`w-full h-full object-contain p-4 rounded-2xl ${isPreorder ? 'brightness-50' : ''}`} />
@@ -914,6 +915,7 @@ export default function Home() {
           <div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10">
             <button onClick={() => setSelectedProduct(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button>
             <div className="p-4">
+              {/* КВАДРАТНОЕ ЗАКРУГЛЁННОЕ ФОТО */}
               {selectedProduct.image ? (
                 <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
                   <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-contain p-6 rounded-2xl" />
