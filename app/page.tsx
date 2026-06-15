@@ -726,7 +726,6 @@ export default function Home() {
             </p>
             <div className="glass-card p-3 mb-4">
               <p className="text-sm text-gray-300 mb-1">Цена: <span className="text-white font-bold">{selectedPreorderProduct.price} BYN</span></p>
-              <p className="text-[11px] text-gray-500">Срок доставки: 3-7 дней</p>
             </div>
             <div className="glass-card p-3 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
@@ -825,28 +824,28 @@ export default function Home() {
                         openProductModal(p);
                       }
                     }}
-                    className={`glass-card p-3 transition-all ${
+                    className={`glass-card p-2 aspect-square flex flex-col transition-all ${
                       isPreorder 
                         ? 'opacity-60 cursor-pointer hover:opacity-80' 
                         : avail === 0 
                           ? 'opacity-50 cursor-not-allowed' 
                           : 'cursor-pointer group hover:border-orange-500/30'
                     }`}>
-                    <div className="w-full h-28 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-2 flex items-center justify-center relative overflow-hidden">
+                    <div className="w-full flex-1 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden">
                       {p.image ? (
-                        <img src={p.image} alt={p.name} className={`w-full h-full object-contain p-2 ${isPreorder ? 'brightness-50' : ''}`} />
+                        <img src={p.image} alt={p.name} className={`w-full h-full object-contain p-3 ${isPreorder ? 'brightness-50' : ''}`} />
                       ) : (
-                        <Package className={`w-8 h-8 text-neutral-700 ${isPreorder ? 'opacity-50' : ''}`} />
+                        <Package className={`w-10 h-10 text-neutral-700 ${isPreorder ? 'opacity-50' : ''}`} />
                       )}
                       {isPreorder && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-                          <span className="text-white font-bold text-sm px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">
+                          <span className="text-white font-bold text-xs px-2 py-1 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">
                             ПРЕДЗАКАЗ
                           </span>
                         </div>
                       )}
                       {!isPreorder && avail === 0 && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl">
                           <span className="text-red-400 font-bold text-xs">Нет</span>
                         </div>
                       )}
@@ -856,11 +855,11 @@ export default function Home() {
                         </div>
                       )}
                     </div>
-                    <h3 className={`font-semibold text-xs mb-1 line-clamp-2 ${isPreorder ? 'text-gray-400' : 'text-white group-hover:text-orange-400'}`}>
+                    <h3 className={`font-semibold text-[11px] mb-1 line-clamp-2 text-center ${isPreorder ? 'text-gray-400' : 'text-white group-hover:text-orange-400'}`}>
                       {p.name}
                     </h3>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-bold ${isPreorder ? 'text-gray-500' : 'gradient-text'}`}>
+                    <div className="flex items-center justify-between mt-auto">
+                      <span className={`text-xs font-bold ${isPreorder ? 'text-gray-500' : 'gradient-text'}`}>
                         {p.price} BYN
                       </span>
                       <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">
@@ -912,65 +911,67 @@ export default function Home() {
       )}
 
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProduct(null)}></div>
-          <div className="relative glass-panel w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto relative z-10">
+          <div className="relative glass-panel w-full max-w-sm aspect-square rounded-3xl overflow-y-auto relative z-10">
             <button onClick={() => setSelectedProduct(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button>
-            <div className="p-4">
-              {selectedProduct.image ? <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-40 object-contain rounded-xl mb-3" /> :
-                <div className="w-full h-40 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-3 flex items-center justify-center"><Package className="w-12 h-12 text-neutral-700" /></div>}
-              <h2 className="text-xl font-bold mb-1">{selectedProduct.name}</h2>
-              <p className="text-2xl font-bold gradient-text mb-4">{selectedProduct.price} BYN</p>
-              {selectedProduct.variants.length > 0 && (
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs text-gray-400 font-medium">ВЫБЕРИТЕ ЦВЕТ / ВАРИАНТ:</p>
-                    <p className="text-[10px] text-gray-500">{selectedProduct.variants.filter(f => getAvailableStock(selectedProduct.id, f.name) > 0).length} доступно</p>
+            <div className="p-4 h-full flex flex-col">
+              {selectedProduct.image ? <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full aspect-square object-contain rounded-2xl mb-3" /> :
+                <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-3 flex items-center justify-center"><Package className="w-16 h-16 text-neutral-700" /></div>}
+              <h2 className="text-lg font-bold mb-1 text-center">{selectedProduct.name}</h2>
+              <p className="text-xl font-bold gradient-text mb-3 text-center">{selectedProduct.price} BYN</p>
+              <div className="flex-1 overflow-y-auto">
+                {selectedProduct.variants.length > 0 && (
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs text-gray-400 font-medium">ВЫБЕРИТЕ ЦВЕТ / ВАРИАНТ:</p>
+                      <p className="text-[10px] text-gray-500">{selectedProduct.variants.filter(f => getAvailableStock(selectedProduct.id, f.name) > 0).length} доступно</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      {visibleVariants.map((v, i) => {
+                        const avail = getAvailableStock(selectedProduct.id, v.name);
+                        const inCart = getCartQuantity(selectedProduct.id, v.name);
+                        return (
+                          <label key={i} className={`flex items-center justify-between p-2 rounded-lg border cursor-pointer ${
+                            selectedVariant === v.name ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5'
+                          } ${avail === 0 ? 'opacity-50' : ''}`}>
+                            <div className="flex items-center gap-2">
+                              <input type="radio" name="variant" checked={selectedVariant === v.name}
+                                onChange={() => avail > 0 && setSelectedVariant(v.name)} className="w-3.5 h-3.5 accent-orange-500" disabled={avail === 0} />
+                              <div><span className="text-xs">{v.name}</span>{inCart > 0 && <span className="ml-1.5 text-[9px] text-orange-400">({inCart})</span>}</div>
+                            </div>
+                            <span className={`text-[10px] font-medium ${avail > 0 ? 'text-green-400' : 'text-red-400'}`}>{avail > 0 ? `${avail} шт.` : 'Нет'}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {hiddenVariantsCount > 0 && !showAllVariants && (
+                      <button onClick={() => setShowAllVariants(true)} className="w-full mt-2 py-1.5 rounded-lg border border-orange-500/30 text-orange-400 text-xs">↓ Ещё {hiddenVariantsCount}</button>
+                    )}
+                    {showAllVariants && hiddenVariantsCount > 0 && (
+                      <button onClick={() => setShowAllVariants(false)} className="w-full mt-2 py-1.5 rounded-lg border border-white/10 text-gray-400 text-xs">↑ Свернуть</button>
+                    )}
                   </div>
-                  <div className="space-y-1.5">
-                    {visibleVariants.map((v, i) => {
-                      const avail = getAvailableStock(selectedProduct.id, v.name);
-                      const inCart = getCartQuantity(selectedProduct.id, v.name);
-                      return (
-                        <label key={i} className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer ${
-                          selectedVariant === v.name ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5'
-                        } ${avail === 0 ? 'opacity-50' : ''}`}>
-                          <div className="flex items-center gap-2">
-                            <input type="radio" name="variant" checked={selectedVariant === v.name}
-                              onChange={() => avail > 0 && setSelectedVariant(v.name)} className="w-3.5 h-3.5 accent-orange-500" disabled={avail === 0} />
-                            <div><span className="text-xs">{v.name}</span>{inCart > 0 && <span className="ml-1.5 text-[9px] text-orange-400">({inCart} в корзине)</span>}</div>
-                          </div>
-                          <span className={`text-[10px] font-medium ${avail > 0 ? 'text-green-400' : 'text-red-400'}`}>{avail > 0 ? `${avail} шт.` : 'Нет'}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                  {hiddenVariantsCount > 0 && !showAllVariants && (
-                    <button onClick={() => setShowAllVariants(true)} className="w-full mt-2 py-2 rounded-lg border border-orange-500/30 text-orange-400 text-xs">↓ Показать ещё {hiddenVariantsCount}</button>
-                  )}
-                  {showAllVariants && hiddenVariantsCount > 0 && (
-                    <button onClick={() => setShowAllVariants(false)} className="w-full mt-2 py-2 rounded-lg border border-white/10 text-gray-400 text-xs">↑ Свернуть</button>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
               {availableStock > 0 ? (
                 <>
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between glass-card p-3">
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between glass-card p-2">
                       <span className="text-xs font-medium">Количество:</span>
                       <div className="flex items-center gap-3">
-                        <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><Minus className="w-3 h-3" /></button>
-                        <span className="text-base font-bold w-6 text-center">{quantity}</span>
+                        <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Minus className="w-3 h-3" /></button>
+                        <span className="text-sm font-bold w-5 text-center">{quantity}</span>
                         <button onClick={() => quantity + 1 > availableStock ? showNotification(`Максимум: ${availableStock} шт.`, 'error') : setQuantity(quantity + 1)}
-                          className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><Plus className="w-3 h-3" /></button>
+                          className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Plus className="w-3 h-3" /></button>
                       </div>
                     </div>
                   </div>
-                  <button onClick={addToCart} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-1.5 text-sm">
+                  <button onClick={addToCart} className="w-full py-2.5 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-1.5 text-sm">
                     <ShoppingBag className="w-4 h-4" /> В корзину • {selectedProduct.price * quantity} BYN
                   </button>
                 </>
-              ) : <div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-red-400 text-sm">Нет в наличии</div>}
+              ) : <div className="w-full py-2.5 rounded-xl font-bold bg-white/5 text-center text-red-400 text-sm">Нет в наличии</div>}
             </div>
           </div>
         </div>
