@@ -79,7 +79,7 @@ body {
 .lava-blob-3 {
   width: 200px;
   height: 200px;
-  background: linear-gradient(135deg, #8338ec, #3a86ff);
+  background: linear-gradient(135deg, #d08d1a, #d17122);
   bottom: 20%;
   left: 30%;
   animation: float3 22s infinite;
