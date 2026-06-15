@@ -56,6 +56,8 @@ export default function Home() {
   const [telegramUserId, setTelegramUserId] = useState<number | null>(null);
   const [telegramUsername, setTelegramUsername] = useState<string>('');
   const [showSubscribePrompt, setShowSubscribePrompt] = useState(false);
+  const [showPreorderModal, setShowPreorderModal] = useState(false);
+  const [selectedPreorderProduct, setSelectedPreorderProduct] = useState<Product | null>(null);
 
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -707,6 +709,52 @@ export default function Home() {
         </div>
       )}
 
+      {showPreorderModal && selectedPreorderProduct && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
+            <button 
+              onClick={() => setShowPreorderModal(false)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+              <X className="w-4 h-4 text-gray-400" />
+            </button>
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
+              <ShoppingBag className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Товар доступен по предзаказу</h2>
+            <p className="text-gray-400 text-xs mb-4 leading-relaxed">
+              <span className="text-orange-400 font-bold">{selectedPreorderProduct.name}</span> доступен для предварительного заказа. Напишите менеджеру для оформления.
+            </p>
+            <div className="glass-card p-3 mb-4">
+              <p className="text-sm text-gray-300 mb-1">Цена: <span className="text-white font-bold">{selectedPreorderProduct.price} BYN</span></p>
+              <p className="text-[11px] text-gray-500">Срок доставки: 3-7 дней</p>
+            </div>
+            <div className="glass-card p-3 mb-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left flex-1 min-w-0">
+                <p className="text-sm font-bold text-white">Менеджер</p>
+                <p className="text-[11px] text-orange-400">@{MANAGER_USERNAME}</p>
+              </div>
+            </div>
+            <button onClick={() => {
+              if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+                window.Telegram.WebApp.openTelegramLink(`https://t.me/${MANAGER_USERNAME}`);
+              } else {
+                window.open(`https://t.me/${MANAGER_USERNAME}`, '_blank');
+              }
+            }}
+              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
+              <Send className="w-4 h-4" /> Написать менеджеру
+            </button>
+            <button onClick={() => setShowPreorderModal(false)}
+              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs hover:bg-white/10 transition-colors">
+              Закрыть
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto px-3 relative z-10">
         <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-2">
@@ -769,17 +817,24 @@ export default function Home() {
                 return (
                   <div 
                     key={p.id} 
-                    onClick={() => !isPreorder && avail > 0 && openProductModal(p)}
+                    onClick={() => {
+                      if (isPreorder) {
+                        setSelectedPreorderProduct(p);
+                        setShowPreorderModal(true);
+                      } else if (avail > 0) {
+                        openProductModal(p);
+                      }
+                    }}
                     className={`glass-card p-3 transition-all ${
                       isPreorder 
-                        ? 'opacity-60 cursor-not-allowed grayscale-[0.5]' 
+                        ? 'opacity-60 cursor-pointer hover:opacity-80' 
                         : avail === 0 
                           ? 'opacity-50 cursor-not-allowed' 
                           : 'cursor-pointer group hover:border-orange-500/30'
                     }`}>
                     <div className="w-full h-28 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-2 flex items-center justify-center relative overflow-hidden">
                       {p.image ? (
-                        <img src={p.image} alt={p.name} className={`w-full h-full object-cover rounded-xl ${isPreorder ? 'brightness-50' : ''}`} />
+                        <img src={p.image} alt={p.name} className={`w-full h-full object-contain p-2 ${isPreorder ? 'brightness-50' : ''}`} />
                       ) : (
                         <Package className={`w-8 h-8 text-neutral-700 ${isPreorder ? 'opacity-50' : ''}`} />
                       )}
@@ -862,7 +917,7 @@ export default function Home() {
           <div className="relative glass-panel w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto relative z-10">
             <button onClick={() => setSelectedProduct(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button>
             <div className="p-4">
-              {selectedProduct.image ? <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-40 object-cover rounded-xl mb-3" /> :
+              {selectedProduct.image ? <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-40 object-contain rounded-xl mb-3" /> :
                 <div className="w-full h-40 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-3 flex items-center justify-center"><Package className="w-12 h-12 text-neutral-700" /></div>}
               <h2 className="text-xl font-bold mb-1">{selectedProduct.name}</h2>
               <p className="text-2xl font-bold gradient-text mb-4">{selectedProduct.price} BYN</p>
