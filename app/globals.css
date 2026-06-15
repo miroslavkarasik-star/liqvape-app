@@ -23,20 +23,103 @@ body {
   position: relative;
 }
 
-/* Статичный градиентный фон (более тёмный) */
-body::before {
-  content: '';
+/* Лавовая лампа - фон */
+.lava-lamp {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: 
-    radial-gradient(circle at 15% 20%, rgba(255, 94, 0, 0.08) 0%, transparent 40%),
-    radial-gradient(circle at 85% 80%, rgba(255, 0, 127, 0.06) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(255, 100, 0, 0.04) 0%, transparent 60%);
-  z-index: -1;
+  overflow: hidden;
+  z-index: 0;
   pointer-events: none;
+}
+
+.lava-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+  will-change: transform;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@media (max-width: 768px) {
+  .lava-blob {
+    filter: blur(40px);
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lava-blob {
+    animation: none;
+  }
+}
+
+.lava-blob-1 {
+  width: 300px;
+  height: 300px;
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  top: 10%;
+  left: 10%;
+  animation: float1 20s infinite;
+}
+
+.lava-blob-2 {
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(135deg, #ff006e, #ff4d6d);
+  top: 60%;
+  right: 10%;
+  animation: float2 25s infinite;
+}
+
+.lava-blob-3 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, #8338ec, #3a86ff);
+  bottom: 20%;
+  left: 30%;
+  animation: float3 22s infinite;
+}
+
+.lava-blob-4 {
+  width: 180px;
+  height: 180px;
+  background: linear-gradient(135deg, #fb5607, #ffbe0b);
+  top: 40%;
+  left: 50%;
+  animation: float4 28s infinite;
+}
+
+@keyframes float1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(100px, 50px) scale(1.1); }
+  50% { transform: translate(50px, 150px) scale(0.9); }
+  75% { transform: translate(-50px, 100px) scale(1.05); }
+}
+
+@keyframes float2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-80px, -60px) scale(1.15); }
+  50% { transform: translate(-120px, 80px) scale(0.95); }
+  75% { transform: translate(40px, -40px) scale(1.1); }
+}
+
+@keyframes float3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(120px, -80px) scale(1.2); }
+  66% { transform: translate(-60px, -120px) scale(0.9); }
+}
+
+@keyframes float4 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  20% { transform: translate(-100px, 80px) scale(1.1); }
+  40% { transform: translate(80px, 120px) scale(0.95); }
+  60% { transform: translate(120px, -60px) scale(1.15); }
+  80% { transform: translate(-40px, -100px) scale(1.05); }
 }
 
 /* Glass эффекты */
@@ -86,7 +169,6 @@ body::before {
   box-shadow: 0 4px 20px rgba(255, 94, 0, 0.3);
 }
 
-/* Кастомный скроллбар для категорий */
 .scrollbar-custom {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 94, 0, 0.4) transparent;
@@ -104,44 +186,25 @@ body::before {
 .scrollbar-custom::-webkit-scrollbar-thumb {
   background: linear-gradient(90deg, rgba(255, 94, 0, 0.5), rgba(255, 0, 127, 0.5));
   border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.scrollbar-custom::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(90deg, rgba(255, 94, 0, 0.7), rgba(255, 0, 127, 0.7));
-}
-
-/* Скрытие скроллбара для категорий */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
 }
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
-/* Анимации - БЫСТРЫЕ */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .animate-fade-in {
@@ -152,7 +215,6 @@ body::before {
   animation: slideIn 0.15s ease forwards;
 }
 
-/* Градиентный текст */
 .gradient-text {
   background: linear-gradient(135deg, #ff5e00, #ff007f);
   -webkit-background-clip: text;
@@ -160,33 +222,25 @@ body::before {
   background-clip: text;
 }
 
-/* Неоновое свечение */
 .neon-glow {
   box-shadow: 0 0 20px rgba(255, 94, 0, 0.4), 0 0 40px rgba(255, 94, 0, 0.2);
 }
 
-/* Пульсация */
 @keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(255, 94, 0, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(255, 94, 0, 0.6);
-  }
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.4); }
+  50% { box-shadow: 0 0 30px rgba(255, 94, 0, 0.6); }
 }
 
 .pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
-/* Стили для input */
 input:focus {
   outline: none;
   border-color: rgba(255, 94, 0, 0.4);
   box-shadow: 0 0 20px rgba(255, 94, 0, 0.15);
 }
 
-/* Line clamp */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
