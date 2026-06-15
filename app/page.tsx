@@ -822,38 +822,39 @@ export default function Home() {
                         openProductModal(p);
                       }
                     }}
-                    className={`glass-card p-3 cursor-pointer group transition-all ${
+                    className={`glass-card p-2 transition-all ${
                       isPreorder 
-                        ? 'opacity-60 hover:opacity-80' 
+                        ? 'opacity-60 cursor-pointer hover:opacity-80' 
                         : avail === 0 
                           ? 'opacity-50 cursor-not-allowed' 
-                          : 'hover:border-orange-500/30'
+                          : 'cursor-pointer group hover:border-orange-500/30'
                     }`}>
-                    <div className="w-full h-28 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-2 flex items-center justify-center relative overflow-hidden">
+                    {/* КВАДРАТНАЯ КАРТОЧКА С ТОВАРОМ */}
+                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden">
                       {p.image ? (
-                        <img src={p.image} alt={p.name} className={`w-full h-full object-contain p-3 ${isPreorder ? 'brightness-50' : ''}`} />
+                        <img src={p.image} alt={p.name} className={`w-full h-full object-contain p-4 ${isPreorder ? 'brightness-50' : ''}`} />
                       ) : (
-                        <Package className={`w-8 h-8 text-neutral-700 ${isPreorder ? 'opacity-50' : ''}`} />
+                        <Package className={`w-12 h-12 text-neutral-700 ${isPreorder ? 'opacity-50' : ''}`} />
                       )}
                       {isPreorder && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-                          <span className="text-white font-bold text-xs px-2 py-1 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">
+                          <span className="text-white font-bold text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">
                             ПРЕДЗАКАЗ
                           </span>
                         </div>
                       )}
                       {!isPreorder && avail === 0 && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-xl">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl">
                           <span className="text-red-400 font-bold text-xs">Нет</span>
                         </div>
                       )}
                       {!isPreorder && avail > 0 && avail <= 3 && (
-                        <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-orange-500/20 border border-orange-500/30">
-                          <span className="text-[9px] text-orange-400">{avail} шт.</span>
+                        <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-orange-500/20 border border-orange-500/30">
+                          <span className="text-[10px] text-orange-400">{avail} шт.</span>
                         </div>
                       )}
                     </div>
-                    <h3 className={`font-semibold text-xs mb-1 line-clamp-2 ${isPreorder ? 'text-gray-400' : 'text-white group-hover:text-orange-400'}`}>
+                    <h3 className={`font-semibold text-xs mb-1 line-clamp-2 text-center ${isPreorder ? 'text-gray-400' : 'text-white group-hover:text-orange-400'}`}>
                       {p.name}
                     </h3>
                     <div className="flex items-center justify-between">
@@ -909,15 +910,23 @@ export default function Home() {
       )}
 
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProduct(null)}></div>
-          <div className="relative glass-panel w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto relative z-10">
+          <div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10">
             <button onClick={() => setSelectedProduct(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button>
             <div className="p-4">
-              {selectedProduct.image ? <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-40 object-contain rounded-xl mb-3" /> :
-                <div className="w-full h-40 bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-xl mb-3 flex items-center justify-center"><Package className="w-12 h-12 text-neutral-700" /></div>}
-              <h2 className="text-xl font-bold mb-1">{selectedProduct.name}</h2>
-              <p className="text-2xl font-bold gradient-text mb-4">{selectedProduct.price} BYN</p>
+              {/* КВАДРАТНОЕ ФОТО ТОВАРА */}
+              {selectedProduct.image ? (
+                <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+                  <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-contain p-6" />
+                </div>
+              ) : (
+                <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center">
+                  <Package className="w-16 h-16 text-neutral-700" />
+                </div>
+              )}
+              <h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>
+              <p className="text-2xl font-bold gradient-text mb-4 text-center">{selectedProduct.price} BYN</p>
               {selectedProduct.variants.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
