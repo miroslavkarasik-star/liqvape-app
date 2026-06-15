@@ -918,7 +918,7 @@ export default function Home() {
               {/* КВАДРАТНОЕ ФОТО ТОВАРА */}
               {selectedProduct.image ? (
                 <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
-                  <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-contain p-6" />
+                  <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-contain p-6 rounded-2xl" />
                 </div>
               ) : (
                 <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center">
