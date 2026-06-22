@@ -731,7 +731,7 @@ export default function Home() {
               Ваш заказ <span className="text-orange-400 font-bold">№{lastOrderNumber}</span> успешно оформлен
             </p>
             <p className="text-gray-400 text-xs mb-6 leading-relaxed">
-              Для подтверждения заказа напишите нашему менеджеру в Telegram
+              Для подтверждения заказа отправьте нашему менеджеру фото номера вашего заказа в Telegram
             </p>
             <div className="glass-card p-3 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
