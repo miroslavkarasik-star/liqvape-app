@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp, Sparkles, Zap, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Другое'];
+const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
 const MANAGER_USERNAME = 'zslvape';
 const CHANNEL_USERNAME = 'zslvape';
@@ -55,7 +55,6 @@ export default function Home() {
   const [showSubscribePrompt, setShowSubscribePrompt] = useState(false);
   const [showPreorderModal, setShowPreorderModal] = useState(false);
   const [selectedPreorderProduct, setSelectedPreorderProduct] = useState<Product | null>(null);
-
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
@@ -73,9 +72,7 @@ export default function Home() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       const user = window.Telegram.WebApp.initDataUnsafe?.user;
-      if (user) {
-        setTelegramUsername(user.username || user.first_name || '');
-      }
+      if (user) setTelegramUsername(user.username || user.first_name || '');
     }
   }, []);
 
@@ -96,9 +93,7 @@ export default function Home() {
     setTimeout(() => setShowSubscribePrompt(false), 1000);
   };
 
-  const handleSkipSubscribe = () => {
-    setShowSubscribePrompt(false);
-  };
+  const handleSkipSubscribe = () => setShowSubscribePrompt(false);
 
   const openChannel = () => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
@@ -188,19 +183,15 @@ export default function Home() {
     return [...filteredProducts].sort((a, b) => {
       const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
       const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
-      
       // 1. В наличии (без предзаказа) - ПЕРВЫЕ
       if (aAvail > 0 && !a.is_preorder && (bAvail === 0 || b.is_preorder)) return -1;
       if (bAvail > 0 && !b.is_preorder && (aAvail === 0 || a.is_preorder)) return 1;
-      
       // 2. Предзаказ - ВТОРЫЕ
       if (a.is_preorder && !b.is_preorder) return -1;
       if (!a.is_preorder && b.is_preorder) return 1;
-      
       // 3. Нет в наличии - ПОСЛЕДНИЕ
       if (aAvail > 0 && bAvail === 0) return -1;
       if (aAvail === 0 && bAvail > 0) return 1;
-      
       return 0;
     });
   }, [filteredProducts, getAvailableStock]);
@@ -253,11 +244,8 @@ export default function Home() {
       const { data: todayOrders } = await supabase.from('orders').select('order_number').eq('order_date', today).order('order_number', { ascending: false }).limit(1);
       const nextNum = todayOrders && todayOrders.length > 0 ? todayOrders[0].order_number + 1 : 1;
       const { error } = await supabase.from('orders').insert({
-        user_id: userId,
-        username: telegramUsername || null,
-        order_number: nextNum, 
-        order_date: today,
-        items: cart, 
+        user_id: userId, username: telegramUsername || null, order_number: nextNum, 
+        order_date: today, items: cart, 
         total_price: cart.reduce((s, i) => s + i.price * i.quantity, 0), 
         status: 'new',
       });
@@ -276,11 +264,8 @@ export default function Home() {
       setCart([]); 
       setShowCart(false);
       await loadUserOrders();
-    } catch(e) { 
-      showNotification('Ошибка', 'error'); 
-    } finally { 
-      setIsCheckingOut(false); 
-    }
+    } catch(e) { showNotification('Ошибка', 'error'); } 
+    finally { setIsCheckingOut(false); }
   };
 
   const contactManager = () => {
@@ -559,16 +544,12 @@ export default function Home() {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
-              {/* Название */}
               <div className="mb-4">
                 <label className="text-xs text-gray-400 mb-1.5 block">Название товара</label>
                 <input type="text" placeholder="Например: Xros 5 mini" value={editingProduct.name || ''}
                   onChange={e => setEditingProduct({...editingProduct, name: e.target.value})}
                   className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all" />
               </div>
-              
-              {/* Цена и категория */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
                   <label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label>
@@ -585,15 +566,12 @@ export default function Home() {
                   </select>
                 </div>
               </div>
-              
+              <div className="mb-4">
                 <label className="text-xs text-gray-400 mb-1.5 block">URL фото товара</label>
-                <input 
-                  type="text" 
-                  placeholder="https://example.com/image.jpg"
+                <input type="text" placeholder="https://example.com/image.jpg"
                   value={editingProduct.image || ''}
                   onChange={e => setEditingProduct({...editingProduct, image: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all"
-                />
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all" />
                 {editingProduct.image && (
                   <div className="mt-3 relative group">
                     <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -604,9 +582,6 @@ export default function Home() {
                   </div>
                 )}
               </div>
-              
-              
-              {/* Варианты */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-xs text-gray-400">Варианты (цвет/вкус)</label>
@@ -615,7 +590,7 @@ export default function Home() {
                 <div className="space-y-2 max-h-56 overflow-y-auto scrollbar-custom">
                   {formVariants.map((v, i) => (
                     <div key={i} className="flex gap-2 items-center bg-black/30 rounded-xl p-2">
-                      <input type="text" placeholder="Название (например: Чёрный)" value={v.name}
+                      <input type="text" placeholder="Название" value={v.name}
                         onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }}
                         className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all" />
                       <input type="number" placeholder="0" 
@@ -639,8 +614,6 @@ export default function Home() {
                   <span className="text-lg">+</span> Добавить вариант
                 </button>
               </div>
-              
-              {/* Предзаказ */}
               <div className="mb-5">
                 <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})}
                   className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
@@ -648,12 +621,9 @@ export default function Home() {
                       ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' 
                       : 'bg-white/5 text-gray-400 hover:bg-white/10'
                   }`}>
-                  <span className="text-lg">{editingProduct.is_preorder ? '✅' : '⏳'}</span>
                   {editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}
                 </button>
               </div>
-              
-              {/* Кнопки */}
               <div className="flex gap-3">
                 <button onClick={() => setShowProductForm(false)} 
                   className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-all">
@@ -706,12 +676,8 @@ export default function Home() {
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold mb-2">Спасибо за заказ!</h2>
-            <p className="text-gray-400 text-sm mb-2">
-              Ваш заказ <span className="text-orange-400 font-bold">№{lastOrderNumber}</span> успешно оформлен
-            </p>
-            <p className="text-gray-400 text-xs mb-6 leading-relaxed">
-              Для подтверждения заказа отправьте нашему менеджеру фото номера вашего заказа в Telegram
-            </p>
+            <p className="text-gray-400 text-sm mb-2">Ваш заказ <span className="text-orange-400 font-bold">№{lastOrderNumber}</span> успешно оформлен</p>
+            <p className="text-gray-400 text-xs mb-6 leading-relaxed">Для подтверждения заказа напишите нашему менеджеру в Telegram</p>
             <div className="glass-card p-3 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="w-5 h-5 text-white" />
@@ -721,14 +687,10 @@ export default function Home() {
                 <p className="text-[11px] text-orange-400">@{MANAGER_USERNAME}</p>
               </div>
             </div>
-            <button onClick={contactManager}
-              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
+            <button onClick={contactManager} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
               <Send className="w-4 h-4" /> Написать менеджеру
             </button>
-            <button onClick={() => setShowOrderSuccess(false)}
-              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">
-              Закрыть
-            </button>
+            <button onClick={() => setShowOrderSuccess(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">Закрыть</button>
           </div>
         </div>
       )}
@@ -736,18 +698,14 @@ export default function Home() {
       {showSubscribePrompt && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
-            <button 
-              onClick={handleSkipSubscribe}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+            <button onClick={handleSkipSubscribe} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
               <X className="w-4 h-4 text-gray-400" />
             </button>
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
               <Send className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-xl font-bold text-white mb-2">Подпишись на канал</h2>
-            <p className="text-gray-400 text-xs mb-4 leading-relaxed">
-              Подпишись на наш Telegram канал, чтобы быть в курсе новинок и акций
-            </p>
+            <p className="text-gray-400 text-xs mb-4 leading-relaxed">Подпишись на наш Telegram канал, чтобы быть в курсе новинок и акций</p>
             <div className="glass-card p-3 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                 <Send className="w-5 h-5 text-white" />
@@ -757,14 +715,10 @@ export default function Home() {
                 <p className="text-[10px] text-gray-400">Наш Telegram канал</p>
               </div>
             </div>
-            <button onClick={handleSubscribe}
-              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
+            <button onClick={handleSubscribe} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
               <Send className="w-4 h-4" /> Подписаться
             </button>
-            <button onClick={handleSkipSubscribe}
-              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs hover:bg-white/10 transition-colors">
-              Продолжить без подписки
-            </button>
+            <button onClick={handleSkipSubscribe} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs hover:bg-white/10 transition-colors">Продолжить без подписки</button>
           </div>
         </div>
       )}
@@ -772,9 +726,7 @@ export default function Home() {
       {showPreorderModal && selectedPreorderProduct && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
-            <button 
-              onClick={() => setShowPreorderModal(false)}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+            <button onClick={() => setShowPreorderModal(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
               <X className="w-4 h-4 text-gray-400" />
             </button>
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
@@ -802,20 +754,16 @@ export default function Home() {
               } else {
                 window.open(`https://t.me/${MANAGER_USERNAME}`, '_blank');
               }
-            }}
-              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
+            }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-2 text-sm mb-2">
               <Send className="w-4 h-4" /> Написать менеджеру
             </button>
-            <button onClick={() => setShowPreorderModal(false)}
-              className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs hover:bg-white/10 transition-colors">
-              Закрыть
-            </button>
+            <button onClick={() => setShowPreorderModal(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs hover:bg-white/10 transition-colors">Закрыть</button>
           </div>
         </div>
       )}
 
       <div className="max-w-md mx-auto px-3 relative z-10">
-        {/* ШАПКА С ЛОГОТИПОМ И КНОПКАМИ */}
+        {/* ШАПКА */}
         <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40 pulse-glow">
@@ -845,7 +793,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* НЕОНОВАЯ БЕГУЩАЯ СТРОКА - КЛИКАБЕЛЬНАЯ */}
+        {/* БЕГУЩАЯ СТРОКА */}
         <div 
           onClick={openChannel}
           className="relative my-3 rounded-xl overflow-hidden cursor-pointer group"
@@ -860,7 +808,7 @@ export default function Home() {
             <div className="scrolling-banner flex items-center gap-4 text-xs font-bold text-white">
               <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
               <Zap className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-pulse" />
-              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">ПОДПИШИСЬ НА @zslvape и следи за НОВИНКАМИ</span>
+              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">🔥 ПОДПИШИСЬ НА @zslvape 🔥 НОВИНКИ • АКЦИИ • СКИДКИ </span>
               <Star className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-ping" style={{ animationDuration: '2s' }} />
               <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
             </div>
@@ -925,9 +873,7 @@ export default function Home() {
                       )}
                       {isPreorder && (
                         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-10">
-                          <span className="text-white font-bold text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">
-                            ПРЕДЗАКАЗ
-                          </span>
+                          <span className="text-white font-bold text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">ПРЕДЗАКАЗ</span>
                         </div>
                       )}
                       {!isPreorder && avail === 0 && (
