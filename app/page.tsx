@@ -608,17 +608,7 @@ export default function Home() {
                   />
                   <label htmlFor="product-image-upload" className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-orange-500/20 to-pink-500/20 border-2 border-dashed border-orange-500/30 rounded-xl p-4 cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-pink-500/20 border-2 border-orange-500/30 flex items-center justify-center">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <linearGradient id="camGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ff5e00"/>
-                            <stop offset="100%" style="stop-color:#ff007f"/>
-                          </linearGradient>
-                        </defs>
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="url(#camGrad)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <circle cx="12" cy="13" r="4" stroke="url(#camGrad)" strokeWidth="2"/>
-                        <circle cx="12" cy="13" r="2" fill="url(#camGrad)"/>
-                      </svg>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-medium text-white">Нажмите для загрузки</p>
