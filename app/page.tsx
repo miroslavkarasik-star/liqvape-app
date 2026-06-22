@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, ShieldAlert, ShieldCheck, Shield, Edit, Eye, EyeOff, MessageCircle, Send } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Shield, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
@@ -34,8 +34,6 @@ declare global {
 }
 
 export default function Home() {
-  const [ageVerified, setAgeVerified] = useState<boolean | null>(null);
-  const [ageDeclined, setAgeDeclined] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
@@ -80,24 +78,14 @@ export default function Home() {
     }
   }, []);
 
+  // Показываем подписку только при первом входе
   useEffect(() => {
-    const v = localStorage.getItem('liqvape_age_verified');
-    if (v === 'true') setAgeVerified(true);
-    else if (v === 'false') { setAgeVerified(false); setAgeDeclined(true); }
-    else setAgeVerified(false);
-  }, []);
-
-  const confirmAge = (isAdult: boolean) => {
-    localStorage.setItem('liqvape_age_verified', isAdult.toString());
-    setAgeVerified(isAdult);
-    if (!isAdult) setAgeDeclined(true);
-  };
-
-  useEffect(() => {
-    if (ageVerified) {
+    const hasSeenPrompt = localStorage.getItem('liqvape_seen_subscribe');
+    if (!hasSeenPrompt) {
       setShowSubscribePrompt(true);
+      localStorage.setItem('liqvape_seen_subscribe', 'true');
     }
-  }, [ageVerified]);
+  }, []);
 
   const handleSubscribe = () => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
@@ -154,13 +142,11 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (ageVerified) {
-      loadProducts(isAdmin);
-      if (isAdmin) loadAllOrders();
-    }
-  }, [ageVerified, isAdmin, loadProducts, loadAllOrders]);
+    loadProducts(isAdmin);
+    if (isAdmin) loadAllOrders();
+  }, [isAdmin, loadProducts, loadAllOrders]);
 
-  useEffect(() => { if (userId && ageVerified) loadUserOrders(); }, [userId, ageVerified, loadUserOrders]);
+  useEffect(() => { if (userId) loadUserOrders(); }, [userId, loadUserOrders]);
 
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.HapticFeedback) {
@@ -183,6 +169,24 @@ export default function Home() {
     if (!v) return 0;
     return Math.max(0, v.stock - getCartQuantity(productId, variant));
   }, [products, cart]);
+
+  // Сортировка: предзаказ → в наличии → нет в наличии
+  const sortedProducts = useMemo(() => {
+    return [...filteredProducts].sort((a, b) => {
+      const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
+      const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
+      
+      // Предзаказ первые
+      if (a.is_preorder && !b.is_preorder) return -1;
+      if (!a.is_preorder && b.is_preorder) return 1;
+      
+      // Затем в наличии
+      if (aAvail > 0 && bAvail === 0) return -1;
+      if (aAvail === 0 && bAvail > 0) return 1;
+      
+      return 0;
+    });
+  }, [filteredProducts, getAvailableStock]);
 
   const filteredProducts = products.filter(p => {
     const s = p.name.toLowerCase().includes(search.toLowerCase());
@@ -247,6 +251,8 @@ export default function Home() {
         status: 'new',
       });
       if (error) { showNotification('Ошибка заказа', 'error'); setIsCheckingOut(false); return; }
+      
+      // Уменьшаем запасы
       const updated = products.map(p => {
         const ci = cart.filter(i => i.productId === p.id);
         if (ci.length === 0) return p;
@@ -256,6 +262,7 @@ export default function Home() {
         })};
       });
       setProducts(updated);
+      
       setLastOrderNumber(nextNum);
       setShowOrderSuccess(true);
       setCart([]); 
@@ -387,25 +394,6 @@ export default function Home() {
     if (orderFilter === 'done') return o.status === 'done';
     return true;
   });
-
-  if (ageVerified === null) {
-    return <div className="min-h-screen bg-black flex items-center justify-center relative z-10"><div className="text-gray-500 text-sm">Загрузка...</div></div>;
-  }
-  
-  if (ageDeclined) return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative">
-      <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div><div className="lava-blob lava-blob-3"></div><div className="lava-blob lava-blob-4"></div></div>
-      <div className="w-full max-w-sm glass-panel p-6 text-center relative z-10">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center">
-          <ShieldAlert className="w-8 h-8 text-red-400" />
-        </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Доступ запрещён</h1>
-        <p className="text-gray-400 text-xs mb-4">Сайт содержит информацию 18+</p>
-        <button onClick={() => { localStorage.removeItem('liqvape_age_verified'); setAgeVerified(null); setAgeDeclined(false); }}
-          className="w-full py-2 rounded-lg bg-white/5 text-gray-400 text-xs">Пройти проверку снова</button>
-      </div>
-    </div>
-  );
 
   if (showAdminPanel) {
     return (
@@ -558,9 +546,37 @@ export default function Home() {
                 <input type="number" placeholder="Цена" value={editingProduct.price || ''}
                   onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})}
                   className="w-24 bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500" />
-                <input type="text" placeholder="URL фото" value={editingProduct.image || ''}
-                  onChange={e => setEditingProduct({...editingProduct, image: e.target.value})}
-                  className="flex-1 min-w-0 bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500 truncate" />
+                <div className="flex-1 min-w-0">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      
+                      try {
+                        const res = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: formData
+                        });
+                        const data = await res.json();
+                        if (data.url) {
+                          setEditingProduct({...editingProduct, image: data.url});
+                          showNotification('Фото загружено');
+                        }
+                      } catch (error) {
+                        showNotification('Ошибка загрузки', 'error');
+                      }
+                    }}
+                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-gradient-to-r file:from-orange-500 file:to-pink-500 file:text-white file:cursor-pointer"
+                  />
+                  {editingProduct.image && (
+                    <img src={editingProduct.image} className="w-full h-20 object-contain mt-2 rounded-lg" />
+                  )}
+                </div>
               </div>
               <select value={editingProduct.category || 'Другое'}
                 onChange={e => setEditingProduct({...editingProduct, category: e.target.value})}
@@ -753,32 +769,12 @@ export default function Home() {
       )}
 
       <div className="max-w-md mx-auto px-3 relative z-10">
-        <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40 pulse-glow">
-              <Cloud className="w-5 h-5 text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold"><span className="text-white">Liq</span><span className="gradient-text">Vape</span></h1>
-              <p className="text-[10px] text-gray-500">premium shop</p>
-            </div>
-            <div className="ml-auto flex items-center gap-1.5">
-              <button onClick={() => setShowAdminLogin(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
-                <Shield className="w-4 h-4 text-orange-400" />
-              </button>
-              <button onClick={() => setShowHistory(true)} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
-                <Clock className="w-4 h-4 text-orange-400" />
-                {userOrders.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-[9px] font-bold flex items-center justify-center">{userOrders.length}</span>
-                )}
-              </button>
-              <button onClick={() => setShowCart(true)} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
-                <ShoppingBag className="w-4 h-4 text-orange-400" />
-                {totalCartItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-[9px] font-bold flex items-center justify-center">{totalCartItems}</span>
-                )}
-              </button>
-            </div>
+        {/* БЕГУЩАЯ СТРОКА */}
+        <div className="sticky top-0 z-50 -mx-3 px-3 py-2 bg-gradient-to-r from-orange-500/20 to-pink-500/20 backdrop-blur-xl border-b border-orange-500/30 overflow-hidden">
+          <div className="scrolling-banner flex items-center gap-2 text-xs font-medium text-orange-300">
+            <TrendingUp className="w-3 h-3 flex-shrink-0" />
+            <span>🔥 Подпишись на наш Telegram канал <span className="text-white font-bold">@{CHANNEL_USERNAME}</span> и будь в курсе новинок и акций! 🔥</span>
+            <MessageCircle className="w-3 h-3 flex-shrink-0" />
           </div>
         </div>
 
@@ -799,16 +795,16 @@ export default function Home() {
             ))}
           </div>
           <div className="mb-4 text-xs text-gray-500">
-            Найдено: <span className="text-orange-500 font-bold">{filteredProducts.length}</span> товаров
+            Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров
           </div>
-          {filteredProducts.length === 0 ? (
+          {sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center">
               <Package className="w-12 h-12 mx-auto mb-3 text-gray-700" />
               <p className="text-gray-500 text-sm">Товары не найдены</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-3 pb-8">
-              {filteredProducts.map((p) => {
+              {sortedProducts.map((p) => {
                 const avail = p.variants.reduce((s, f) => s + getAvailableStock(p.id, f.name), 0);
                 const isPreorder = p.is_preorder;
                 return (
@@ -829,8 +825,7 @@ export default function Home() {
                           ? 'opacity-50 cursor-not-allowed' 
                           : 'cursor-pointer group hover:border-orange-500/30'
                     }`}>
-                    {/* КВАДРАТНАЯ КАРТОЧКА С ЗАКРУГЛЁННОЙ КАРТИНКОЙ */}
-                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden rounded-2xl">
+                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden product-image-glow">
                       {p.image ? (
                         <img src={p.image} alt={p.name} className={`w-full h-full object-contain p-4 rounded-2xl ${isPreorder ? 'brightness-50' : ''}`} />
                       ) : (
@@ -889,35 +884,14 @@ export default function Home() {
         </div>
       )}
 
-      {ageVerified === false && !ageDeclined && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-          <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
-              <span className="text-3xl font-bold text-white">18+</span>
-            </div>
-            <h2 className="text-xl font-bold mb-2">Подтверждение возраста</h2>
-            <p className="text-gray-400 text-xs mb-6">Сайт содержит информацию о никотиносодержащей продукции. Подтвердите что вам 18+.</p>
-            <div className="space-y-2">
-              <button onClick={() => confirmAge(true)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-1.5 text-sm">
-                <ShieldCheck className="w-4 h-4" /> Мне есть 18 лет
-              </button>
-              <button onClick={() => confirmAge(false)} className="w-full py-3 rounded-xl font-bold bg-white/5 text-gray-400 flex items-center justify-center gap-1.5 text-sm">
-                <ShieldAlert className="w-4 h-4" /> Мне нет 18 лет
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProduct(null)}></div>
           <div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10">
             <button onClick={() => setSelectedProduct(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button>
             <div className="p-4">
-              {/* КВАДРАТНОЕ ЗАКРУГЛЁННОЕ ФОТО */}
               {selectedProduct.image ? (
-                <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center overflow-hidden">
+                <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center overflow-hidden product-image-glow">
                   <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-contain p-6 rounded-2xl" />
                 </div>
               ) : (
