@@ -250,6 +250,27 @@ export default function Home() {
         status: 'new',
       });
       if (error) { showNotification('Ошибка заказа', 'error'); setIsCheckingOut(false); return; }
+      
+      // Обновляем stock в базе данных для каждого товара
+      for (const item of cart) {
+        const product = products.find(p => p.id === item.productId);
+        if (!product) continue;
+        
+        const updatedVariants = product.variants.map(v => {
+          if (v.name === item.variant) {
+            return { ...v, stock: Math.max(0, v.stock - item.quantity) };
+          }
+          return v;
+        });
+        
+        const totalStock = updatedVariants.reduce((s, v) => s + v.stock, 0);
+        
+        await supabase.from('products').update({
+          flavors: JSON.stringify(updatedVariants),
+          stock_quantity: totalStock
+        }).eq('id', item.productId);
+      }
+      
       const updated = products.map(p => {
         const ci = cart.filter(i => i.productId === p.id);
         if (ci.length === 0) return p;
