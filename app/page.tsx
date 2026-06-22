@@ -64,6 +64,7 @@ export default function Home() {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [orderFilter, setOrderFilter] = useState<'all' | 'new' | 'done'>('all');
   const [showProductForm, setShowProductForm] = useState(false);
+  const [adminSearch, setAdminSearch] = useState('');
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
 
@@ -187,10 +188,19 @@ export default function Home() {
     return [...filteredProducts].sort((a, b) => {
       const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
       const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
+      
+      // 1. В наличии (без предзаказа) - ПЕРВЫЕ
+      if (aAvail > 0 && !a.is_preorder && (bAvail === 0 || b.is_preorder)) return -1;
+      if (bAvail > 0 && !b.is_preorder && (aAvail === 0 || a.is_preorder)) return 1;
+      
+      // 2. Предзаказ - ВТОРЫЕ
       if (a.is_preorder && !b.is_preorder) return -1;
       if (!a.is_preorder && b.is_preorder) return 1;
+      
+      // 3. Нет в наличии - ПОСЛЕДНИЕ
       if (aAvail > 0 && bAvail === 0) return -1;
       if (aAvail === 0 && bAvail > 0) return 1;
+      
       return 0;
     });
   }, [filteredProducts, getAvailableStock]);
@@ -428,8 +438,14 @@ export default function Home() {
                 className="w-full py-3 rounded-lg text-sm font-bold bg-gradient-to-r from-orange-500 to-pink-500 mb-3 flex items-center justify-center gap-1">
                 <Plus className="w-4 h-4" /> Добавить товар
               </button>
+              <div className="mb-3 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input type="text" placeholder="Поиск товаров..." value={adminSearch}
+                  onChange={e => setAdminSearch(e.target.value)}
+                  className="w-full glass-panel py-2.5 pl-10 pr-3 text-sm text-white placeholder-gray-500" />
+              </div>
               <div className="space-y-2">
-                {products.map(p => (
+                {products.filter(p => p.name.toLowerCase().includes(adminSearch.toLowerCase())).map(p => (
                   <div key={p.id} className="glass-card p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
