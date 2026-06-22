@@ -586,11 +586,6 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Загрузка фото */}
-              <div className="mb-4">
-                <label className="text-xs text-gray-400 mb-1.5 block">Фото товара</label>
-                <div className="relative">
-                  <input 
                 <label className="text-xs text-gray-400 mb-1.5 block">URL фото товара</label>
                 <input 
                   type="text" 
