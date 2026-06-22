@@ -567,11 +567,46 @@ export default function Home() {
                 </div>
               </div>
               <div className="mb-4">
-                <label className="text-xs text-gray-400 mb-1.5 block">URL фото товара</label>
-                <input type="text" placeholder="https://example.com/image.jpg"
-                  value={editingProduct.image || ''}
-                  onChange={e => setEditingProduct({...editingProduct, image: e.target.value})}
-                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all" />
+                <label className="text-xs text-gray-400 mb-1.5 block">Фото товара</label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  capture="environment"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    showNotification('Загрузка фото...');
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                    const filePath = `products/${fileName}`;
+                    
+                    try {
+                      const { data, error } = await supabase.storage
+                        .from('product-images')
+                        .upload(filePath, file, {
+                          cacheControl: '3600',
+                          upsert: false
+                        });
+                      
+                      if (error) {
+                        showNotification('Ошибка: ' + error.message, 'error');
+                        return;
+                      }
+                      
+                      const { data: { publicUrl } } = supabase.storage
+                        .from('product-images')
+                        .getPublicUrl(filePath);
+                      
+                      setEditingProduct({...editingProduct, image: publicUrl});
+                      showNotification('Фото загружено!', 'success');
+                    } catch (err) {
+                      showNotification('Ошибка загрузки', 'error');
+                    }
+                  }}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-gradient-to-r file:from-orange-500 file:to-pink-500 file:text-white file:cursor-pointer"
+                />
                 {editingProduct.image && (
                   <div className="mt-3 relative group">
                     <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
