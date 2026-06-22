@@ -603,8 +603,14 @@ export default function Home() {
                       <input type="text" placeholder="Название" value={v.name}
                         onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }}
                         className="flex-1 bg-black/50 border border-white/10 rounded-md p-1.5 text-xs text-white outline-none" />
-                      <input type="number" placeholder="Кол-во" value={v.stock}
-                        onChange={e => { const nv = [...formVariants]; nv[i].stock = Number(e.target.value); setFormVariants(nv); }}
+                      <input type="text" inputMode="numeric" placeholder="Кол-во" 
+                        value={v.stock === 0 ? '' : v.stock}
+                        onChange={e => { 
+                          const val = e.target.value.replace(/[^0-9]/g, '');
+                          const nv = [...formVariants]; 
+                          nv[i].stock = val === '' ? 0 : Number(val); 
+                          setFormVariants(nv); 
+                        }}
                         className="w-16 bg-black/50 border border-white/10 rounded-md p-1.5 text-xs text-white outline-none" />
                       <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-8 bg-red-500/20 rounded-md text-red-400 flex items-center justify-center">
                         <X className="w-3 h-3" />
