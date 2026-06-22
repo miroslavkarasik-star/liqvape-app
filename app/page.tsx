@@ -595,18 +595,37 @@ export default function Home() {
                     accept="image/*"
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
-                      if (!file) return;
+                      if (!file) {
+                        showNotification('Файл не выбран', 'error');
+                        return;
+                      }
+                      
+                      showNotification('Загрузка фото...');
+                      
                       const formData = new FormData();
                       formData.append('file', file);
+                      
                       try {
-                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                        const res = await fetch('/api/upload', {
+                          method: 'POST',
+                          body: formData
+                        });
+                        
+                        if (!res.ok) {
+                          const errorData = await res.json();
+                          throw new Error(errorData.error || 'Upload failed');
+                        }
+                        
                         const data = await res.json();
                         if (data.url) {
                           setEditingProduct({...editingProduct, image: data.url});
-                          showNotification('Фото загружено ✅');
+                          showNotification('Фото загружено!', 'success');
+                        } else {
+                          throw new Error('No URL returned');
                         }
                       } catch (error) {
-                        showNotification('Ошибка загрузки', 'error');
+                        console.error('Upload error:', error);
+                        showNotification('Ошибка загрузки: ' + (error as Error).message, 'error');
                       }
                     }}
                     className="hidden"
