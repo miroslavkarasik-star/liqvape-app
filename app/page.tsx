@@ -546,21 +546,44 @@ export default function Home() {
         </div>
         {showProductForm && editingProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
-            <div className="glass-panel w-full max-w-md max-h-[90vh] overflow-y-auto p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-bold">{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2>
-                <button onClick={() => setShowProductForm(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
-                  <X className="w-4 h-4" />
+            <div className="glass-panel w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-xl font-bold gradient-text">{editingProduct.id ? '✏️ Редактирование' : '➕ Новый товар'}</h2>
+                <button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              <input type="text" placeholder="Название" value={editingProduct.name || ''}
-                onChange={e => setEditingProduct({...editingProduct, name: e.target.value})}
-                className="w-full bg-black/50 border border-white/10 rounded-lg p-2 mb-2 text-sm text-white outline-none focus:border-orange-500" />
-              <div className="flex gap-2 mb-2">
-                <input type="number" placeholder="Цена" value={editingProduct.price || ''}
-                  onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})}
-                  className="w-24 bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500" />
-                <div className="flex-1 min-w-0">
+              
+              {/* Название */}
+              <div className="mb-4">
+                <label className="text-xs text-gray-400 mb-1.5 block">📦 Название товара</label>
+                <input type="text" placeholder="Например: Xros 5 mini" value={editingProduct.name || ''}
+                  onChange={e => setEditingProduct({...editingProduct, name: e.target.value})}
+                  className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all" />
+              </div>
+              
+              {/* Цена и категория */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className="text-xs text-gray-400 mb-1.5 block">💰 Цена (BYN)</label>
+                  <input type="number" placeholder="0" value={editingProduct.price || ''}
+                    onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})}
+                    className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all" />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-400 mb-1.5 block">📂 Категория</label>
+                  <select value={editingProduct.category || 'Другое'}
+                    onChange={e => setEditingProduct({...editingProduct, category: e.target.value})}
+                    className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all">
+                    {CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
+                  </select>
+                </div>
+              </div>
+              
+              {/* Загрузка фото */}
+              <div className="mb-4">
+                <label className="text-xs text-gray-400 mb-1.5 block">📸 Фото товара</label>
+                <div className="relative">
                   <input 
                     type="file" 
                     accept="image/*"
@@ -574,36 +597,49 @@ export default function Home() {
                         const data = await res.json();
                         if (data.url) {
                           setEditingProduct({...editingProduct, image: data.url});
-                          showNotification('Фото загружено');
+                          showNotification('Фото загружено ✅');
                         }
                       } catch (error) {
                         showNotification('Ошибка загрузки', 'error');
                       }
                     }}
-                    className="w-full bg-black/50 border border-white/10 rounded-lg p-2 text-sm text-white outline-none focus:border-orange-500 file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-gradient-to-r file:from-orange-500 file:to-pink-500 file:text-white file:cursor-pointer"
+                    className="hidden"
+                    id="product-image-upload"
                   />
-                  {editingProduct.image && (
-                    <img src={editingProduct.image} className="w-full h-20 object-contain mt-2 rounded-lg" />
-                  )}
+                  <label htmlFor="product-image-upload" className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-orange-500/20 to-pink-500/20 border-2 border-dashed border-orange-500/30 rounded-xl p-4 cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center">
+                      <span className="text-2xl">📷</span>
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium text-white">Нажмите для загрузки</p>
+                      <p className="text-xs text-gray-400">PNG, JPG до 5MB</p>
+                    </div>
+                  </label>
                 </div>
+                {editingProduct.image && (
+                  <div className="mt-3 relative group">
+                    <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" />
+                    <button onClick={() => setEditingProduct({...editingProduct, image: null})} 
+                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
-              <select value={editingProduct.category || 'Другое'}
-                onChange={e => setEditingProduct({...editingProduct, category: e.target.value})}
-                className="w-full bg-black/50 border border-white/10 rounded-lg p-2 mb-3 text-sm text-white outline-none">
-                {CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
-              </select>
-              <div className="mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs text-gray-400">Варианты (цвет/вкус)</label>
-                  <span className="text-[10px] text-orange-400">{formVariants.length} шт.</span>
+              
+              {/* Варианты */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs text-gray-400">🎨 Варианты (цвет/вкус)</label>
+                  <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-medium">{formVariants.length} шт.</span>
                 </div>
-                <div className="space-y-1 max-h-48 overflow-y-auto">
+                <div className="space-y-2 max-h-56 overflow-y-auto scrollbar-custom">
                   {formVariants.map((v, i) => (
-                    <div key={i} className="flex gap-1">
-                      <input type="text" placeholder="Название" value={v.name}
+                    <div key={i} className="flex gap-2 items-center bg-black/30 rounded-xl p-2">
+                      <input type="text" placeholder="Название (например: Чёрный)" value={v.name}
                         onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }}
-                        className="flex-1 bg-black/50 border border-white/10 rounded-md p-1.5 text-xs text-white outline-none" />
-                      <input type="text" inputMode="numeric" placeholder="Кол-во" 
+                        className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all" />
+                      <input type="number" placeholder="0" 
                         value={v.stock === 0 ? '' : v.stock}
                         onChange={e => { 
                           const val = e.target.value.replace(/[^0-9]/g, '');
@@ -611,27 +647,43 @@ export default function Home() {
                           nv[i].stock = val === '' ? 0 : Number(val); 
                           setFormVariants(nv); 
                         }}
-                        className="w-16 bg-black/50 border border-white/10 rounded-md p-1.5 text-xs text-white outline-none" />
-                      <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-8 bg-red-500/20 rounded-md text-red-400 flex items-center justify-center">
-                        <X className="w-3 h-3" />
+                        className="w-20 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all text-center" />
+                      <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} 
+                        className="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center transition-all">
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
                 </div>
                 <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])}
-                  className="w-full mt-1 py-1.5 rounded-md border border-orange-500/30 text-orange-400 text-xs">
-                  + Добавить вариант
+                  className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium hover:border-orange-500/50 hover:bg-orange-500/10 transition-all flex items-center justify-center gap-1.5">
+                  <span className="text-lg">+</span> Добавить вариант
                 </button>
               </div>
-              <div className="flex gap-2">
+              
+              {/* Предзаказ */}
+              <div className="mb-5">
                 <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})}
-                  className={`flex-1 py-1.5 rounded-md text-xs ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5'}`}>
-                  Предзаказ
+                  className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                    editingProduct.is_preorder 
+                      ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' 
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  }`}>
+                  <span className="text-lg">{editingProduct.is_preorder ? '✅' : '⏳'}</span>
+                  {editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}
                 </button>
               </div>
-              <div className="flex gap-2 mt-4">
-                <button onClick={() => setShowProductForm(false)} className="flex-1 py-2 rounded-lg bg-white/5 text-xs">Отмена</button>
-                <button onClick={saveProduct} className="flex-1 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-xs font-bold">Сохранить</button>
+              
+              {/* Кнопки */}
+              <div className="flex gap-3">
+                <button onClick={() => setShowProductForm(false)} 
+                  className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-all">
+                  Отмена
+                </button>
+                <button onClick={saveProduct} 
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-orange-500/30 transition-all transform hover:scale-[1.02]">
+                  Сохранить ✓
+                </button>
               </div>
             </div>
           </div>
