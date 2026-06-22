@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp, Sparkles, Zap, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
+const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
 const MANAGER_USERNAME = 'zslvape';
 const CHANNEL_USERNAME = 'zslvape';
@@ -582,7 +582,7 @@ export default function Home() {
               
               {/* Загрузка фото */}
               <div className="mb-4">
-                <label className="text-xs text-gray-400 mb-1.5 block">📸 Фото товара</label>
+                <label className="text-xs text-gray-400 mb-1.5 block">Фото товара</label>
                 <div className="relative">
                   <input 
                     type="file" 
@@ -607,8 +607,8 @@ export default function Home() {
                     id="product-image-upload"
                   />
                   <label htmlFor="product-image-upload" className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-orange-500/20 to-pink-500/20 border-2 border-dashed border-orange-500/30 rounded-xl p-4 cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-pink-500/20 border-2 border-orange-500/30 flex items-center justify-center">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center">
+                      <span className="text-2xl"></span>
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-medium text-white">Нажмите для загрузки</p>
@@ -630,7 +630,7 @@ export default function Home() {
               {/* Варианты */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs text-gray-400">🎨 Варианты (цвет/вкус)</label>
+                  <label className="text-xs text-gray-400">Варианты (цвет/вкус)</label>
                   <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-medium">{formVariants.length} шт.</span>
                 </div>
                 <div className="space-y-2 max-h-56 overflow-y-auto scrollbar-custom">
@@ -881,7 +881,7 @@ export default function Home() {
             <div className="scrolling-banner flex items-center gap-4 text-xs font-bold text-white">
               <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
               <Zap className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-pulse" />
-              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">🔥 ПОДПИШИСЬ НА @zslvape 🔥 НОВИНКИ • АКЦИИ • СКИДКИ 🔥</span>
+              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">ПОДПИШИСЬ НА @zslvape и следи за НОВИНКАМИ</span>
               <Star className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-ping" style={{ animationDuration: '2s' }} />
               <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
             </div>
