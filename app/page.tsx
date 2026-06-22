@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp, Sparkles, Zap, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
@@ -97,6 +97,14 @@ export default function Home() {
 
   const handleSkipSubscribe = () => {
     setShowSubscribePrompt(false);
+  };
+
+  const openChannel = () => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(CHANNEL_LINK);
+    } else {
+      window.open(CHANNEL_LINK, '_blank');
+    }
   };
 
   useEffect(() => {
@@ -754,12 +762,59 @@ export default function Home() {
       )}
 
       <div className="max-w-md mx-auto px-3 relative z-10">
-        <div className="sticky top-0 z-50 -mx-3 px-3 py-2 bg-gradient-to-r from-orange-500/20 to-pink-500/20 backdrop-blur-xl border-b border-orange-500/30 overflow-hidden">
-          <div className="scrolling-banner flex items-center gap-2 text-xs font-medium text-orange-300">
-            <TrendingUp className="w-3 h-3 flex-shrink-0" />
-            <span>🔥 Подпишись на наш Telegram канал <span className="text-white font-bold">@{CHANNEL_USERNAME}</span> и будь в курсе новинок и акций! 🔥</span>
-            <MessageCircle className="w-3 h-3 flex-shrink-0" />
+        {/* ШАПКА С ЛОГОТИПОМ И КНОПКАМИ */}
+        <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40 pulse-glow">
+              <Cloud className="w-5 h-5 text-white" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold"><span className="text-white">Liq</span><span className="gradient-text">Vape</span></h1>
+              <p className="text-[10px] text-gray-500">premium shop</p>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5">
+              <button onClick={() => setShowAdminLogin(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
+                <Edit className="w-4 h-4 text-orange-400" />
+              </button>
+              <button onClick={() => setShowHistory(true)} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
+                <Clock className="w-4 h-4 text-orange-400" />
+                {userOrders.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-[9px] font-bold flex items-center justify-center">{userOrders.length}</span>
+                )}
+              </button>
+              <button onClick={() => setShowCart(true)} className="relative w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:from-orange-500/30 hover:to-pink-500/30 transition-all">
+                <ShoppingBag className="w-4 h-4 text-orange-400" />
+                {totalCartItems > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 text-[9px] font-bold flex items-center justify-center">{totalCartItems}</span>
+                )}
+              </button>
+            </div>
           </div>
+        </div>
+
+        {/* НЕОНОВАЯ БЕГУЩАЯ СТРОКА - КЛИКАБЕЛЬНАЯ */}
+        <div 
+          onClick={openChannel}
+          className="relative my-3 rounded-xl overflow-hidden cursor-pointer group"
+          style={{
+            background: 'linear-gradient(90deg, #ff5e00, #ff007f, #ff5e00)',
+            backgroundSize: '200% 100%',
+            animation: 'gradient-shift 3s ease infinite',
+          }}
+        >
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-all"></div>
+          <div className="relative py-2 overflow-hidden">
+            <div className="scrolling-banner flex items-center gap-4 text-xs font-bold text-white">
+              <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
+              <Zap className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-pulse" />
+              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">🔥 ПОДПИШИСЬ НА @zslvape 🔥 НОВИНКИ • АКЦИИ • СКИДКИ 🔥</span>
+              <Star className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-ping" style={{ animationDuration: '2s' }} />
+              <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
+            </div>
+          </div>
+          <div className="absolute inset-0 pointer-events-none" style={{
+            boxShadow: 'inset 0 0 20px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 94, 0, 0.5)',
+          }}></div>
         </div>
 
         <div className="pt-3">
