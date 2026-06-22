@@ -556,7 +556,7 @@ export default function Home() {
               
               {/* Название */}
               <div className="mb-4">
-                <label className="text-xs text-gray-400 mb-1.5 block">📦 Название товара</label>
+                <label className="text-xs text-gray-400 mb-1.5 block">Название товара</label>
                 <input type="text" placeholder="Например: Xros 5 mini" value={editingProduct.name || ''}
                   onChange={e => setEditingProduct({...editingProduct, name: e.target.value})}
                   className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all" />
@@ -565,13 +565,13 @@ export default function Home() {
               {/* Цена и категория */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label className="text-xs text-gray-400 mb-1.5 block">💰 Цена (BYN)</label>
+                  <label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label>
                   <input type="number" placeholder="0" value={editingProduct.price || ''}
                     onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})}
                     className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 mb-1.5 block">📂 Категория</label>
+                  <label className="text-xs text-gray-400 mb-1.5 block">Категория</label>
                   <select value={editingProduct.category || 'Другое'}
                     onChange={e => setEditingProduct({...editingProduct, category: e.target.value})}
                     className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all">
@@ -608,7 +608,7 @@ export default function Home() {
                   />
                   <label htmlFor="product-image-upload" className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-orange-500/20 to-pink-500/20 border-2 border-dashed border-orange-500/30 rounded-xl p-4 cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/10 transition-all">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center">
-                      <span className="text-2xl">📷</span>
+                      <span className="text-2xl"></span>
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-medium text-white">Нажмите для загрузки</p>
