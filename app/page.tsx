@@ -1,11 +1,11 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Shield, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
-const MANAGER_USERNAME = 'LiqVape_2';
+const MANAGER_USERNAME = 'zslvape';
 const CHANNEL_USERNAME = 'zslvape';
 const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
 
@@ -78,7 +78,6 @@ export default function Home() {
     }
   }, []);
 
-  // Показываем подписку только при первом входе
   useEffect(() => {
     const hasSeenPrompt = localStorage.getItem('liqvape_seen_subscribe');
     if (!hasSeenPrompt) {
@@ -176,6 +175,18 @@ export default function Home() {
     return s && c;
   });
 
+  const sortedProducts = useMemo(() => {
+    return [...filteredProducts].sort((a, b) => {
+      const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
+      const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
+      if (a.is_preorder && !b.is_preorder) return -1;
+      if (!a.is_preorder && b.is_preorder) return 1;
+      if (aAvail > 0 && bAvail === 0) return -1;
+      if (aAvail === 0 && bAvail > 0) return 1;
+      return 0;
+    });
+  }, [filteredProducts, getAvailableStock]);
+
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
     const first = product.variants.find(f => getAvailableStock(product.id, f.name) > 0);
@@ -183,24 +194,6 @@ export default function Home() {
     setQuantity(1);
     setShowAllVariants(false);
   };
-
-  // Сортировка: предзаказ → в наличии → нет в наличии
-  const sortedProducts = useMemo(() => {
-    return [...filteredProducts].sort((a, b) => {
-      const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
-      const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
-      
-      // Предзаказ первые
-      if (a.is_preorder && !b.is_preorder) return -1;
-      if (!a.is_preorder && b.is_preorder) return 1;
-      
-      // Затем в наличии
-      if (aAvail > 0 && bAvail === 0) return -1;
-      if (aAvail === 0 && bAvail > 0) return 1;
-      
-      return 0;
-    });
-  }, [filteredProducts, getAvailableStock]);
 
   const addToCart = () => {
     if (!selectedProduct || !selectedVariant) return;
@@ -251,8 +244,6 @@ export default function Home() {
         status: 'new',
       });
       if (error) { showNotification('Ошибка заказа', 'error'); setIsCheckingOut(false); return; }
-      
-      // Уменьшаем запасы
       const updated = products.map(p => {
         const ci = cart.filter(i => i.productId === p.id);
         if (ci.length === 0) return p;
@@ -262,7 +253,6 @@ export default function Home() {
         })};
       });
       setProducts(updated);
-      
       setLastOrderNumber(nextNum);
       setShowOrderSuccess(true);
       setCart([]); 
@@ -553,15 +543,10 @@ export default function Home() {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      
                       const formData = new FormData();
                       formData.append('file', file);
-                      
                       try {
-                        const res = await fetch('/api/upload', {
-                          method: 'POST',
-                          body: formData
-                        });
+                        const res = await fetch('/api/upload', { method: 'POST', body: formData });
                         const data = await res.json();
                         if (data.url) {
                           setEditingProduct({...editingProduct, image: data.url});
@@ -769,7 +754,6 @@ export default function Home() {
       )}
 
       <div className="max-w-md mx-auto px-3 relative z-10">
-        {/* БЕГУЩАЯ СТРОКА */}
         <div className="sticky top-0 z-50 -mx-3 px-3 py-2 bg-gradient-to-r from-orange-500/20 to-pink-500/20 backdrop-blur-xl border-b border-orange-500/30 overflow-hidden">
           <div className="scrolling-banner flex items-center gap-2 text-xs font-medium text-orange-300">
             <TrendingUp className="w-3 h-3 flex-shrink-0" />

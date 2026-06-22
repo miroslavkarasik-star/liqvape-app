@@ -15,7 +15,6 @@ body {
   overflow-x: hidden;
 }
 
-/* Лавовая лампа */
 .lava-lamp {
   position: fixed;
   top: 0;
@@ -196,7 +195,6 @@ input:focus {
   overflow: hidden;
 }
 
-/* Бегущая строка */
 @keyframes scroll-left {
   0% { transform: translateX(100%); }
   100% { transform: translateX(-100%); }
@@ -211,7 +209,6 @@ input:focus {
   animation-play-state: paused;
 }
 
-/* Оранжевое свечение для фото */
 .product-image-glow {
   position: relative;
 }
