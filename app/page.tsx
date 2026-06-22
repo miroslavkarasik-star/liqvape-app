@@ -170,6 +170,20 @@ export default function Home() {
     return Math.max(0, v.stock - getCartQuantity(productId, variant));
   }, [products, cart]);
 
+  const filteredProducts = products.filter(p => {
+    const s = p.name.toLowerCase().includes(search.toLowerCase());
+    const c = selectedCategory === 'Все' || p.category === selectedCategory;
+    return s && c;
+  });
+
+  const openProductModal = (product: Product) => {
+    setSelectedProduct(product);
+    const first = product.variants.find(f => getAvailableStock(product.id, f.name) > 0);
+    setSelectedVariant(first?.name || '');
+    setQuantity(1);
+    setShowAllVariants(false);
+  };
+
   // Сортировка: предзаказ → в наличии → нет в наличии
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
@@ -187,20 +201,6 @@ export default function Home() {
       return 0;
     });
   }, [filteredProducts, getAvailableStock]);
-
-  const filteredProducts = products.filter(p => {
-    const s = p.name.toLowerCase().includes(search.toLowerCase());
-    const c = selectedCategory === 'Все' || p.category === selectedCategory;
-    return s && c;
-  });
-
-  const openProductModal = (product: Product) => {
-    setSelectedProduct(product);
-    const first = product.variants.find(f => getAvailableStock(product.id, f.name) > 0);
-    setSelectedVariant(first?.name || '');
-    setQuantity(1);
-    setShowAllVariants(false);
-  };
 
   const addToCart = () => {
     if (!selectedProduct || !selectedVariant) return;
