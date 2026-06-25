@@ -4,7 +4,7 @@ import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircl
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Другое'];
-const ADMIN_PASSWORD = 'K7m2Q9';
+const ADMIN_PASSWORD = 'liqvape67';
 const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'zslvape';
 const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
@@ -447,7 +447,7 @@ export default function Home() {
             </button>
             <button onClick={() => setAdminTab('earnings')}
               className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'earnings' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
-              Доход
+              💰 Доход
             </button>
           </div>
           {adminTab === 'products' ? (
