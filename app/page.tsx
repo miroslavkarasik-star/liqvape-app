@@ -295,7 +295,7 @@ export default function Home() {
         return { ...p, variants: p.variants.map(v => {
           const it = ci.find(i => i.variant === v.name);
           return it ? { ...v, stock: Math.max(0, v.stock - it.quantity) } : v;
-        });
+        })};
       });
       setProducts(updated);
       setLastOrderNumber(nextNum);
