@@ -80,6 +80,7 @@ export default function Home() {
   const [orderFilter, setOrderFilter] = useState<'all' | 'new' | 'done'>('all');
   const [showProductForm, setShowProductForm] = useState(false);
   const [adminSearch, setAdminSearch] = useState('');
+  const [adminCategory, setAdminCategory] = useState('Все');
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
   const [dailyEarnings, setDailyEarnings] = useState<{ date: string; total: number; count: number }[]>([]);
@@ -494,8 +495,22 @@ export default function Home() {
                   onChange={e => setAdminSearch(e.target.value)}
                   className="w-full glass-panel py-2.5 pl-10 pr-3 text-sm text-white placeholder-gray-500" />
               </div>
+              <div className="flex gap-2 overflow-x-auto pb-3 mb-3 scrollbar-custom">
+                {CATEGORIES.filter(c => c !== 'Все').map((c) => (
+                  <button key={c} onClick={() => setAdminCategory(c)}
+                    className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium transition-all ${
+                      adminCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'
+                    }`}>
+                    {c}
+                  </button>
+                ))}
+              </div>
               <div className="space-y-2">
-                {products.filter(p => p.name.toLowerCase().includes(adminSearch.toLowerCase())).map(p => (
+                {products.filter(p => {
+                    const matchSearch = p.name.toLowerCase().includes(adminSearch.toLowerCase());
+                    const matchCategory = adminCategory === 'Все' || p.category === adminCategory;
+                    return matchSearch && matchCategory;
+                  }).map(p => (
                   <div key={p.id} className="glass-card p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
