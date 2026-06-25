@@ -969,13 +969,11 @@ export default function Home() {
                     <div className="flex items-center justify-between">
                       <span className={`text-sm font-bold ${isPreorder ? 'text-gray-500' : 'gradient-text'}`}>
                         {(() => {
-                          const prices = p.variants.filter(v => v.price).map(v => v.price as number);
-                          if (prices.length > 0) {
-                            const min = Math.min(...prices);
-                            const max = Math.max(...prices);
-                            return min === max ? `${min} BYN` : `${min}-${max} BYN`;
-                          }
-                          return `${p.price} BYN`;
+                          const variantPrices = p.variants.filter(v => v.price).map(v => v.price as number);
+                          const allPrices = variantPrices.length > 0 ? [...variantPrices, p.price] : [p.price];
+                          const min = Math.min(...allPrices);
+                          const max = Math.max(...allPrices);
+                          return min === max ? `${min} BYN` : `${min}-${max} BYN`;
                         })()}
                       </span>
                       <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">
