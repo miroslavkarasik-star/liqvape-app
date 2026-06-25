@@ -3,13 +3,13 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp, Sparkles, Zap, Star } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
+const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
 const MANAGER_USERNAME = 'zslvape';
 const CHANNEL_USERNAME = 'zslvape';
 const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
 
-interface Variant { name: string; stock: number; }
+interface Variant { name: string; stock: number; price?: number; }
 interface Product { 
   id: number; name: string; category: string; price: number; image: string | null; 
   variants: Variant[]; is_hidden: boolean; is_preorder: boolean;
@@ -66,6 +66,8 @@ export default function Home() {
   const [adminSearch, setAdminSearch] = useState('');
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
+  const [adminEarningsTab, setAdminEarningsTab] = useState<'orders' | 'products' | 'earnings'>('products');
+  const [dailyEarnings, setDailyEarnings] = useState<{ date: string; total: number; count: number }[]>([]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -141,7 +143,21 @@ export default function Home() {
 
   const loadAllOrders = useCallback(async () => {
     const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-    if (data) setAllOrders(data);
+    if (data) {
+      setAllOrders(data);
+      // Считаем заработок по дням
+      const byDate: Record<string, { total: number; count: number }> = {};
+      data.forEach(o => {
+        const date = o.order_date || o.created_at.split('T')[0];
+        if (!byDate[date]) byDate[date] = { total: 0, count: 0 };
+        byDate[date].total += o.total_price;
+        byDate[date].count += 1;
+      });
+      const earnings = Object.entries(byDate)
+        .map(([date, v]) => ({ date, ...v }))
+        .sort((a, b) => b.date.localeCompare(a.date));
+      setDailyEarnings(earnings);
+    }
   }, []);
 
   useEffect(() => {
@@ -213,7 +229,9 @@ export default function Home() {
     if (idx >= 0) {
       const nc = [...cart]; nc[idx].quantity += quantity; setCart(nc);
     } else {
-      setCart([...cart, { productId: selectedProduct.id, productName: selectedProduct.name, variant: selectedVariant, price: selectedProduct.price, quantity }]);
+      const v = selectedProduct.variants.find(x => x.name === selectedVariant);
+      const price = v?.price || selectedProduct.price;
+      setCart([...cart, { productId: selectedProduct.id, productName: selectedProduct.name, variant: selectedVariant, price, quantity }]);
     }
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.HapticFeedback) {
       window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
@@ -428,14 +446,18 @@ export default function Home() {
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="flex gap-2 mb-4">
-            <button onClick={() => setAdminTab('orders')}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'orders' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
-              Заказы ({allOrders.length})
-            </button>
+          <div className="flex gap-1.5 mb-4">
             <button onClick={() => setAdminTab('products')}
               className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
-              Товары ({products.length})
+              Товары
+            </button>
+            <button onClick={() => setAdminTab('orders')}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'orders' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
+              Заказы
+            </button>
+            <button onClick={() => setAdminTab('earnings')}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'earnings' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
+              💰 Доход
             </button>
           </div>
           {adminTab === 'products' ? (
@@ -548,6 +570,42 @@ export default function Home() {
                 )}
               </div>
             </>
+          ) : adminTab === 'earnings' ? (
+            <>
+              <div className="glass-panel p-4 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">Сегодня</span>
+                  <span className="text-[10px] text-gray-500">{new Date().toLocaleDateString('ru-RU')}</span>
+                </div>
+                <div className="text-3xl font-bold gradient-text">
+                  {dailyEarnings.find(e => e.date === new Date().toISOString().split('T')[0])?.total.toFixed(2) || '0.00'} BYN
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Заказов: {dailyEarnings.find(e => e.date === new Date().toISOString().split('T')[0])?.count || 0}
+                </div>
+              </div>
+              <div className="mb-2 text-xs text-gray-400 font-medium">История по дням</div>
+              <div className="space-y-2">
+                {dailyEarnings.map(e => (
+                  <div key={e.date} className="glass-card p-3 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold text-white">
+                        {new Date(e.date).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      </div>
+                      <div className="text-[10px] text-gray-400">{e.count} заказов</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold gradient-text">{e.total.toFixed(2)} BYN</div>
+                    </div>
+                  </div>
+                ))}
+                {dailyEarnings.length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500">
+                    <p className="text-xs">История заработка пуста</p>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
         {showProductForm && editingProduct && (
@@ -592,7 +650,6 @@ export default function Home() {
                 <input 
                   type="file" 
                   accept="image/*"
-                  capture="environment"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
@@ -657,7 +714,15 @@ export default function Home() {
                           nv[i].stock = val === '' ? 0 : Number(val); 
                           setFormVariants(nv); 
                         }}
-                        className="w-20 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all text-center" />
+                        className="w-16 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all text-center" />
+                      <input type="number" placeholder="Цена" 
+                        value={v.price || ''}
+                        onChange={e => { 
+                          const nv = [...formVariants]; 
+                          nv[i].price = e.target.value === '' ? undefined : Number(e.target.value); 
+                          setFormVariants(nv); 
+                        }}
+                        className="w-16 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all text-center" />
                       <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} 
                         className="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center transition-all">
                         <X className="w-4 h-4" />
@@ -733,7 +798,7 @@ export default function Home() {
             </div>
             <h2 className="text-2xl font-bold mb-2">Спасибо за заказ!</h2>
             <p className="text-gray-400 text-sm mb-2">Ваш заказ <span className="text-orange-400 font-bold">№{lastOrderNumber}</span> успешно оформлен</p>
-            <p className="text-gray-400 text-xs mb-6 leading-relaxed">Для подтверждения заказа напишите нашему менеджеру в Telegram</p>
+            <p className="text-gray-400 text-xs mb-6 leading-relaxed">Сделайте скриншот номера заказа и отправьте его нашему менеджеру в Telegram для подтверждения</p>
             <div className="glass-card p-3 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="w-5 h-5 text-white" />
@@ -948,7 +1013,15 @@ export default function Home() {
                     </h3>
                     <div className="flex items-center justify-between">
                       <span className={`text-sm font-bold ${isPreorder ? 'text-gray-500' : 'gradient-text'}`}>
-                        {p.price} BYN
+                        {(() => {
+                          const prices = p.variants.filter(v => v.price).map(v => v.price as number);
+                          if (prices.length > 0) {
+                            const min = Math.min(...prices);
+                            const max = Math.max(...prices);
+                            return min === max ? `${min} BYN` : `${min}-${max} BYN`;
+                          }
+                          return `${p.price} BYN`;
+                        })()}
                       </span>
                       <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">
                         {p.category}
@@ -994,7 +1067,13 @@ export default function Home() {
                 </div>
               )}
               <h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>
-              <p className="text-2xl font-bold gradient-text mb-4 text-center">{selectedProduct.price} BYN</p>
+              <p className="text-2xl font-bold gradient-text mb-4 text-center">
+                        {(() => {
+                          const v = selectedProduct.variants.find(x => x.name === selectedVariant);
+                          const price = v?.price || selectedProduct.price;
+                          return `${price} BYN`;
+                        })()}
+                      </p>
               {selectedProduct.variants.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
