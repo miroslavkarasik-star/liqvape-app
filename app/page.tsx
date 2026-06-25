@@ -3,7 +3,23 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Другое'];
+const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Другое'];
+const CATEGORY_ORDER: Record<string, number> = {
+  'Жидкости': 1, 'Расходники': 2, 'Снюс': 3,
+  'POD-системы': 4, 'Одноразки': 5, 'Другое': 6,
+};
+const LETTER_PRIORITY: Record<string, string[]> = {
+  'Жидкости': ['R','D','C','A','B','E','P','G','S','F','H'],
+  'Снюс': ['D','E','G','F'],
+  'Одноразки': ['P','K','E'],
+};
+const getLetterPriority = (name: string, category: string): number => {
+  const firstLetter = name.charAt(0).toUpperCase();
+  const priorities = LETTER_PRIORITY[category];
+  if (!priorities) return 999;
+  const idx = priorities.indexOf(firstLetter);
+  return idx === -1 ? 999 : idx;
+};
 const ADMIN_PASSWORD = 'liqvape67';
 const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'zslvape';
@@ -197,15 +213,31 @@ export default function Home() {
     return [...filteredProducts].sort((a, b) => {
       const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
       const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
-      if (aAvail > 0 && !a.is_preorder && (bAvail === 0 || b.is_preorder)) return -1;
-      if (bAvail > 0 && !b.is_preorder && (aAvail === 0 || a.is_preorder)) return 1;
-      if (a.is_preorder && !b.is_preorder) return -1;
-      if (!a.is_preorder && b.is_preorder) return 1;
+      
+      // 1. При "Все" - сначала по порядку категорий
+      if (selectedCategory === 'Все') {
+        const aCatOrder = CATEGORY_ORDER[a.category] || 99;
+        const bCatOrder = CATEGORY_ORDER[b.category] || 99;
+        if (aCatOrder !== bCatOrder) return aCatOrder - bCatOrder;
+      }
+      
+      // 2. Внутри категории - по приоритету буквы (для жидкостей, снюса, одноразок)
+      const aLetter = getLetterPriority(a.name, a.category);
+      const bLetter = getLetterPriority(b.name, b.category);
+      if (aLetter !== bLetter) return aLetter - bLetter;
+      
+      // 3. По предзаказу
+      if (a.is_preorder && !b.is_preorder) return 1;
+      if (!a.is_preorder && b.is_preorder) return -1;
+      
+      // 4. По наличию
       if (aAvail > 0 && bAvail === 0) return -1;
       if (aAvail === 0 && bAvail > 0) return 1;
-      return 0;
+      
+      // 5. По алфавиту внутри одной группы
+      return a.name.localeCompare(b.name);
     });
-  }, [filteredProducts, getAvailableStock]);
+  }, [filteredProducts, getAvailableStock, selectedCategory]);
 
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
