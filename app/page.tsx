@@ -863,9 +863,7 @@ export default function Home() {
           <div className="relative py-2 overflow-hidden">
             <div className="scrolling-banner flex items-center gap-4 text-xs font-bold text-white">
               <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
-              <Zap className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-pulse" />
-              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">ПОДПИШИСЬ НА @zslvape НОВИНКИ • АКЦИИ • СКИДКИ </span>
-              <Star className="w-4 h-4 flex-shrink-0 text-yellow-300 animate-ping" style={{ animationDuration: '2s' }} />
+              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">ПОДПИШИСЬ НА @zslvape и следи за НОВИНКАМИ</span>
               <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
             </div>
           </div>
