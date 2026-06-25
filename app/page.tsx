@@ -158,7 +158,6 @@ export default function Home() {
         .sort((a, b) => b.date.localeCompare(a.date));
       setDailyEarnings(earnings);
   }
-    }
   }, []);
 
   useEffect(() => {
