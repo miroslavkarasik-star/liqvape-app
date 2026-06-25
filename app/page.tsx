@@ -1,15 +1,15 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, TrendingUp, Sparkles, Zap, Star } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Кальяны', 'Другое'];
+const CATEGORIES = ['Все', 'POD-системы', 'Жидкости', 'Расходники', 'Снюс', 'Одноразки', 'Другое'];
 const ADMIN_PASSWORD = 'liqvape67';
 const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'zslvape';
 const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
 
-interface Variant { name: string; stock: number; }
+interface Variant { name: string; stock: number; price?: number; }
 interface Product { 
   id: number; name: string; category: string; price: number; image: string | null; 
   variants: Variant[]; is_hidden: boolean; is_preorder: boolean;
@@ -59,13 +59,14 @@ export default function Home() {
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [adminTab, setAdminTab] = useState<'products' | 'orders'>('products');
+  const [adminTab, setAdminTab] = useState<'products' | 'orders' | 'earnings'>('products');
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [orderFilter, setOrderFilter] = useState<'all' | 'new' | 'done'>('all');
   const [showProductForm, setShowProductForm] = useState(false);
   const [adminSearch, setAdminSearch] = useState('');
   const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
+  const [dailyEarnings, setDailyEarnings] = useState<{ date: string; total: number; count: number }[]>([]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -141,7 +142,20 @@ export default function Home() {
 
   const loadAllOrders = useCallback(async () => {
     const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-    if (data) setAllOrders(data);
+    if (data) {
+      setAllOrders(data);
+      const byDate: Record<string, { total: number; count: number }> = {};
+      data.forEach(o => {
+        const date = o.order_date || o.created_at.split('T')[0];
+        if (!byDate[date]) byDate[date] = { total: 0, count: 0 };
+        byDate[date].total += o.total_price;
+        byDate[date].count += 1;
+      });
+      const earnings = Object.entries(byDate)
+        .map(([date, v]) => ({ date, ...v }))
+        .sort((a, b) => b.date.localeCompare(a.date));
+      setDailyEarnings(earnings);
+    }
   }, []);
 
   useEffect(() => {
@@ -183,13 +197,10 @@ export default function Home() {
     return [...filteredProducts].sort((a, b) => {
       const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
       const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
-      // 1. В наличии (без предзаказа) - ПЕРВЫЕ
       if (aAvail > 0 && !a.is_preorder && (bAvail === 0 || b.is_preorder)) return -1;
       if (bAvail > 0 && !b.is_preorder && (aAvail === 0 || a.is_preorder)) return 1;
-      // 2. Предзаказ - ВТОРЫЕ
       if (a.is_preorder && !b.is_preorder) return -1;
       if (!a.is_preorder && b.is_preorder) return 1;
-      // 3. Нет в наличии - ПОСЛЕДНИЕ
       if (aAvail > 0 && bAvail === 0) return -1;
       if (aAvail === 0 && bAvail > 0) return 1;
       return 0;
@@ -210,10 +221,12 @@ export default function Home() {
     if (avail <= 0) { showNotification('Нет в наличии', 'error'); return; }
     if (quantity > avail) { showNotification(`Максимум: ${avail} шт.`, 'error'); setQuantity(avail); return; }
     const idx = cart.findIndex(i => i.productId === selectedProduct.id && i.variant === selectedVariant);
+    const v = selectedProduct.variants.find(x => x.name === selectedVariant);
+    const price = v?.price || selectedProduct.price;
     if (idx >= 0) {
-      const nc = [...cart]; nc[idx].quantity += quantity; setCart(nc);
+      const nc = [...cart]; nc[idx].quantity += quantity; nc[idx].price = price; setCart(nc);
     } else {
-      setCart([...cart, { productId: selectedProduct.id, productName: selectedProduct.name, variant: selectedVariant, price: selectedProduct.price, quantity }]);
+      setCart([...cart, { productId: selectedProduct.id, productName: selectedProduct.name, variant: selectedVariant, price, quantity }]);
     }
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.HapticFeedback) {
       window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
@@ -251,20 +264,13 @@ export default function Home() {
       });
       if (error) { showNotification('Ошибка заказа', 'error'); setIsCheckingOut(false); return; }
       
-      // Обновляем stock в базе данных для каждого товара
       for (const item of cart) {
         const product = products.find(p => p.id === item.productId);
         if (!product) continue;
-        
-        const updatedVariants = product.variants.map(v => {
-          if (v.name === item.variant) {
-            return { ...v, stock: Math.max(0, v.stock - item.quantity) };
-          }
-          return v;
-        });
-        
+        const updatedVariants = product.variants.map(v => 
+          v.name === item.variant ? { ...v, stock: Math.max(0, v.stock - item.quantity) } : v
+        );
         const totalStock = updatedVariants.reduce((s, v) => s + v.stock, 0);
-        
         await supabase.from('products').update({
           flavors: JSON.stringify(updatedVariants),
           stock_quantity: totalStock
@@ -285,6 +291,7 @@ export default function Home() {
       setCart([]); 
       setShowCart(false);
       await loadUserOrders();
+      await loadAllOrders();
     } catch(e) { showNotification('Ошибка', 'error'); } 
     finally { setIsCheckingOut(false); }
   };
@@ -350,6 +357,7 @@ export default function Home() {
     setShowProductForm(false);
     setEditingProduct(null);
     await loadProducts(true);
+    await loadAllOrders();
   };
 
   const toggleHidden = async (p: Product) => {
@@ -428,14 +436,18 @@ export default function Home() {
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="flex gap-2 mb-4">
-            <button onClick={() => setAdminTab('orders')}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'orders' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
-              Заказы ({allOrders.length})
-            </button>
+          <div className="flex gap-1.5 mb-4">
             <button onClick={() => setAdminTab('products')}
               className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
-              Товары ({products.length})
+              Товары
+            </button>
+            <button onClick={() => setAdminTab('orders')}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'orders' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
+              Заказы
+            </button>
+            <button onClick={() => setAdminTab('earnings')}
+              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${adminTab === 'earnings' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>
+              💰 Доход
             </button>
           </div>
           {adminTab === 'products' ? (
@@ -487,7 +499,7 @@ export default function Home() {
                 )}
               </div>
             </>
-          ) : (
+          ) : adminTab === 'orders' ? (
             <>
               <div className="flex gap-1 mb-3">
                 <button onClick={() => setOrderFilter('all')} className={`flex-1 py-1.5 rounded-md text-[10px] ${orderFilter === 'all' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5'}`}>
@@ -548,17 +560,49 @@ export default function Home() {
                 )}
               </div>
             </>
+          ) : (
+            <>
+              <div className="glass-panel p-4 mb-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400">Сегодня</span>
+                  <span className="text-[10px] text-gray-500">{new Date().toLocaleDateString('ru-RU')}</span>
+                </div>
+                <div className="text-3xl font-bold gradient-text">
+                  {dailyEarnings.find(e => e.date === new Date().toISOString().split('T')[0])?.total.toFixed(2) || '0.00'} BYN
+                </div>
+                <div className="text-xs text-gray-400 mt-1">
+                  Заказов: {dailyEarnings.find(e => e.date === new Date().toISOString().split('T')[0])?.count || 0}
+                </div>
+              </div>
+              <div className="mb-2 text-xs text-gray-400 font-medium">История по дням</div>
+              <div className="space-y-2">
+                {dailyEarnings.map(e => (
+                  <div key={e.date} className="glass-card p-3 flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-bold text-white">
+                        {new Date(e.date).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      </div>
+                      <div className="text-[10px] text-gray-400">{e.count} заказов</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-bold gradient-text">{e.total.toFixed(2)} BYN</div>
+                    </div>
+                  </div>
+                ))}
+                {dailyEarnings.length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500">
+                    <p className="text-xs">История заработка пуста</p>
+                  </div>
+                )}
+              </div>
+            </>
           )}
-        </div>
         {showProductForm && editingProduct && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
             <div className="glass-panel w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-xl font-bold gradient-text flex items-center gap-2">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                  </svg>
+                  <Edit className="w-5 h-5 text-orange-500" />
                   {editingProduct.id ? 'Редактирование' : 'Новый товар'}
                 </h2>
                 <button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors">
@@ -592,39 +636,22 @@ export default function Home() {
                 <input 
                   type="file" 
                   accept="image/*"
-                  capture="environment"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    
                     showNotification('Загрузка фото...');
-                    
                     const fileExt = file.name.split('.').pop();
                     const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                     const filePath = `products/${fileName}`;
-                    
                     try {
                       const { data, error } = await supabase.storage
                         .from('product-images')
-                        .upload(filePath, file, {
-                          cacheControl: '3600',
-                          upsert: false
-                        });
-                      
-                      if (error) {
-                        showNotification('Ошибка: ' + error.message, 'error');
-                        return;
-                      }
-                      
-                      const { data: { publicUrl } } = supabase.storage
-                        .from('product-images')
-                        .getPublicUrl(filePath);
-                      
+                        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+                      if (error) { showNotification('Ошибка: ' + error.message, 'error'); return; }
+                      const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(filePath);
                       setEditingProduct({...editingProduct, image: publicUrl});
                       showNotification('Фото загружено!', 'success');
-                    } catch (err) {
-                      showNotification('Ошибка загрузки', 'error');
-                    }
+                    } catch (err) { showNotification('Ошибка загрузки', 'error'); }
                   }}
                   className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/20 transition-all file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-gradient-to-r file:from-orange-500 file:to-pink-500 file:text-white file:cursor-pointer"
                 />
@@ -649,7 +676,7 @@ export default function Home() {
                       <input type="text" placeholder="Название" value={v.name}
                         onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }}
                         className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all" />
-                      <input type="number" placeholder="0" 
+                      <input type="number" placeholder="Кол-во" 
                         value={v.stock === 0 ? '' : v.stock}
                         onChange={e => { 
                           const val = e.target.value.replace(/[^0-9]/g, '');
@@ -657,7 +684,15 @@ export default function Home() {
                           nv[i].stock = val === '' ? 0 : Number(val); 
                           setFormVariants(nv); 
                         }}
-                        className="w-20 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all text-center" />
+                        className="w-16 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all text-center" />
+                      <input type="number" placeholder="Цена" 
+                        value={v.price || ''}
+                        onChange={e => { 
+                          const nv = [...formVariants]; 
+                          nv[i].price = e.target.value === '' ? undefined : Number(e.target.value); 
+                          setFormVariants(nv); 
+                        }}
+                        className="w-16 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none focus:border-orange-500/50 transition-all text-center" />
                       <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} 
                         className="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center transition-all">
                         <X className="w-4 h-4" />
@@ -693,6 +728,7 @@ export default function Home() {
             </div>
           </div>
         )}
+        </div>
       </div>
     );
   }
@@ -716,10 +752,6 @@ export default function Home() {
                 {notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}
               </div>
               <p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p>
-              <div className="w-full h-0.5 rounded-full bg-white/10 mt-2 overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-[2500ms] ease-linear ${notification.type === 'error' ? 'bg-red-400' : 'bg-green-400'}`}
-                  style={{ width: notificationVisible ? '0%' : '100%' }}></div>
-              </div>
             </div>
           </div>
         </div>
@@ -733,7 +765,7 @@ export default function Home() {
             </div>
             <h2 className="text-2xl font-bold mb-2">Спасибо за заказ!</h2>
             <p className="text-gray-400 text-sm mb-2">Ваш заказ <span className="text-orange-400 font-bold">№{lastOrderNumber}</span> успешно оформлен</p>
-            <p className="text-gray-400 text-xs mb-6 leading-relaxed">Для подтверждения заказа напишите нашему менеджеру в Telegram</p>
+            <p className="text-gray-400 text-xs mb-6 leading-relaxed">Сделайте скриншот номера заказа и отправьте его нашему менеджеру в Telegram для подтверждения</p>
             <div className="glass-card p-3 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="w-5 h-5 text-white" />
@@ -792,9 +824,6 @@ export default function Home() {
             <p className="text-gray-400 text-xs mb-4 leading-relaxed">
               <span className="text-orange-400 font-bold">{selectedPreorderProduct.name}</span> доступен для предварительного заказа. Напишите менеджеру для оформления.
             </p>
-            <div className="glass-card p-3 mb-4">
-              <p className="text-sm text-gray-300 mb-1">Цена: <span className="text-white font-bold">{selectedPreorderProduct.price} BYN</span></p>
-            </div>
             <div className="glass-card p-3 mb-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="w-5 h-5 text-white" />
@@ -819,7 +848,6 @@ export default function Home() {
       )}
 
       <div className="max-w-md mx-auto px-3 relative z-10">
-        {/* ШАПКА */}
         <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40 pulse-glow">
@@ -849,7 +877,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* БЕГУЩАЯ СТРОКА */}
         <div 
           onClick={openChannel}
           className="relative my-3 rounded-xl overflow-hidden cursor-pointer group"
@@ -862,14 +889,9 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-all"></div>
           <div className="relative py-2 overflow-hidden">
             <div className="scrolling-banner flex items-center gap-4 text-xs font-bold text-white">
-              <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
-              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">ПОДПИШИСЬ НА @zslvape и следи за НОВИНКАМИ</span>
-              <Sparkles className="w-4 h-4 flex-shrink-0 animate-spin" style={{ animationDuration: '3s' }} />
+              <span className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">🔥 ПОДПИШИСЬ НА @zslvape  НОВИНКИ • АКЦИИ • СКИДКИ</span>
             </div>
           </div>
-          <div className="absolute inset-0 pointer-events-none" style={{
-            boxShadow: 'inset 0 0 20px rgba(255, 255, 255, 0.3), 0 0 30px rgba(255, 94, 0, 0.5)',
-          }}></div>
         </div>
 
         <div className="pt-3">
@@ -946,7 +968,15 @@ export default function Home() {
                     </h3>
                     <div className="flex items-center justify-between">
                       <span className={`text-sm font-bold ${isPreorder ? 'text-gray-500' : 'gradient-text'}`}>
-                        {p.price} BYN
+                        {(() => {
+                          const prices = p.variants.filter(v => v.price).map(v => v.price as number);
+                          if (prices.length > 0) {
+                            const min = Math.min(...prices);
+                            const max = Math.max(...prices);
+                            return min === max ? `${min} BYN` : `${min}-${max} BYN`;
+                          }
+                          return `${p.price} BYN`;
+                        })()}
                       </span>
                       <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">
                         {p.category}
@@ -992,7 +1022,13 @@ export default function Home() {
                 </div>
               )}
               <h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>
-              <p className="text-2xl font-bold gradient-text mb-4 text-center">{selectedProduct.price} BYN</p>
+              <p className="text-2xl font-bold gradient-text mb-4 text-center">
+                {(() => {
+                  const v = selectedProduct.variants.find(x => x.name === selectedVariant);
+                  const price = v?.price || selectedProduct.price;
+                  return `${price} BYN`;
+                })()}
+              </p>
               {selectedProduct.variants.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
@@ -1039,7 +1075,7 @@ export default function Home() {
                     </div>
                   </div>
                   <button onClick={addToCart} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-1.5 text-sm">
-                    <ShoppingBag className="w-4 h-4" /> В корзину • {selectedProduct.price * quantity} BYN
+                    <ShoppingBag className="w-4 h-4" /> В корзину • {(() => { const v = selectedProduct.variants.find(x => x.name === selectedVariant); const price = v?.price || selectedProduct.price; return price * quantity; })()} BYN
                   </button>
                 </>
               ) : <div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-red-400 text-sm">Нет в наличии</div>}
