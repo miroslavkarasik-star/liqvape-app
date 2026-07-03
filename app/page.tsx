@@ -996,11 +996,7 @@ export default function Home() {
                           <span className="text-red-400 font-bold text-xs">Нет</span>
                         </div>
                       )}
-                      {!isPreorder && avail > 0 && avail <= 3 && (
-                        <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-orange-500/20 border border-orange-500/30">
-                          <span className="text-[10px] text-orange-400">{avail} шт.</span>
-                        </div>
-                      )}
+
                     </div>
                     <h3 className={`font-semibold text-xs mb-1 line-clamp-2 text-center ${isPreorder ? 'text-gray-400' : 'text-white group-hover:text-orange-400'}`}>
                       {p.name}
@@ -1184,7 +1180,15 @@ export default function Home() {
           <div className="relative glass-panel w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto relative z-10">
             <div className="sticky top-0 z-10 bg-black/80 backdrop-blur-xl border-b border-white/5 p-3 flex items-center justify-between">
               <h2 className="text-lg font-bold">История заказов</h2>
-              <button onClick={() => setShowHistory(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
+              <div className="flex items-center gap-2">
+                {userOrders.length > 0 && (
+                  <button onClick={() => { if (confirm('Очистить историю заказов?')) { setUserOrders([]); showNotification('История очищена'); } }}
+                    className="text-[10px] text-red-400 hover:text-red-300">
+                    Очистить
+                  </button>
+                )}
+                <button onClick={() => setShowHistory(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
+              </div>
             </div>
             <div className="p-3">
               {userOrders.length === 0 ? (
