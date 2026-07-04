@@ -400,6 +400,609 @@ export default function Home() {
     setIsCheckingOut(true);
     
     try {
+      console.log('🛒 Checkout started, cart:', cart);
+      
+      // 1. Получаем свежие данные
+      const { data: freshData, error: fetchError } = await supabase
+        .from('products')
+        .select('*');
+      
+      if (fetchError) {
+        console.error('Fetch error:', fetchError);
+        showNotification('Ошибка загрузки: ' + fetchError.message, 'error');
+        setIsCheckingOut(false);
+        return;
+      }
+      
+      console.log(' Fresh products loaded:', freshData?.length);
+      
+      const freshProducts: Product[] = (freshData || []).map((p: any) => ({
+        id: p.id, name: p.name, category: p.category || 'Другое',
+        price: Number(p.price), image: p.image_url || null,
+        variants: typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []),
+        is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
+      }));
+      
+      // 2. Собираем что нужно списать
+      const toDeduct: Record<number, Record<string, number>> = {};
+      
+      for (const item of cart) {
+        if (!toDeduct[item.productId]) toDeduct[item.productId] = {};
+        toDeduct[item.productId][item.variant] = (toDeduct[item.productId][item.variant] || 0) + item.quantity;
+      }
+      
+      console.log('📊 To deduct:', toDeduct);
+      
+      // 3. Проверяем и готовим обновления
+      const validItems: CartItem[] = [];
+      const updates: Array<{productId: number, variants: Variant[], totalStock: number}> = [];
+      const issues: string[] = [];
+      
+      for (const [productIdStr, variantsMap] of Object.entries(toDeduct)) {
+        const productId = Number(productIdStr);
+        const product = freshProducts.find(p => p.id === productId);
+        
+        if (!product) {
+          issues.push(`Товар ID ${productId} не найден`);
+          continue;
+        }
+        
+        console.log(`🔍 Processing product ${productId} (${product.name})`);
+        
+        // Глубокая копия variants
+        const updatedVariants: Variant[] = JSON.parse(JSON.stringify(product.variants));
+        let hasChanges = false;
+        
+        for (const [variantName, qtyNeeded] of Object.entries(variantsMap)) {
+          const variant = updatedVariants.find((v: Variant) => v.name === variantName);
+          
+          if (!variant) {
+            issues.push(`${product.name}: вкус "${variantName}" не найден`);
+            continue;
+          }
+          
+          console.log(`  ${variantName}: stock=${variant.stock}, need=${qtyNeeded}`);
+          
+          if (variant.stock < qtyNeeded) {
+            issues.push(`${product.name} (${variantName}): нужно ${qtyNeeded}, есть ${variant.stock}`);
+            if (variant.stock > 0) {
+              const cartItem = cart.find(i => i.productId === productId && i.variant === variantName);
+              if (cartItem) {
+                validItems.push({ ...cartItem, quantity: variant.stock });
+              }
+              variant.stock = 0;
+              hasChanges = true;
+              console.log(`  ⚠️ Reduced to 0`);
+            }
+          } else {
+            const cartItem = cart.find(i => i.productId === productId && i.variant === variantName);
+            if (cartItem) {
+              validItems.push({ ...cartItem, quantity: qtyNeeded });
+            }
+            variant.stock -= qtyNeeded;
+            hasChanges = true;
+            console.log(`  ✅ Reduced to ${variant.stock}`);
+          }
+        }
+        
+        if (hasChanges) {
+          const totalStock = updatedVariants.reduce((s: number, v: Variant) => s + v.stock, 0);
+          updates.push({ productId, variants: updatedVariants, totalStock });
+          console.log(`  📝 Will update: totalStock=${totalStock}`);
+        }
+      }
+      
+      if (validItems.length === 0) {
+        showNotification('Нечего заказывать: ' + issues.join('; '), 'error');
+        setIsCheckingOut(false);
+        return;
+      }
+      
+      if (issues.length > 0) {
+        const msg = `Проблемы:\n${issues.map(i => '• ' + i).join('\n')}\n\nОформить что есть?`;
+        if (!confirm(msg)) {
+          setIsCheckingOut(false);
+          return;
+        }
+      }
+      
+      // 4. Создаём заказ
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todayOrders } = await supabase
+        .from('orders')
+        .select('order_number')
+        .eq('order_date', today)
+        .order('order_number', { ascending: false })
+        .limit(1);
+      
+      const nextNum = todayOrders && todayOrders.length > 0 ? todayOrders[0].order_number + 1 : 1;
+      
+      const orderData = {
+        user_id: userId,
+        username: telegramUsername || null,
+        order_number: nextNum,
+        order_date: today,
+        items: validItems,
+        total_price: validItems.reduce((s, i) => s + i.price * i.quantity, 0),
+        status: 'new',
+      };
+      
+      console.log('📝 Creating order:', orderData);
+      
+      const { error: orderError } = await supabase.from('orders').insert(orderData);
+      
+      if (orderError) {
+        console.error('Order error:', orderError);
+        showNotification('Ошибка заказа: ' + orderError.message, 'error');
+        setIsCheckingOut(false);
+        return;
+      }
+      
+      console.log('✅ Order created #' + nextNum);
+      
+      // 5. Обновляем каждый товар
+      for (const update of updates) {
+        console.log(`🔄 Updating product ${update.productId}...`);
+        console.log(`   Variants:`, update.variants);
+        console.log(`   Total stock: ${update.totalStock}`);
+        
+        const flavorsJson = JSON.stringify(update.variants);
+        console.log(`   Flavors JSON:`, flavorsJson);
+        
+        const { error: updateError, data: updateResult } = await supabase
+          .from('products')
+          .update({
+            flavors: flavorsJson,
+            stock_quantity: update.totalStock
+          })
+          .eq('id', update.productId)
+          .select();
+        
+        if (updateError) {
+          console.error(`❌ Update error for product ${update.productId}:`, updateError);
+        } else {
+          console.log(`✅ Updated product ${update.productId}:`, updateResult);
+        }
+      }
+      
+      // 6. Проверяем что обновилось
+      const { data: verifyData } = await supabase
+        .from('products')
+        .select('id, flavors, stock_quantity')
+        .in('id', updates.map(u => u.productId));
+      
+      console.log('🔍 Verification:', verifyData);
+      
+      // 7. Обновляем локальный стейт
+      const finalProducts = freshProducts.map(p => {
+        const update = updates.find(u => u.productId === p.id);
+        if (update) {
+          return { ...p, variants: update.variants };
+        }
+        return p;
+      });
+      setProducts(finalProducts);
+      
+      // 8. Удаляем оформленные из корзины
+      const validKeys = new Set(validItems.map(i => `${i.productId}_${i.variant}`));
+      const remainingCart = cart.filter(item => !validKeys.has(`${item.productId}_${item.variant}`));
+      setCart(remainingCart);
+      
+      // 9. Финал
+      setLastOrderNumber(nextNum);
+      setShowOrderSuccess(true);
+      setShowCart(false);
+      await loadUserOrders();
+      await loadAllOrders();
+      
+      showNotification(`Заказ #${nextNum} оформлен!`, 'success');
+    } catch(e) {
+      console.error('💥 Checkout error:', e);
+      showNotification('Ошибка: ' + (e as Error).message, 'error');
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };seCallback } from 'react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Другое'];
+const CATEGORY_ORDER: Record<string, number> = {
+  'Жидкости': 1, 'Расходники': 2, 'Снюс': 3,
+  'POD-системы': 4, 'Одноразки': 5, 'Другое': 6,
+};
+const LETTER_PRIORITY: Record<string, string[]> = {
+  'Жидкости': ['R','D','C','A','B','E','P','G','S','F','H'],
+  'Снюс': ['D','E','G','F'],
+  'Одноразки': ['P','K','E'],
+};
+const getLetterPriority = (name: string, category: string): number => {
+  const firstLetter = name.charAt(0).toUpperCase();
+  const priorities = LETTER_PRIORITY[category];
+  if (!priorities) return 999;
+  const idx = priorities.indexOf(firstLetter);
+  return idx === -1 ? 999 : idx;
+};
+const ADMIN_PASSWORD = 'K7m2Q9';
+const MANAGER_USERNAME = 'LiqVape_2';
+const CHANNEL_USERNAME = 'zslvape';
+const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
+
+interface Variant { name: string; stock: number; price?: number; }
+interface Product { 
+  id: number; name: string; category: string; price: number; image: string | null; 
+  variants: Variant[]; is_hidden: boolean; is_preorder: boolean;
+}
+interface CartItem { productId: number; productName: string; variant: string; price: number; quantity: number; }
+interface Order { 
+  id: string; user_id: string; username?: string; order_number: number; order_date: string; 
+  items: CartItem[]; total_price: number; status: string; created_at: string;
+}
+// Для модалки товара - выбранные вкусы с количеством
+interface SelectedVariant { name: string; quantity: number; }
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        ready: () => void; expand: () => void; close: () => void;
+        openTelegramLink: (url: string) => void;
+        HapticFeedback: { impactOccurred: (s: string) => void; notificationOccurred: (t: string) => void; };
+        initDataUnsafe?: { user?: { id: number; username?: string; first_name?: string; last_name?: string; } };
+      };
+    };
+  }
+}
+
+export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Все');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>([]);
+  const [showAllVariants, setShowAllVariants] = useState(false);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
+  const [userId, setUserId] = useState('');
+  const [notification, setNotification] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  const [notificationVisible, setNotificationVisible] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [lastOrderNumber, setLastOrderNumber] = useState<number>(0);
+  const [telegramUsername, setTelegramUsername] = useState<string>('');
+  const [showSubscribePrompt, setShowSubscribePrompt] = useState(false);
+  const [showPreorderModal, setShowPreorderModal] = useState(false);
+  const [selectedPreorderProduct, setSelectedPreorderProduct] = useState<Product | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [adminTab, setAdminTab] = useState<'products' | 'orders' | 'earnings'>('products');
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [orderFilter, setOrderFilter] = useState<'all' | 'new' | 'done'>('all');
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminCategory, setAdminCategory] = useState('Все');
+  const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+  const [formVariants, setFormVariants] = useState<Variant[]>([]);
+  const [dailyEarnings, setDailyEarnings] = useState<{ date: string; total: number; count: number }[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      window.Telegram.WebApp.ready();
+      window.Telegram.WebApp.expand();
+      const user = window.Telegram.WebApp.initDataUnsafe?.user;
+      if (user) setTelegramUsername(user.username || user.first_name || '');
+    }
+  }, []);
+
+  useEffect(() => {
+    const hasSeenPrompt = localStorage.getItem('liqvape_seen_subscribe');
+    if (!hasSeenPrompt) {
+      setShowSubscribePrompt(true);
+      localStorage.setItem('liqvape_seen_subscribe', 'true');
+    }
+  }, []);
+
+  const handleSubscribe = () => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(CHANNEL_LINK);
+    } else {
+      window.open(CHANNEL_LINK, '_blank');
+    }
+    setTimeout(() => setShowSubscribePrompt(false), 1000);
+  };
+
+  const handleSkipSubscribe = () => setShowSubscribePrompt(false);
+
+  const openChannel = () => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
+      window.Telegram.WebApp.openTelegramLink(CHANNEL_LINK);
+    } else {
+      window.open(CHANNEL_LINK, '_blank');
+    }
+  };
+
+  useEffect(() => {
+    let id = localStorage.getItem('liqvape_user_id');
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem('liqvape_user_id', id); }
+    setUserId(id);
+  }, []);
+
+  // Загрузка корзины из localStorage
+  useEffect(() => {
+    const c = localStorage.getItem('liqvape_cart');
+    if (c) { try { setCart(JSON.parse(c)); } catch(e) {} }
+  }, []);
+  useEffect(() => { localStorage.setItem('liqvape_cart', JSON.stringify(cart)); }, [cart]);
+
+  const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
+    let query = supabase.from('products').select('*').order('created_at', { ascending: false });
+    if (!includeHidden) query = query.eq('is_hidden', false);
+    const { data, error } = await query;
+    if (error) { console.error('Ошибка загрузки товаров:', error); return []; }
+    let parsed: Product[] = [];
+    if (data && data.length > 0) {
+      parsed = data.map((p: any) => ({
+        id: p.id, name: p.name, category: p.category || 'Другое',
+        price: Number(p.price), image: p.image_url || null,
+        variants: typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []),
+        is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
+      }));
+    }
+    setProducts(parsed);
+    return parsed;
+  }, []);
+
+  const loadUserOrders = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase.from('orders').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    if (data) setUserOrders(data);
+  }, [userId]);
+
+  const loadAllOrders = useCallback(async () => {
+    const { data } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+    if (data) {
+      setAllOrders(data);
+      const byDate: Record<string, { total: number; count: number }> = {};
+      data.forEach(o => {
+        const date = o.order_date || o.created_at.split('T')[0];
+        if (!byDate[date]) byDate[date] = { total: 0, count: 0 };
+        byDate[date].total += o.total_price;
+        byDate[date].count += 1;
+      });
+      const earnings = Object.entries(byDate)
+        .map(([date, v]) => ({ date, ...v }))
+        .sort((a, b) => b.date.localeCompare(a.date));
+      setDailyEarnings(earnings);
+    }
+  }, []);
+
+  // Загружаем свежие данные при каждом открытии
+  useEffect(() => {
+    loadProducts(isAdmin);
+    if (isAdmin) loadAllOrders();
+  }, [isAdmin, loadProducts, loadAllOrders]);
+
+  // Real-time подписка на изменения товаров
+  useEffect(() => {
+    const channel = supabase
+      .channel('products-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'products' }, 
+        (payload) => {
+          console.log('Изменение товара:', payload);
+          // Перезагружаем товары при любом изменении
+          loadProducts(isAdmin);
+          if (isAdmin) loadAllOrders();
+          
+          // Проверяем корзину - удаляем позиции которых больше нет
+          if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as any)?.id;
+            if (deletedId) {
+              setCart(prev => prev.filter(item => item.productId !== deletedId));
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as any;
+            if (updated) {
+              const updatedVariants = typeof updated.flavors === 'string' 
+                ? JSON.parse(updated.flavors) 
+                : (updated.variants || updated.flavors || []);
+              const updatedVariantNames = updatedVariants.map((v: any) => v.name);
+              
+              // Удаляем из корзины вкусы которых больше нет
+              setCart(prev => prev.filter(item => {
+                if (item.productId !== updated.id) return true;
+                return updatedVariantNames.includes(item.variant);
+              }));
+            }
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, loadProducts, loadAllOrders]);
+
+  // Polling каждые 30 секунд как backup
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadProducts(isAdmin);
+      if (isAdmin) loadAllOrders();
+    }, 30000); // 30 секунд
+    
+    return () => clearInterval(interval);
+  }, [isAdmin, loadProducts, loadAllOrders]);
+
+  useEffect(() => { if (userId) loadUserOrders(); }, [userId, loadUserOrders]);
+
+  const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.notificationOccurred(type === 'error' ? 'error' : 'success');
+    }
+    setNotification({ message, type });
+    setNotificationVisible(true);
+    setTimeout(() => { setNotificationVisible(false); setTimeout(() => setNotification(null), 300); }, 2500);
+  };
+
+  // Сколько этого товара+вкуса уже в корзине
+  const getCartQuantity = (productId: number, variant: string) => {
+    const item = cart.find(i => i.productId === productId && i.variant === variant);
+    return item ? item.quantity : 0;
+  };
+
+  // Доступное наличие с учётом корзины
+  const getAvailableStock = useCallback((productId: number, variant: string) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return 0;
+    const v = product.variants.find(x => x.name === variant);
+    if (!v) return 0;
+    return Math.max(0, v.stock - getCartQuantity(productId, variant));
+  }, [products, cart]);
+
+  const filteredProducts = products.filter(p => {
+    const s = p.name.toLowerCase().includes(search.toLowerCase());
+    const c = selectedCategory === 'Все' || p.category === selectedCategory;
+    return s && c;
+  });
+
+  const sortedProducts = useMemo(() => {
+    return [...filteredProducts].sort((a, b) => {
+      const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
+      const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
+      if (selectedCategory === 'Все') {
+        const aCatOrder = CATEGORY_ORDER[a.category] || 99;
+        const bCatOrder = CATEGORY_ORDER[b.category] || 99;
+        if (aCatOrder !== bCatOrder) return aCatOrder - bCatOrder;
+      }
+      const aLetter = getLetterPriority(a.name, a.category);
+      const bLetter = getLetterPriority(b.name, b.category);
+      if (aLetter !== bLetter) return aLetter - bLetter;
+      if (a.is_preorder && !b.is_preorder) return 1;
+      if (!a.is_preorder && b.is_preorder) return -1;
+      if (aAvail > 0 && bAvail === 0) return -1;
+      if (aAvail === 0 && bAvail > 0) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [filteredProducts, getAvailableStock, selectedCategory]);
+
+  // Открыть модалку товара - сбросить выбор
+  const openProductModal = (product: Product) => {
+    setSelectedProduct(product);
+    setSelectedVariants([]);
+    setShowAllVariants(false);
+  };
+
+  // Переключить выбор вкуса
+  const toggleVariantSelection = (variantName: string) => {
+    setSelectedVariants(prev => {
+      const exists = prev.find(v => v.name === variantName);
+      if (exists) {
+        return prev.filter(v => v.name !== variantName);
+      } else {
+        return [...prev, { name: variantName, quantity: 1 }];
+      }
+    });
+  };
+
+  // Изменить количество для выбранного вкуса
+  const updateVariantQuantity = (variantName: string, delta: number) => {
+    if (!selectedProduct) return;
+    setSelectedVariants(prev => prev.map(v => {
+      if (v.name !== variantName) return v;
+      const avail = getAvailableStock(selectedProduct.id, v.name);
+      const newQty = v.quantity + delta;
+      if (newQty < 1) return v;
+      if (newQty > avail) {
+        showNotification(`Максимум: ${avail} шт. для ${v.name}`, 'error');
+        return v;
+      }
+      return { ...v, quantity: newQty };
+    }));
+  };
+
+  const setVariantQuantity = (variantName: string, qty: number) => {
+    if (!selectedProduct) return;
+    const avail = getAvailableStock(selectedProduct.id, variantName);
+    const finalQty = Math.max(1, Math.min(qty, avail));
+    setSelectedVariants(prev => prev.map(v => 
+      v.name === variantName ? { ...v, quantity: finalQty } : v
+    ));
+  };
+
+  // Добавить выбранные вкусы в корзину
+  const addSelectedToCart = () => {
+    if (!selectedProduct || selectedVariants.length === 0) {
+      showNotification('Выберите хотя бы один вкус', 'error');
+      return;
+    }
+    
+    // Проверяем наличие каждого выбранного вкуса
+    const issues: string[] = [];
+    for (const sv of selectedVariants) {
+      const avail = getAvailableStock(selectedProduct.id, sv.name);
+      if (avail <= 0) {
+        issues.push(`${sv.name} — нет в наличии`);
+      } else if (sv.quantity > avail) {
+        issues.push(`${sv.name} — максимум ${avail} шт.`);
+      }
+    }
+    
+    if (issues.length > 0) {
+      showNotification(issues.join('; '), 'error');
+      return;
+    }
+
+    let newCart = [...cart];
+    for (const sv of selectedVariants) {
+      const v = selectedProduct.variants.find(x => x.name === sv.name);
+      const price = v?.price || selectedProduct.price;
+      const idx = newCart.findIndex(i => i.productId === selectedProduct.id && i.variant === sv.name);
+      if (idx >= 0) {
+        newCart[idx] = { ...newCart[idx], quantity: newCart[idx].quantity + sv.quantity, price };
+      } else {
+        newCart.push({
+          productId: selectedProduct.id,
+          productName: selectedProduct.name,
+          variant: sv.name,
+          price,
+          quantity: sv.quantity,
+        });
+      }
+    }
+    
+    setCart(newCart);
+    if (typeof window !== 'undefined' && window.Telegram?.WebApp?.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+    showNotification(`Добавлено: ${selectedProduct.name} (${selectedVariants.length} вкус.)`);
+    setSelectedProduct(null);
+    setSelectedVariants([]);
+  };
+
+  const removeFromCart = (i: number) => setCart(cart.filter((_, x) => x !== i));
+  
+  const updateCartQuantity = (i: number, d: number) => {
+    const item = cart[i];
+    const p = products.find(x => x.id === item.productId);
+    const v = p?.variants.find(x => x.name === item.variant);
+    const nq = item.quantity + d;
+    if (v && nq > v.stock) { showNotification(`Максимум: ${v.stock} шт.`, 'error'); return; }
+    if (nq <= 0) setCart(cart.filter((_, x) => x !== i));
+    else { const nc = [...cart]; nc[i].quantity = nq; setCart(nc); }
+  };
+
+  const clearCart = () => { if (confirm('Очистить?')) { setCart([]); showNotification('Корзина очищена'); } };
+
+  const checkout = async () => {
+    if (cart.length === 0 || !userId) return;
+    setIsCheckingOut(true);
+    
+    try {
       // 1. Получаем СВЕЖИЕ данные из базы
       const { data: freshData, error: fetchError } = await supabase
         .from('products')
