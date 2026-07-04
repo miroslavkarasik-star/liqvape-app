@@ -602,12 +602,6 @@ export default function Home() {
     } finally {
       setIsCheckingOut(false);
     }
-  };seCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
-
-const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Другое'];
-const CATEGORY_ORDER: Record<string, number> = {
   'Жидкости': 1, 'Расходники': 2, 'Снюс': 3,
   'POD-системы': 4, 'Одноразки': 5, 'Другое': 6,
 };
