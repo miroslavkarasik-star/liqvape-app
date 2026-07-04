@@ -183,6 +183,58 @@ export default function Home() {
     if (isAdmin) loadAllOrders();
   }, [isAdmin, loadProducts, loadAllOrders]);
 
+  // Real-time подписка на изменения товаров
+  useEffect(() => {
+    const channel = supabase
+      .channel('products-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'products' }, 
+        (payload) => {
+          console.log('Изменение товара:', payload);
+          // Перезагружаем товары при любом изменении
+          loadProducts(isAdmin);
+          if (isAdmin) loadAllOrders();
+          
+          // Проверяем корзину - удаляем позиции которых больше нет
+          if (payload.eventType === 'DELETE') {
+            const deletedId = (payload.old as any)?.id;
+            if (deletedId) {
+              setCart(prev => prev.filter(item => item.productId !== deletedId));
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            const updated = payload.new as any;
+            if (updated) {
+              const updatedVariants = typeof updated.flavors === 'string' 
+                ? JSON.parse(updated.flavors) 
+                : (updated.variants || updated.flavors || []);
+              const updatedVariantNames = updatedVariants.map((v: any) => v.name);
+              
+              // Удаляем из корзины вкусы которых больше нет
+              setCart(prev => prev.filter(item => {
+                if (item.productId !== updated.id) return true;
+                return updatedVariantNames.includes(item.variant);
+              }));
+            }
+          }
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAdmin, loadProducts, loadAllOrders]);
+
+  // Polling каждые 30 секунд как backup
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadProducts(isAdmin);
+      if (isAdmin) loadAllOrders();
+    }, 30000); // 30 секунд
+    
+    return () => clearInterval(interval);
+  }, [isAdmin, loadProducts, loadAllOrders]);
+
   useEffect(() => { if (userId) loadUserOrders(); }, [userId, loadUserOrders]);
 
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
@@ -560,6 +612,10 @@ export default function Home() {
   const toggleHidden = async (p: Product) => {
     const newHidden = !p.is_hidden;
     await supabase.from('products').update({ is_hidden: newHidden }).eq('id', p.id);
+    // Мгновенно обновляем локально
+    setProducts(prev => prev.map(prod => 
+      prod.id === p.id ? { ...prod, is_hidden: newHidden } : prod
+    ));
     await loadProducts(true);
     showNotification(newHidden ? 'Товар скрыт' : 'Товар показан');
   };
