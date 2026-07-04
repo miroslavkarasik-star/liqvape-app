@@ -35,6 +35,8 @@ interface Order {
   id: string; user_id: string; username?: string; order_number: number; order_date: string; 
   items: CartItem[]; total_price: number; status: string; created_at: string;
 }
+// Для модалки товара - выбранные вкусы с количеством
+interface SelectedVariant { name: string; quantity: number; }
 
 declare global {
   interface Window {
@@ -54,8 +56,7 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [selectedVariant, setSelectedVariant] = useState<string>('');
-  const [quantity, setQuantity] = useState(1);
+  const [selectedVariants, setSelectedVariants] = useState<SelectedVariant[]>([]);
   const [showAllVariants, setShowAllVariants] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
@@ -127,6 +128,7 @@ export default function Home() {
     setUserId(id);
   }, []);
 
+  // Загрузка корзины из localStorage
   useEffect(() => {
     const c = localStorage.getItem('liqvape_cart');
     if (c) { try { setCart(JSON.parse(c)); } catch(e) {} }
@@ -175,6 +177,7 @@ export default function Home() {
     }
   }, []);
 
+  // Загружаем свежие данные при каждом открытии
   useEffect(() => {
     loadProducts(isAdmin);
     if (isAdmin) loadAllOrders();
@@ -191,11 +194,13 @@ export default function Home() {
     setTimeout(() => { setNotificationVisible(false); setTimeout(() => setNotification(null), 300); }, 2500);
   };
 
+  // Сколько этого товара+вкуса уже в корзине
   const getCartQuantity = (productId: number, variant: string) => {
     const item = cart.find(i => i.productId === productId && i.variant === variant);
     return item ? item.quantity : 0;
   };
 
+  // Доступное наличие с учётом корзины
   const getAvailableStock = useCallback((productId: number, variant: string) => {
     const product = products.find(p => p.id === productId);
     if (!product) return 0;
@@ -230,32 +235,98 @@ export default function Home() {
     });
   }, [filteredProducts, getAvailableStock, selectedCategory]);
 
+  // Открыть модалку товара - сбросить выбор
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
-    const first = product.variants.find(f => getAvailableStock(product.id, f.name) > 0);
-    setSelectedVariant(first?.name || '');
-    setQuantity(1);
+    setSelectedVariants([]);
     setShowAllVariants(false);
   };
 
-  const addToCart = () => {
-    if (!selectedProduct || !selectedVariant) return;
-    const avail = getAvailableStock(selectedProduct.id, selectedVariant);
-    if (avail <= 0) { showNotification('Нет в наличии', 'error'); return; }
-    if (quantity > avail) { showNotification(`Максимум: ${avail} шт.`, 'error'); setQuantity(avail); return; }
-    const idx = cart.findIndex(i => i.productId === selectedProduct.id && i.variant === selectedVariant);
-    const v = selectedProduct.variants.find(x => x.name === selectedVariant);
-    const price = v?.price || selectedProduct.price;
-    if (idx >= 0) {
-      const nc = [...cart]; nc[idx].quantity += quantity; nc[idx].price = price; setCart(nc);
-    } else {
-      setCart([...cart, { productId: selectedProduct.id, productName: selectedProduct.name, variant: selectedVariant, price, quantity }]);
+  // Переключить выбор вкуса
+  const toggleVariantSelection = (variantName: string) => {
+    setSelectedVariants(prev => {
+      const exists = prev.find(v => v.name === variantName);
+      if (exists) {
+        return prev.filter(v => v.name !== variantName);
+      } else {
+        return [...prev, { name: variantName, quantity: 1 }];
+      }
+    });
+  };
+
+  // Изменить количество для выбранного вкуса
+  const updateVariantQuantity = (variantName: string, delta: number) => {
+    if (!selectedProduct) return;
+    setSelectedVariants(prev => prev.map(v => {
+      if (v.name !== variantName) return v;
+      const avail = getAvailableStock(selectedProduct.id, v.name);
+      const newQty = v.quantity + delta;
+      if (newQty < 1) return v;
+      if (newQty > avail) {
+        showNotification(`Максимум: ${avail} шт. для ${v.name}`, 'error');
+        return v;
+      }
+      return { ...v, quantity: newQty };
+    }));
+  };
+
+  const setVariantQuantity = (variantName: string, qty: number) => {
+    if (!selectedProduct) return;
+    const avail = getAvailableStock(selectedProduct.id, variantName);
+    const finalQty = Math.max(1, Math.min(qty, avail));
+    setSelectedVariants(prev => prev.map(v => 
+      v.name === variantName ? { ...v, quantity: finalQty } : v
+    ));
+  };
+
+  // Добавить выбранные вкусы в корзину
+  const addSelectedToCart = () => {
+    if (!selectedProduct || selectedVariants.length === 0) {
+      showNotification('Выберите хотя бы один вкус', 'error');
+      return;
     }
+    
+    // Проверяем наличие каждого выбранного вкуса
+    const issues: string[] = [];
+    for (const sv of selectedVariants) {
+      const avail = getAvailableStock(selectedProduct.id, sv.name);
+      if (avail <= 0) {
+        issues.push(`${sv.name} — нет в наличии`);
+      } else if (sv.quantity > avail) {
+        issues.push(`${sv.name} — максимум ${avail} шт.`);
+      }
+    }
+    
+    if (issues.length > 0) {
+      showNotification(issues.join('; '), 'error');
+      return;
+    }
+
+    let newCart = [...cart];
+    for (const sv of selectedVariants) {
+      const v = selectedProduct.variants.find(x => x.name === sv.name);
+      const price = v?.price || selectedProduct.price;
+      const idx = newCart.findIndex(i => i.productId === selectedProduct.id && i.variant === sv.name);
+      if (idx >= 0) {
+        newCart[idx] = { ...newCart[idx], quantity: newCart[idx].quantity + sv.quantity, price };
+      } else {
+        newCart.push({
+          productId: selectedProduct.id,
+          productName: selectedProduct.name,
+          variant: sv.name,
+          price,
+          quantity: sv.quantity,
+        });
+      }
+    }
+    
+    setCart(newCart);
     if (typeof window !== 'undefined' && window.Telegram?.WebApp?.HapticFeedback) {
       window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
     }
-    showNotification(`Добавлено: ${selectedProduct.name}`);
+    showNotification(`Добавлено: ${selectedProduct.name} (${selectedVariants.length} вкус.)`);
     setSelectedProduct(null);
+    setSelectedVariants([]);
   };
 
   const removeFromCart = (i: number) => setCart(cart.filter((_, x) => x !== i));
@@ -275,19 +346,73 @@ export default function Home() {
   const checkout = async () => {
     if (cart.length === 0 || !userId) return;
     setIsCheckingOut(true);
+    
+    // Перезагружаем свежие данные о товарах
+    await loadProducts(true);
+    
     try {
+      // Проверяем наличие каждого товара в корзине ПЕРЕД оформлением
+      const freshProducts = products;
+      const issues: { item: CartItem; reason: string }[] = [];
+      const validItems: CartItem[] = [];
+      
+      for (const item of cart) {
+        const product = freshProducts.find(p => p.id === item.productId);
+        if (!product) {
+          issues.push({ item, reason: `${item.productName} не найден` });
+          continue;
+        }
+        const variant = product.variants.find(v => v.name === item.variant);
+        if (!variant) {
+          issues.push({ item, reason: `Вкус "${item.variant}" не найден` });
+          continue;
+        }
+        if (variant.stock <= 0) {
+          issues.push({ item, reason: `${item.productName} (${item.variant}) — нет в наличии` });
+          continue;
+        }
+        if (item.quantity > variant.stock) {
+          issues.push({ item, reason: `${item.productName} (${item.variant}) — только ${variant.stock} шт.` });
+          // Если есть хоть какое-то наличие - добавляем с максимальным количеством
+          if (variant.stock > 0) {
+            validItems.push({ ...item, quantity: variant.stock });
+          }
+          continue;
+        }
+        validItems.push(item);
+      }
+      
+      if (validItems.length === 0) {
+        showNotification('Нет товаров для заказа. ' + issues.map(i => i.reason).join('; '), 'error');
+        setIsCheckingOut(false);
+        return;
+      }
+      
+      // Если есть проблемы - предупреждаем
+      if (issues.length > 0) {
+        const confirmMsg = `Некоторые товары недоступны:\n${issues.map(i => `• ${i.reason}`).join('\n')}\n\nОформить остальные (${validItems.length} позиц.)?`;
+        if (!confirm(confirmMsg)) {
+          setIsCheckingOut(false);
+          return;
+        }
+      }
+      
       const today = new Date().toISOString().split('T')[0];
       const { data: todayOrders } = await supabase.from('orders').select('order_number').eq('order_date', today).order('order_number', { ascending: false }).limit(1);
       const nextNum = todayOrders && todayOrders.length > 0 ? todayOrders[0].order_number + 1 : 1;
+      
       const { error } = await supabase.from('orders').insert({
         user_id: userId, username: telegramUsername || null, order_number: nextNum, 
-        order_date: today, items: cart, 
-        total_price: cart.reduce((s, i) => s + i.price * i.quantity, 0), 
+        order_date: today, items: validItems, 
+        total_price: validItems.reduce((s, i) => s + i.price * i.quantity, 0), 
         status: 'new',
       });
-      if (error) { showNotification('Ошибка заказа', 'error'); setIsCheckingOut(false); return; }
-      for (const item of cart) {
-        const product = products.find(p => p.id === item.productId);
+      
+      if (error) { showNotification('Ошибка заказа: ' + error.message, 'error'); setIsCheckingOut(false); return; }
+      
+      // Списываем наличие для каждого товара
+      for (const item of validItems) {
+        const product = freshProducts.find(p => p.id === item.productId);
         if (!product) continue;
         const updatedVariants = product.variants.map(v => 
           v.name === item.variant ? { ...v, stock: Math.max(0, v.stock - item.quantity) } : v
@@ -298,8 +423,10 @@ export default function Home() {
           stock_quantity: totalStock
         }).eq('id', item.productId);
       }
-      const updated = products.map(p => {
-        const ci = cart.filter(i => i.productId === p.id);
+      
+      // Обновляем локальный стейт
+      const updated = freshProducts.map(p => {
+        const ci = validItems.filter(i => i.productId === p.id);
         if (ci.length === 0) return p;
         return { ...p, variants: p.variants.map(v => {
           const it = ci.find(i => i.variant === v.name);
@@ -307,13 +434,19 @@ export default function Home() {
         })};
       });
       setProducts(updated);
+      
+      // Удаляем оформленные товары из корзины
+      const remainingCart = cart.filter(item => {
+        return !validItems.some(vi => vi.productId === item.productId && vi.variant === item.variant);
+      });
+      setCart(remainingCart);
+      
       setLastOrderNumber(nextNum);
       setShowOrderSuccess(true);
-      setCart([]); 
       setShowCart(false);
       await loadUserOrders();
       await loadAllOrders();
-    } catch(e) { showNotification('Ошибка', 'error'); } 
+    } catch(e) { showNotification('Ошибка: ' + (e as Error).message, 'error'); } 
     finally { setIsCheckingOut(false); }
   };
 
@@ -415,6 +548,7 @@ export default function Home() {
     showNotification('Заказ удалён');
   };
 
+  // Сортировка вариантов: сначала в наличии, потом нет
   const sortedVariants = useMemo(() => {
     if (!selectedProduct) return [];
     return [...selectedProduct.variants].sort((a, b) => {
@@ -422,13 +556,12 @@ export default function Home() {
       const ba = getAvailableStock(selectedProduct.id, b.name);
       if (aa > 0 && ba === 0) return -1;
       if (aa === 0 && ba > 0) return 1;
-      return 0;
+      return a.name.localeCompare(b.name);
     });
   }, [selectedProduct, getAvailableStock]);
 
   const visibleVariants = showAllVariants ? sortedVariants : sortedVariants.slice(0, 5);
   const hiddenVariantsCount = sortedVariants.length - 5;
-  const availableStock = selectedProduct && selectedVariant ? getAvailableStock(selectedProduct.id, selectedVariant) : 0;
   const totalCartItems = cart.reduce((s, i) => s + i.quantity, 0);
   const totalCartPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
@@ -783,7 +916,7 @@ export default function Home() {
 
       {notification && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
-          <div className={`w-full max-w-[260px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all duration-300 ${
+          <div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all duration-300 ${
             notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
           } ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}>
             <div className="flex flex-col items-center text-center">
@@ -996,7 +1129,6 @@ export default function Home() {
                           <span className="text-red-400 font-bold text-xs">Нет</span>
                         </div>
                       )}
-
                     </div>
                     <h3 className={`font-semibold text-xs mb-1 line-clamp-2 text-center ${isPreorder ? 'text-gray-400' : 'text-white group-hover:text-orange-400'}`}>
                       {p.name}
@@ -1039,11 +1171,12 @@ export default function Home() {
         </div>
       )}
 
+      {/* МОДАЛКА ТОВАРА С МУЛЬТИ-ВЫБОРОМ */}
       {selectedProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedProduct(null)}></div>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }}></div>
           <div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10">
-            <button onClick={() => setSelectedProduct(null)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button>
+            <button onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button>
             <div className="p-4">
               {selectedProduct.image ? (
                 <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-4 flex items-center justify-center overflow-hidden product-image-glow">
@@ -1055,34 +1188,67 @@ export default function Home() {
                 </div>
               )}
               <h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>
-              <p className="text-2xl font-bold gradient-text mb-4 text-center">
-                {(() => {
-                  const v = selectedProduct.variants.find(x => x.name === selectedVariant);
-                  const price = v?.price || selectedProduct.price;
-                  return `${price} BYN`;
-                })()}
-              </p>
+              <p className="text-sm text-gray-400 mb-4 text-center">Выберите вкусы и количество</p>
+              
               {selectedProduct.variants.length > 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs text-gray-400 font-medium">ВЫБЕРИТЕ ЦВЕТ / ВАРИАНТ:</p>
-                    <p className="text-[10px] text-gray-500">{selectedProduct.variants.filter(f => getAvailableStock(selectedProduct.id, f.name) > 0).length} доступно</p>
+                    <p className="text-xs text-gray-400 font-medium">ВКУСЫ:</p>
+                    <p className="text-[10px] text-gray-500">
+                      {selectedVariants.length > 0 && `Выбрано: ${selectedVariants.length}`}
+                    </p>
                   </div>
                   <div className="space-y-1.5">
-                    {visibleVariants.map((v, i) => {
+                    {visibleVariants.map((v) => {
                       const avail = getAvailableStock(selectedProduct.id, v.name);
-                      const inCart = getCartQuantity(selectedProduct.id, v.name);
+                      const isSelected = selectedVariants.some(sv => sv.name === v.name);
+                      const selectedQty = selectedVariants.find(sv => sv.name === v.name)?.quantity || 1;
+                      const vPrice = v.price || selectedProduct.price;
                       return (
-                        <label key={i} className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer ${
-                          selectedVariant === v.name ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5'
+                        <div key={v.name} className={`rounded-lg border transition-all ${
+                          isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5'
                         } ${avail === 0 ? 'opacity-50' : ''}`}>
-                          <div className="flex items-center gap-2">
-                            <input type="radio" name="variant" checked={selectedVariant === v.name}
-                              onChange={() => avail > 0 && setSelectedVariant(v.name)} className="w-3.5 h-3.5 accent-orange-500" disabled={avail === 0} />
-                            <div><span className="text-xs">{v.name}</span>{inCart > 0 && <span className="ml-1.5 text-[9px] text-orange-400">({inCart} в корзине)</span>}</div>
+                          <div className="flex items-center justify-between p-2.5">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <input 
+                                type="checkbox" 
+                                checked={isSelected}
+                                onChange={() => avail > 0 && toggleVariantSelection(v.name)} 
+                                className="w-4 h-4 rounded accent-orange-500 cursor-pointer" 
+                                disabled={avail === 0} 
+                              />
+                              <div className="min-w-0 flex-1">
+                                <span className="text-xs font-medium truncate block">{v.name}</span>
+                                <span className="text-[10px] text-gray-400">{vPrice} BYN</span>
+                              </div>
+                            </div>
+                            <span className={`text-[10px] font-medium ml-2 ${avail > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {avail > 0 ? `${avail} шт.` : 'Нет'}
+                            </span>
                           </div>
-                          <span className={`text-[10px] font-medium ${avail > 0 ? 'text-green-400' : 'text-red-400'}`}>{avail > 0 ? `${avail} шт.` : 'Нет'}</span>
-                        </label>
+                          {isSelected && avail > 0 && (
+                            <div className="flex items-center justify-between px-2.5 pb-2.5 border-t border-white/5 pt-2">
+                              <span className="text-[10px] text-gray-400">Количество:</span>
+                              <div className="flex items-center gap-2">
+                                <button onClick={() => updateVariantQuantity(v.name, -1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
+                                  <Minus className="w-3 h-3" />
+                                </button>
+                                <input 
+                                  type="number" 
+                                  value={selectedQty}
+                                  onChange={(e) => {
+                                    const val = parseInt(e.target.value);
+                                    if (!isNaN(val)) setVariantQuantity(v.name, val);
+                                  }}
+                                  className="w-10 text-center text-xs bg-transparent border border-white/10 rounded px-1 py-0.5 outline-none"
+                                />
+                                <button onClick={() => updateVariantQuantity(v.name, 1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
+                                  <Plus className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
@@ -1094,29 +1260,24 @@ export default function Home() {
                   )}
                 </div>
               )}
-              {availableStock > 0 ? (
-                <>
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between glass-card p-3">
-                      <span className="text-xs font-medium">Количество:</span>
-                      <div className="flex items-center gap-3">
-                        <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><Minus className="w-3 h-3" /></button>
-                        <span className="text-base font-bold w-6 text-center">{quantity}</span>
-                        <button onClick={() => quantity + 1 > availableStock ? showNotification(`Максимум: ${availableStock} шт.`, 'error') : setQuantity(quantity + 1)}
-                          className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><Plus className="w-3 h-3" /></button>
-                      </div>
-                    </div>
-                  </div>
-                  <button onClick={addToCart} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-1.5 text-sm">
-                    <ShoppingBag className="w-4 h-4" /> В корзину • {(() => { const v = selectedProduct.variants.find(x => x.name === selectedVariant); const price = v?.price || selectedProduct.price; return price * quantity; })()} BYN
-                  </button>
-                </>
-              ) : <div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-red-400 text-sm">Нет в наличии</div>}
+              
+              {selectedVariants.length > 0 ? (
+                <button onClick={addSelectedToCart} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center gap-1.5 text-sm">
+                  <ShoppingBag className="w-4 h-4" /> В корзину • {selectedVariants.reduce((s, sv) => {
+                    const v = selectedProduct.variants.find(x => x.name === sv.name);
+                    const price = v?.price || selectedProduct.price;
+                    return s + price * sv.quantity;
+                  }, 0)} BYN
+                </button>
+              ) : (
+                <div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-gray-400 text-sm">Выберите хотя бы один вкус</div>
+              )}
             </div>
           </div>
         </div>
       )}
 
+      {/* КОРЗИНА С ГРУППИРОВКОЙ */}
       {showCart && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowCart(false)}></div>
@@ -1133,31 +1294,54 @@ export default function Home() {
                 <div className="text-center py-8"><ShoppingBag className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Корзина пуста</p></div>
               ) : (
                 <>
-                  <div className="space-y-2 mb-4">
-                    {cart.map((item, i) => {
-                      const p = products.find(x => x.id === item.productId);
-                      const v = p?.variants.find(x => x.name === item.variant);
-                      const maxS = v?.stock || 0;
-                      const isMax = item.quantity >= maxS;
-                      return (
-                        <div key={i} className="glass-card p-3">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex-1"><h3 className="font-semibold text-xs">{item.productName}</h3><p className="text-[10px] text-gray-400">{item.variant}</p></div>
-                            <button onClick={() => removeFromCart(i)} className="w-7 h-7 rounded-md bg-red-500/10 flex items-center justify-center"><Trash2 className="w-3 h-3 text-red-400" /></button>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <button onClick={() => updateCartQuantity(i, -1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Minus className="w-2.5 h-2.5" /></button>
-                              <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
-                              <button onClick={() => updateCartQuantity(i, 1)} disabled={isMax} className={`w-7 h-7 rounded-full flex items-center justify-center ${isMax ? 'opacity-30' : 'bg-white/5'}`}><Plus className="w-2.5 h-2.5" /></button>
-                            </div>
-                            <span className="text-base font-bold gradient-text">{item.price * item.quantity} BYN</span>
-                          </div>
+                  {/* Группировка по productName */}
+                  {(() => {
+                    const grouped: Record<string, CartItem[]> = {};
+                    cart.forEach(item => {
+                      if (!grouped[item.productName]) grouped[item.productName] = [];
+                      grouped[item.productName].push(item);
+                    });
+                    return Object.entries(grouped).map(([productName, items]) => (
+                      <div key={productName} className="mb-3">
+                        <div className="text-xs font-bold text-orange-400 mb-1.5 px-1">{productName}</div>
+                        <div className="space-y-1.5">
+                          {items.map((item) => {
+                            const idx = cart.indexOf(item);
+                            const p = products.find(x => x.id === item.productId);
+                            const v = p?.variants.find(x => x.name === item.variant);
+                            const maxS = v?.stock || 0;
+                            const isMax = item.quantity >= maxS;
+                            return (
+                              <div key={idx} className="glass-card p-2.5">
+                                <div className="flex items-start justify-between mb-1.5">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium truncate">{item.variant}</p>
+                                    <p className="text-[10px] text-gray-400">{item.price} BYN / шт.</p>
+                                  </div>
+                                  <button onClick={() => removeFromCart(idx)} className="w-6 h-6 rounded-md bg-red-500/10 flex items-center justify-center flex-shrink-0 ml-2">
+                                    <Trash2 className="w-3 h-3 text-red-400" />
+                                  </button>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <button onClick={() => updateCartQuantity(idx, -1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center">
+                                      <Minus className="w-2.5 h-2.5" />
+                                    </button>
+                                    <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
+                                    <button onClick={() => updateCartQuantity(idx, 1)} disabled={isMax} className={`w-7 h-7 rounded-full flex items-center justify-center ${isMax ? 'opacity-30' : 'bg-white/5'}`}>
+                                      <Plus className="w-2.5 h-2.5" />
+                                    </button>
+                                  </div>
+                                  <span className="text-sm font-bold gradient-text">{item.price * item.quantity} BYN</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      );
-                    })}
-                  </div>
-                  <div className="border-t border-white/10 pt-3">
+                      </div>
+                    ));
+                  })()}
+                  <div className="border-t border-white/10 pt-3 mt-3">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-gray-400 text-sm">Итого:</span>
                       <span className="text-xl font-bold gradient-text">{totalCartPrice} BYN</span>
