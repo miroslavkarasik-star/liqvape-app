@@ -129,7 +129,22 @@ export default function Home() {
 
   useEffect(() => {
     const c = localStorage.getItem('liqvape_cart');
-    if (c) { try { setCart(JSON.parse(c)); } catch(e) {} }
+    if (c) { 
+      try { 
+        const parsed = JSON.parse(c);
+        // Приводим типы для каждого элемента корзины
+        const fixed = parsed.map((item: any) => ({
+          productId: Number(item.productId),
+          productName: String(item.productName),
+          variant: String(item.variant),
+          price: Number(item.price),
+          quantity: Number(item.quantity)
+        }));
+        setCart(fixed);
+      } catch(e) {
+        console.error('Ошибка загрузки корзины:', e);
+      }
+    }
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_cart', JSON.stringify(cart)); }, [cart]);
 
@@ -306,6 +321,13 @@ export default function Home() {
       showNotification('Выберите хотя бы один вкус', 'error');
       return;
     }
+    
+    // Проверяем что ID валидный
+    if (!selectedProduct.id || isNaN(Number(selectedProduct.id))) {
+      showNotification('Ошибка: некорректный ID товара', 'error');
+      return;
+    }
+    
     const issues: string[] = [];
     for (const sv of selectedVariants) {
       const avail = getAvailableStock(selectedProduct.id, sv.name);
@@ -322,7 +344,13 @@ export default function Home() {
       if (idx >= 0) {
         newCart[idx] = { ...newCart[idx], quantity: newCart[idx].quantity + sv.quantity, price };
       } else {
-        newCart.push({ productId: selectedProduct.id, productName: selectedProduct.name, variant: sv.name, price, quantity: sv.quantity });
+        newCart.push({ 
+          productId: Number(selectedProduct.id), 
+          productName: selectedProduct.name, 
+          variant: sv.name, 
+          price: Number(price), 
+          quantity: Number(sv.quantity) 
+        });
       }
     }
     setCart(newCart);
@@ -375,10 +403,27 @@ export default function Home() {
       
       // 2. Собираем что нужно списать: productId -> variantName -> количество
       const toDeduct: Record<number, Record<string, number>> = {};
+      const invalidItems: string[] = [];
+      
       for (const item of cart) {
-        if (!toDeduct[item.productId]) toDeduct[item.productId] = {};
-        toDeduct[item.productId][item.variant] = (toDeduct[item.productId][item.variant] || 0) + item.quantity;
+        // Проверяем что productId валидный
+        if (!item.productId || isNaN(Number(item.productId))) {
+          invalidItems.push(`${item.productName} (${item.variant}) - некорректный ID`);
+          continue;
+        }
+        
+        const productId = Number(item.productId);
+        if (!toDeduct[productId]) toDeduct[productId] = {};
+        toDeduct[productId][item.variant] = (toDeduct[productId][item.variant] || 0) + Number(item.quantity);
       }
+      
+      if (invalidItems.length > 0) {
+        console.error('❌ Invalid items:', invalidItems);
+        showNotification('Ошибка: некорректные товары в корзине', 'error');
+        setIsCheckingOut(false);
+        return;
+      }
+      
       console.log('📊 To deduct:', toDeduct);
       
       // 3. Проверяем наличие и готовим обновления
