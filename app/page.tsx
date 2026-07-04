@@ -139,7 +139,7 @@ export default function Home() {
           variant: String(item.variant || ''),
           price: Number(item.price) || 0,
           quantity: Number(item.quantity) || 1
-        })).filter(item => item.productId > 0);
+        })).filter((item: CartItem) => item.productId > 0);
         console.log('🛒 Fixed cart:', fixed);
         setCart(fixed);
       } catch(e) {
