@@ -132,21 +132,25 @@ export default function Home() {
     if (c) { 
       try { 
         const parsed = JSON.parse(c);
-        // Приводим типы для каждого элемента корзины
+        console.log('🛒 Loading cart from localStorage:', parsed);
         const fixed = parsed.map((item: any) => ({
-          productId: Number(item.productId),
-          productName: String(item.productName),
-          variant: String(item.variant),
-          price: Number(item.price),
-          quantity: Number(item.quantity)
-        }));
+          productId: Number(item.productId) || 0,
+          productName: String(item.productName || ''),
+          variant: String(item.variant || ''),
+          price: Number(item.price) || 0,
+          quantity: Number(item.quantity) || 1
+        })).filter(item => item.productId > 0);
+        console.log('🛒 Fixed cart:', fixed);
         setCart(fixed);
       } catch(e) {
         console.error('Ошибка загрузки корзины:', e);
       }
     }
   }, []);
-  useEffect(() => { localStorage.setItem('liqvape_cart', JSON.stringify(cart)); }, [cart]);
+  useEffect(() => { 
+    localStorage.setItem('liqvape_cart', JSON.stringify(cart));
+    console.log('💾 Cart saved to localStorage:', cart);
+  }, [cart]);
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
@@ -322,8 +326,17 @@ export default function Home() {
       return;
     }
     
+    console.log('🛒 Adding to cart:', {
+      productId: selectedProduct.id,
+      productIdType: typeof selectedProduct.id,
+      productIdNumber: Number(selectedProduct.id),
+      productName: selectedProduct.name,
+      variants: selectedVariants
+    });
+    
     // Проверяем что ID валидный
     if (!selectedProduct.id || isNaN(Number(selectedProduct.id))) {
+      console.error('❌ Invalid product ID:', selectedProduct.id);
       showNotification('Ошибка: некорректный ID товара', 'error');
       return;
     }
@@ -381,7 +394,9 @@ export default function Home() {
     setIsCheckingOut(true);
     
     try {
-      console.log('🛒 Checkout started, cart:', cart);
+      console.log('🛒 Checkout started');
+      console.log('🛒 Cart items:', cart);
+      console.log('🛒 Cart item types:', cart.map(i => ({ id: i.productId, idType: typeof i.productId, name: i.productName })));
       
       // 1. Получаем свежие данные напрямую из базы
       const { data: freshData, error: fetchError } = await supabase.from('products').select('*');
@@ -399,6 +414,13 @@ export default function Home() {
         is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
       }));
       
+      console.log('📦 Fresh products loaded:', freshProducts.map(p => ({
+        id: p.id,
+        idType: typeof p.id,
+        idNumber: Number(p.id),
+        name: p.name
+      })));
+      
       console.log('📦 Fresh products:', freshProducts.length);
       
       // 2. Собираем что нужно списать: productId -> variantName -> количество
@@ -406,13 +428,15 @@ export default function Home() {
       const invalidItems: string[] = [];
       
       for (const item of cart) {
-        // Проверяем что productId валидный
-        if (!item.productId || isNaN(Number(item.productId))) {
-          invalidItems.push(`${item.productName} (${item.variant}) - некорректный ID`);
+        // Нормализуем productId
+        const productId = Number(item.productId);
+        
+        if (!productId || isNaN(productId) || productId <= 0) {
+          console.error('❌ Invalid productId:', item.productId, 'from item:', item);
+          invalidItems.push(`${item.productName} (${item.variant}) - ID: ${item.productId}`);
           continue;
         }
         
-        const productId = Number(item.productId);
         if (!toDeduct[productId]) toDeduct[productId] = {};
         toDeduct[productId][item.variant] = (toDeduct[productId][item.variant] || 0) + Number(item.quantity);
       }
@@ -433,7 +457,7 @@ export default function Home() {
       
       for (const [productIdStr, variantsMap] of Object.entries(toDeduct)) {
         const productId = Number(productIdStr);
-        const product = freshProducts.find(p => p.id === productId);
+        const product = freshProducts.find(p => Number(p.id) === productId);
         if (!product) { issues.push(`Товар ID ${productId} не найден`); continue; }
         
         // Глубокая копия variants
@@ -508,7 +532,7 @@ export default function Home() {
         const { error: updateError } = await supabase
           .from('products')
           .update({ flavors: flavorsJson, stock_quantity: update.totalStock })
-          .eq('id', update.productId);
+          .eq('id', Number(update.productId));
         
         if (updateError) {
           console.error(`❌ Update error:`, updateError);
@@ -521,7 +545,7 @@ export default function Home() {
       const { data: verifyData } = await supabase
         .from('products')
         .select('id, flavors, stock_quantity')
-        .in('id', updates.map(u => u.productId));
+        .in('id', updates.map(u => Number(u.productId)));
       console.log('🔍 Verification:', verifyData);
       
       // 7. Обновляем локальный стейт
