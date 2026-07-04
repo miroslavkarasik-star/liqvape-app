@@ -135,22 +135,22 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_cart', JSON.stringify(cart)); }, [cart]);
 
-  const loadProducts = useCallback(async (includeHidden = false) => {
+  const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
     if (!includeHidden) query = query.eq('is_hidden', false);
     const { data, error } = await query;
-    if (error) { console.error('Ошибка загрузки товаров:', error); return; }
+    if (error) { console.error('Ошибка загрузки товаров:', error); return []; }
+    let parsed: Product[] = [];
     if (data && data.length > 0) {
-      const parsed = data.map((p: any) => ({
+      parsed = data.map((p: any) => ({
         id: p.id, name: p.name, category: p.category || 'Другое',
         price: Number(p.price), image: p.image_url || null,
         variants: typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []),
         is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
       }));
-      setProducts(parsed);
-    } else {
-      setProducts([]);
     }
+    setProducts(parsed);
+    return parsed;
   }, []);
 
   const loadUserOrders = useCallback(async () => {
@@ -347,50 +347,89 @@ export default function Home() {
     if (cart.length === 0 || !userId) return;
     setIsCheckingOut(true);
     
-    // Перезагружаем свежие данные о товарах
-    await loadProducts(true);
-    
     try {
-      // Проверяем наличие каждого товара в корзине ПЕРЕД оформлением
-      const freshProducts = products;
-      const issues: { item: CartItem; reason: string }[] = [];
-      const validItems: CartItem[] = [];
+      // Получаем СВЕЖИЕ данные напрямую из базы
+      const freshProducts = await loadProducts(true);
+      
+      if (freshProducts.length === 0) {
+        showNotification('Товары не загружены', 'error');
+        setIsCheckingOut(false);
+        return;
+      }
+      
+      // Считаем сколько каждого товара+вкуса нужно списать (суммируем из корзины)
+      const orderMap: Record<string, { product: Product; variant: Variant; quantity: number; item: CartItem }> = {};
+      const issues: string[] = [];
       
       for (const item of cart) {
+        const key = `${item.productId}_${item.variant}`;
         const product = freshProducts.find(p => p.id === item.productId);
+        
         if (!product) {
-          issues.push({ item, reason: `${item.productName} не найден` });
+          issues.push(`${item.productName} не найден`);
           continue;
         }
+        
         const variant = product.variants.find(v => v.name === item.variant);
         if (!variant) {
-          issues.push({ item, reason: `Вкус "${item.variant}" не найден` });
+          issues.push(`Вкус "${item.variant}" не найден в ${item.productName}`);
           continue;
         }
+        
+        // Суммируем количество если один и тот же товар+вкус несколько раз в корзине
+        if (orderMap[key]) {
+          orderMap[key].quantity += item.quantity;
+        } else {
+          orderMap[key] = { product, variant, quantity: item.quantity, item };
+        }
+      }
+      
+      // Проверяем наличие для каждого уникального товара+вкуса
+      const validItems: CartItem[] = [];
+      const productsToUpdate: Record<number, Product> = {};
+      
+      for (const [key, entry] of Object.entries(orderMap)) {
+        const { product, variant, quantity, item } = entry;
+        
         if (variant.stock <= 0) {
-          issues.push({ item, reason: `${item.productName} (${item.variant}) — нет в наличии` });
+          issues.push(`${item.productName} (${item.variant}) — нет в наличии`);
           continue;
         }
-        if (item.quantity > variant.stock) {
-          issues.push({ item, reason: `${item.productName} (${item.variant}) — только ${variant.stock} шт.` });
-          // Если есть хоть какое-то наличие - добавляем с максимальным количеством
+        
+        if (quantity > variant.stock) {
+          issues.push(`${item.productName} (${item.variant}) — только ${variant.stock} шт. (нужно ${quantity})`);
           if (variant.stock > 0) {
+            // Добавляем с максимальным количеством
             validItems.push({ ...item, quantity: variant.stock });
+            // Обновляем stock в локальной копии
+            if (!productsToUpdate[product.id]) {
+              productsToUpdate[product.id] = JSON.parse(JSON.stringify(product));
+            }
+            const v = productsToUpdate[product.id].variants.find(x => x.name === item.variant);
+            if (v) v.stock = Math.max(0, v.stock - variant.stock);
           }
           continue;
         }
-        validItems.push(item);
+        
+        validItems.push({ ...item, quantity });
+        
+        // Обновляем stock в локальной копии
+        if (!productsToUpdate[product.id]) {
+          productsToUpdate[product.id] = JSON.parse(JSON.stringify(product));
+        }
+        const v = productsToUpdate[product.id].variants.find(x => x.name === item.variant);
+        if (v) v.stock = Math.max(0, v.stock - quantity);
       }
       
       if (validItems.length === 0) {
-        showNotification('Нет товаров для заказа. ' + issues.map(i => i.reason).join('; '), 'error');
+        showNotification('Нет товаров для заказа: ' + issues.join('; '), 'error');
         setIsCheckingOut(false);
         return;
       }
       
       // Если есть проблемы - предупреждаем
       if (issues.length > 0) {
-        const confirmMsg = `Некоторые товары недоступны:\n${issues.map(i => `• ${i.reason}`).join('\n')}\n\nОформить остальные (${validItems.length} позиц.)?`;
+        const confirmMsg = `Некоторые товары недоступны:\n${issues.map(i => `• ${i}`).join('\n')}\n\nОформить остальные?`;
         if (!confirm(confirmMsg)) {
           setIsCheckingOut(false);
           return;
@@ -408,32 +447,33 @@ export default function Home() {
         status: 'new',
       });
       
-      if (error) { showNotification('Ошибка заказа: ' + error.message, 'error'); setIsCheckingOut(false); return; }
-      
-      // Списываем наличие для каждого товара
-      for (const item of validItems) {
-        const product = freshProducts.find(p => p.id === item.productId);
-        if (!product) continue;
-        const updatedVariants = product.variants.map(v => 
-          v.name === item.variant ? { ...v, stock: Math.max(0, v.stock - item.quantity) } : v
-        );
-        const totalStock = updatedVariants.reduce((s, v) => s + v.stock, 0);
-        await supabase.from('products').update({
-          flavors: JSON.stringify(updatedVariants),
-          stock_quantity: totalStock
-        }).eq('id', item.productId);
+      if (error) { 
+        showNotification('Ошибка заказа: ' + error.message, 'error'); 
+        setIsCheckingOut(false); 
+        return; 
       }
       
-      // Обновляем локальный стейт
-      const updated = freshProducts.map(p => {
-        const ci = validItems.filter(i => i.productId === p.id);
-        if (ci.length === 0) return p;
-        return { ...p, variants: p.variants.map(v => {
-          const it = ci.find(i => i.variant === v.name);
-          return it ? { ...v, stock: Math.max(0, v.stock - it.quantity) } : v;
-        })};
+      // Обновляем ВСЕ затронутые товары в базе ОДНИМ запросом каждый
+      for (const [productId, updatedProduct] of Object.entries(productsToUpdate)) {
+        const totalStock = updatedProduct.variants.reduce((s, v) => s + v.stock, 0);
+        const { error: updateError } = await supabase.from('products').update({
+          flavors: JSON.stringify(updatedProduct.variants),
+          stock_quantity: totalStock
+        }).eq('id', Number(productId));
+        
+        if (updateError) {
+          console.error('Ошибка обновления продукта:', updateError);
+        }
+      }
+      
+      // Обновляем локальный стейт products
+      const finalProducts = freshProducts.map(p => {
+        if (productsToUpdate[p.id]) {
+          return productsToUpdate[p.id];
+        }
+        return p;
       });
-      setProducts(updated);
+      setProducts(finalProducts);
       
       // Удаляем оформленные товары из корзины
       const remainingCart = cart.filter(item => {
@@ -446,8 +486,11 @@ export default function Home() {
       setShowCart(false);
       await loadUserOrders();
       await loadAllOrders();
-    } catch(e) { showNotification('Ошибка: ' + (e as Error).message, 'error'); } 
-    finally { setIsCheckingOut(false); }
+    } catch(e) { 
+      showNotification('Ошибка: ' + (e as Error).message, 'error'); 
+    } finally { 
+      setIsCheckingOut(false); 
+    }
   };
 
   const contactManager = () => {
