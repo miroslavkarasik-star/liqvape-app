@@ -448,13 +448,31 @@ export default function Home() {
   };
 
   const openProductForm = (product?: Product) => {
-    if (product) { setEditingProduct(product); setFormVariants([...product.variants]); }
-    else { setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false }); setFormVariants([]); }
+    console.log('📝 Opening product form:', product);
+    if (product) {
+      setEditingProduct({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        category: product.category,
+        image: product.image,
+        is_hidden: product.is_hidden,
+        is_preorder: product.is_preorder
+      });
+      setFormVariants([...product.variants]);
+    } else {
+      setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false });
+      setFormVariants([]);
+    }
     setShowProductForm(true);
   };
 
   const saveProduct = async () => {
     if (!editingProduct?.name || !editingProduct.price) { showNotification('Заполните название и цену', 'error'); return; }
+    
+    console.log(' Saving product:', editingProduct);
+    console.log('💾 Variants:', formVariants);
+    
     const data = {
       name: editingProduct.name, price: Number(editingProduct.price),
       category: editingProduct.category || 'Другое', image_url: editingProduct.image || null,
@@ -462,11 +480,24 @@ export default function Home() {
       stock_quantity: formVariants.reduce((s, f) => s + f.stock, 0),
       is_hidden: editingProduct.is_hidden || false, is_preorder: editingProduct.is_preorder || false,
     };
+    
     if (editingProduct.id) {
-      await supabase.from('products').update(data).eq('id', editingProduct.id);
+      console.log('🔄 Updating product ID:', editingProduct.id);
+      const { error } = await supabase.from('products').update(data).eq('id', editingProduct.id);
+      if (error) {
+        console.error('❌ Update error:', error);
+        showNotification('Ошибка обновления: ' + error.message, 'error');
+        return;
+      }
       showNotification('Товар обновлён');
     } else {
-      await supabase.from('products').insert(data);
+      console.log('➕ Inserting new product');
+      const { error } = await supabase.from('products').insert(data);
+      if (error) {
+        console.error('❌ Insert error:', error);
+        showNotification('Ошибка добавления: ' + error.message, 'error');
+        return;
+      }
       showNotification('Товар добавлен');
     }
     setShowProductForm(false); setEditingProduct(null);
