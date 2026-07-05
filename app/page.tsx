@@ -192,17 +192,24 @@ export default function Home() {
     if (error) { console.error(error); return []; }
     let parsed: Product[] = [];
     if (data && data.length > 0) {
-      parsed = data.map((p: any) => ({
-        id: Number(p.id), name: p.name, category: p.category || 'Другое',
-        price: Number(p.price), image: p.image_url || null,
-        variants: typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []),
-        is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
-      }));
-      console.log('📦 Products loaded:', parsed.map(p => ({
-        id: p.id, name: p.name, variantsCount: p.variants.length,
-        totalStock: p.variants.reduce((s: number, v: any) => s + (v.stock || 0), 0),
-        variants: p.variants
-      })));
+      parsed = data.map((p: any) => {
+        const variants = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []);
+        const totalStock = variants.reduce((s: number, v: any) => s + (Number(v.stock) || 0), 0);
+        console.log(`📦 Product "${p.name}":`, {
+          id: p.id,
+          flavorsRaw: p.flavors,
+          flavorsType: typeof p.flavors,
+          variantsCount: variants.length,
+          totalStock,
+          variants: variants.map((v: any) => ({ name: v.name, stock: v.stock, stockType: typeof v.stock }))
+        });
+        return {
+          id: Number(p.id), name: p.name, category: p.category || 'Другое',
+          price: Number(p.price), image: p.image_url || null,
+          variants: variants,
+          is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
+        };
+      });
     }
     setProducts(parsed);
     return parsed;
@@ -245,10 +252,18 @@ export default function Home() {
 
   const getAvailableStock = useCallback((productId: number, variant: string) => {
     const product = products.find(p => p.id === productId);
-    if (!product) return 0;
+    if (!product) {
+      console.log(`⚠️ Product ${productId} not found`);
+      return 0;
+    }
     const v = product.variants.find(x => x.name === variant);
-    if (!v) return 0;
-    return Math.max(0, v.stock);
+    if (!v) {
+      console.log(`️ Variant "${variant}" not found in product ${productId}`);
+      return 0;
+    }
+    const stock = Math.max(0, Number(v.stock) || 0);
+    console.log(`✅ Stock for "${variant}": ${stock}`);
+    return stock;
   }, [products]);
 
   const getListItemQuantity = (productId: number, variant: string) => {
