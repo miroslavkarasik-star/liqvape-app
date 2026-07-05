@@ -193,20 +193,29 @@ export default function Home() {
     let parsed: Product[] = [];
     if (data && data.length > 0) {
       parsed = data.map((p: any) => {
-        const variants = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []);
-        const totalStock = variants.reduce((s: number, v: any) => s + (Number(v.stock) || 0), 0);
+        let variants = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []);
+        
+        // Принудительно приводим stock к числу
+        variants = variants.map((v: any) => ({
+          ...v,
+          stock: Number(v.stock) || 0,
+          price: v.price ? Number(v.price) : undefined
+        }));
+        
+        const totalStock = variants.reduce((s: number, v: any) => s + v.stock, 0);
+        
         console.log(`📦 Product "${p.name}":`, {
           id: p.id,
-          flavorsRaw: p.flavors,
-          flavorsType: typeof p.flavors,
+          flavorsRaw: p.flavors?.substring(0, 100),
           variantsCount: variants.length,
           totalStock,
-          variants: variants.map((v: any) => ({ name: v.name, stock: v.stock, stockType: typeof v.stock }))
+          sampleVariant: variants[0]
         });
+        
         return {
           id: Number(p.id), name: p.name, category: p.category || 'Другое',
           price: Number(p.price), image: p.image_url || null,
-          variants: variants,
+          variants,
           is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
         };
       });
