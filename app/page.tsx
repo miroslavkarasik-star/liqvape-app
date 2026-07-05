@@ -198,6 +198,11 @@ export default function Home() {
         variants: typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []),
         is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
       }));
+      console.log('📦 Products loaded:', parsed.map(p => ({
+        id: p.id, name: p.name, variantsCount: p.variants.length,
+        totalStock: p.variants.reduce((s: number, v: any) => s + (v.stock || 0), 0),
+        variants: p.variants
+      })));
     }
     setProducts(parsed);
     return parsed;
@@ -977,7 +982,7 @@ export default function Home() {
                 const isPreorder = p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                 return (
-                  <div key={p.id} className={`glass-card p-2 transition-all ${isPreorder ? 'opacity-80' : avail === 0 ? 'opacity-50' : ''}`}>
+                  <div key={p.id} onClick={() => { if (isPreorder || avail > 0 || p.variants.length > 0) openProductModal(p); }} className={`glass-card p-2 transition-all ${isPreorder ? 'opacity-80' : avail === 0 && !isPreorder ? 'opacity-50' : 'cursor-pointer hover:border-orange-500/30'}`}>
                     <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden product-image-glow">
                       {p.image ? (<img src={p.image} alt={p.name} className={`w-full h-full object-contain p-4 rounded-2xl ${isPreorder ? 'brightness-75' : ''}`} />) : (<Package className={`w-12 h-12 text-neutral-700 ${isPreorder ? 'opacity-50' : ''}`} />)}
                       {isPreorder && (<div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center z-10"><span className="text-white font-bold text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg border border-white/20">ПРЕДЗАКАЗ</span></div>)}
@@ -993,8 +998,8 @@ export default function Home() {
                         <ShoppingBag className="w-3 h-3" /> В списке: {inList}
                       </button>
                     ) : (
-                      <button onClick={(e) => { if (isPreorder || avail > 0) { startAnimation(e, p.name); openProductModal(p); } }} disabled={!isPreorder && avail === 0} className={`w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 ${isPreorder || avail > 0 ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-500 cursor-not-allowed'}`}>
-                        <Plus className="w-3 h-3" /> Выбрать
+                      <button onClick={(e) => { startAnimation(e, p.name); openProductModal(p); }} className={`w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1 ${isPreorder || avail > 0 ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-500'}`}>
+                        <Plus className="w-3 h-3" /> {isPreorder ? 'Предзаказ' : avail > 0 ? 'Выбрать' : 'Нет в наличии'}
                       </button>
                     )}
                   </div>
