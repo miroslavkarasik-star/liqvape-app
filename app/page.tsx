@@ -75,6 +75,10 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -86,6 +90,14 @@ export default function Home() {
   useEffect(() => {
     const hasSeen = localStorage.getItem('liqvape_seen_subscribe');
     if (!hasSeen) { setShowSubscribePrompt(true); localStorage.setItem('liqvape_seen_subscribe', 'true'); }
+  }, []);
+
+  useEffect(() => {
+    const firstTime = localStorage.getItem('liqvape_first_time');
+    if (!firstTime) {
+      setShowFirstTimeTutorial(true);
+      localStorage.setItem('liqvape_first_time', 'true');
+    }
   }, []);
 
   const handleSubscribe = () => {
@@ -586,6 +598,85 @@ export default function Home() {
   // ============ ГЛАВНАЯ СТРАНИЦА ============
   return (
     <div className="min-h-screen text-white relative">
+      <style jsx global>{`
+        @keyframes gradient-shift {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        @keyframes pulse-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); }
+          50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); }
+        }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .glass-panel {
+          background: rgba(20, 20, 20, 0.8);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 1.5rem;
+        }
+        .glass-card {
+          background: rgba(30, 30, 30, 0.6);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
+          border-radius: 1rem;
+        }
+        .gradient-text {
+          background: linear-gradient(135deg, #ff5e00, #ff007f);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        .lava-lamp {
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          overflow: hidden;
+          z-index: 0;
+          pointer-events: none;
+        }
+        .lava-blob {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.3;
+          animation: float 20s infinite ease-in-out;
+        }
+        .lava-blob-1 {
+          width: 400px; height: 400px;
+          background: linear-gradient(135deg, #ff5e00, #ff007f);
+          top: -100px; left: -100px;
+          animation-delay: 0s;
+        }
+        .lava-blob-2 {
+          width: 350px; height: 350px;
+          background: linear-gradient(135deg, #ff007f, #7f00ff);
+          top: 50%; right: -100px;
+          animation-delay: -5s;
+        }
+        .lava-blob-3 {
+          width: 300px; height: 300px;
+          background: linear-gradient(135deg, #7f00ff, #007fff);
+          bottom: -100px; left: 30%;
+          animation-delay: -10s;
+        }
+        .lava-blob-4 {
+          width: 250px; height: 250px;
+          background: linear-gradient(135deg, #007fff, #ff5e00);
+          top: 30%; left: 50%;
+          animation-delay: -15s;
+        }
+        @keyframes float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(100px, -100px) scale(1.1); }
+          50% { transform: translate(-50px, 100px) scale(0.9); }
+          75% { transform: translate(-100px, -50px) scale(1.05); }
+        }
+      `}</style>
+      <div className="lava-lamp">
+        <div className="lava-blob lava-blob-1"></div>
+        <div className="lava-blob lava-blob-2"></div>
+        <div className="lava-blob lava-blob-3"></div>
+        <div className="lava-blob lava-blob-4"></div>
+      </div>
       {notification && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
           <div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}>
@@ -623,6 +714,94 @@ export default function Home() {
         </div>
       )}
 
+      {showFirstTimeTutorial && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-6 relative z-10">
+            {tutorialStep === 0 && (
+              <>
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><ShoppingBag className="w-10 h-10 text-white" /></div>
+                <h2 className="text-xl font-bold text-white mb-3 text-center">Добро пожаловать в LiqVape!</h2>
+                <p className="text-gray-400 text-xs mb-4 text-center">Давай покажем как делать заказы</p>
+                <button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать →</button>
+              </>
+            )}
+            {tutorialStep === 1 && (
+              <>
+                <div className="text-4xl mb-4 text-center">🛍️</div>
+                <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 1: Выбирай товары</h2>
+                <p className="text-gray-400 text-xs mb-4 text-center">Нажми на карточку товара чтобы выбрать вкус и количество</p>
+                <button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее →</button>
+              </>
+            )}
+            {tutorialStep === 2 && (
+              <>
+                <div className="text-4xl mb-4 text-center">📋</div>
+                <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 2: Смотри список</h2>
+                <p className="text-gray-400 text-xs mb-4 text-center">Нажми на плавающую кнопку внизу справа чтобы увидеть свой список</p>
+                <button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее →</button>
+              </>
+            )}
+            {tutorialStep === 3 && (
+              <>
+                <div className="text-4xl mb-4 text-center">📤</div>
+                <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 3: Отправляй менеджеру</h2>
+                <p className="text-gray-400 text-xs mb-4 text-center">Нажми "Отправить" и тебя перекинет в Telegram с готовым сообщением</p>
+                <button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно! 🎉</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showInstructions && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm max-h-[80vh] overflow-y-auto p-5 relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">Инструкция</h2>
+              <button onClick={() => setShowInstructions(false)} className="w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="space-y-3 text-xs text-gray-300">
+              <div className="glass-card p-3">
+                <h3 className="font-bold text-orange-400 mb-1">1. Выбор товара</h3>
+                <p>Нажми на карточку товара чтобы открыть выбор вкусов</p>
+              </div>
+              <div className="glass-card p-3">
+                <h3 className="font-bold text-orange-400 mb-1">2. Выбор вкуса</h3>
+                <p>Отметь галочкой нужные вкусы и укажи количество</p>
+              </div>
+              <div className="glass-card p-3">
+                <h3 className="font-bold text-orange-400 mb-1">3. Просмотр списка</h3>
+                <p>Нажми на плавающую кнопку внизу справа</p>
+              </div>
+              <div className="glass-card p-3">
+                <h3 className="font-bold text-orange-400 mb-1">4. Отправка</h3>
+                <p>Нажми "Отправить" — тебя перекинет в Telegram</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAbout && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">О приложении</h2>
+              <button onClick={() => setShowAbout(false)} className="w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-10 h-10 text-white" /></div>
+            <h3 className="text-xl font-bold mb-1">Liq<span className="text-orange-500">Vape</span></h3>
+            <p className="text-gray-400 text-xs mb-4">Premium vape shop</p>
+            <div className="glass-card p-3 mb-4 text-left space-y-1 text-xs">
+              <p className="text-gray-400">Версия: <span className="text-white">1.0.0</span></p>
+              <p className="text-gray-400">Канал: <span className="text-orange-400">@{CHANNEL_USERNAME}</span></p>
+              <p className="text-gray-400">Менеджер: <span className="text-orange-400">@{MANAGER_USERNAME}</span></p>
+            </div>
+            <p className="text-[10px] text-gray-500">© 2026 LiqVape</p>
+          </div>
+        </div>
+      )}
+
       {showSendConfirm && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
@@ -649,13 +828,21 @@ export default function Home() {
               <button onClick={() => setShowSettings(false)} className="w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4" /></button>
             </div>
             <div className="space-y-2">
-              <button onClick={() => { setShowSettings(false); setShowUsernamePrompt(true); setUsernameInput(username); }} className="w-full glass-card p-3 flex items-center gap-3 text-left">
+              <button onClick={() => { setShowSettings(false); setShowUsernamePrompt(true); setUsernameInput(username); }} className="w-full glass-card p-3 flex items-center gap-3 text-left hover:bg-white/5 transition-all">
                 <User className="w-5 h-5 text-orange-400" />
                 <div><p className="text-sm font-medium">Сменить username</p><p className="text-[10px] text-gray-400">@{username}</p></div>
               </button>
-              <button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-3 flex items-center gap-3 text-left">
+              <button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-3 flex items-center gap-3 text-left hover:bg-white/5 transition-all">
+                <HelpCircle className="w-5 h-5 text-orange-400" />
+                <div><p className="text-sm font-medium">Инструкция</p><p className="text-[10px] text-gray-400">Как пользоваться</p></div>
+              </button>
+              <button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-3 flex items-center gap-3 text-left hover:bg-white/5 transition-all">
+                <Info className="w-5 h-5 text-orange-400" />
+                <div><p className="text-sm font-medium">О приложении</p><p className="text-[10px] text-gray-400">LiqVape v1.0</p></div>
+              </button>
+              <button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-3 flex items-center gap-3 text-left hover:bg-white/5 transition-all">
                 <LogIn className="w-5 h-5 text-orange-400" />
-                <div><p className="text-sm font-medium">Вход в админку</p></div>
+                <div><p className="text-sm font-medium">Вход в админку</p><p className="text-[10px] text-gray-400">Только для администраторов</p></div>
               </button>
             </div>
           </div>
@@ -678,7 +865,7 @@ export default function Home() {
       <div className="max-w-md mx-auto px-3 relative z-10 pb-24">
         <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></div>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40 pulse-glow"><Cloud className="w-5 h-5 text-white" strokeWidth={2.5} /></div>
             <div><h1 className="text-2xl font-bold"><span className="text-white">Liq</span><span className="gradient-text">Vape</span></h1><p className="text-[10px] text-gray-500">premium shop</p></div>
             <div className="ml-auto">
               <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center"><Settings className="w-4 h-4 text-orange-400" /></button>
@@ -686,8 +873,11 @@ export default function Home() {
           </div>
         </div>
 
-        <div onClick={openChannel} className="relative my-3 rounded-xl overflow-hidden cursor-pointer bg-gradient-to-r from-orange-500 to-pink-500 py-2">
-          <div className="text-center text-xs font-bold text-white">🔥 ПОДПИШИСЬ НА @{CHANNEL_USERNAME}</div>
+        <div onClick={openChannel} className="relative my-3 rounded-xl overflow-hidden cursor-pointer group" style={{ background: 'linear-gradient(90deg, #ff5e00, #ff007f, #ff5e00)', backgroundSize: '200% 100%', animation: 'gradient-shift 3s ease infinite' }}>
+          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-all"></div>
+          <div className="relative py-2 text-center">
+            <span className="text-xs font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">🔥 ПОДПИШИСЬ НА @{CHANNEL_USERNAME} • НОВИНКИ • АКЦИИ</span>
+          </div>
         </div>
 
         <div className="pt-3">
@@ -853,7 +1043,7 @@ export default function Home() {
       )}
 
       {selectionList.length > 0 && (
-        <button onClick={() => setShowList(true)} className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg flex items-center justify-center">
+        <button onClick={() => setShowList(true)} className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/40 flex items-center justify-center pulse-glow">
           <ShoppingBag className="w-6 h-6 text-white" />
           <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-orange-500 text-[10px] font-bold flex items-center justify-center">{totalListItems}</span>
         </button>
