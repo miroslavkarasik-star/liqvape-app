@@ -193,7 +193,7 @@ export default function Home() {
     let parsed: Product[] = [];
     if (data && data.length > 0) {
       parsed = data.map((p: any) => {
-        let variants = [];
+        let variants: Variant[] = [];
         try {
           if (p.flavors) {
             const parsed = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : p.flavors;
