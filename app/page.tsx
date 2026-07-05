@@ -193,30 +193,35 @@ export default function Home() {
     let parsed: Product[] = [];
     if (data && data.length > 0) {
       parsed = data.map((p: any) => {
-        let variants = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : (p.variants || p.flavors || []);
+        let variants = [];
+        try {
+          if (p.flavors) {
+            const parsed = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : p.flavors;
+            if (Array.isArray(parsed)) {
+              variants = parsed.map((v: any) => ({
+                name: String(v.name || ''),
+                stock: Number(v.stock) || 0,
+                price: v.price ? Number(v.price) : undefined
+              }));
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing flavors:', e);
+        }
         
-        // Принудительно приводим stock к числу
-        variants = variants.map((v: any) => ({
-          ...v,
-          stock: Number(v.stock) || 0,
-          price: v.price ? Number(v.price) : undefined
-        }));
+        const totalStock = variants.reduce((sum: number, v: any) => sum + v.stock, 0);
         
-        const totalStock = variants.reduce((s: number, v: any) => s + v.stock, 0);
-        
-        console.log(`📦 Product "${p.name}":`, {
-          id: p.id,
-          flavorsRaw: p.flavors?.substring(0, 100),
-          variantsCount: variants.length,
-          totalStock,
-          sampleVariant: variants[0]
-        });
+        console.log(`✅ Loaded: ${p.name} | Variants: ${variants.length} | Total Stock: ${totalStock}`);
         
         return {
-          id: Number(p.id), name: p.name, category: p.category || 'Другое',
-          price: Number(p.price), image: p.image_url || null,
+          id: Number(p.id),
+          name: p.name,
+          category: p.category || 'Другое',
+          price: Number(p.price),
+          image: p.image_url || null,
           variants,
-          is_hidden: p.is_hidden || false, is_preorder: p.is_preorder || false,
+          is_hidden: Boolean(p.is_hidden),
+          is_preorder: Boolean(p.is_preorder),
         };
       });
     }
@@ -261,18 +266,10 @@ export default function Home() {
 
   const getAvailableStock = useCallback((productId: number, variant: string) => {
     const product = products.find(p => p.id === productId);
-    if (!product) {
-      console.log(`⚠️ Product ${productId} not found`);
-      return 0;
-    }
+    if (!product) return 0;
     const v = product.variants.find(x => x.name === variant);
-    if (!v) {
-      console.log(`️ Variant "${variant}" not found in product ${productId}`);
-      return 0;
-    }
-    const stock = Math.max(0, Number(v.stock) || 0);
-    console.log(`✅ Stock for "${variant}": ${stock}`);
-    return stock;
+    if (!v) return 0;
+    return Math.max(0, Number(v.stock) || 0);
   }, [products]);
 
   const getListItemQuantity = (productId: number, variant: string) => {
