@@ -20,6 +20,31 @@ interface Request {
   total_price: number; status: string; created_at: string;
 }
 
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        ready: () => void;
+        expand: () => void;
+        close: () => void;
+        openTelegramLink: (url: string) => void;
+        HapticFeedback: {
+          impactOccurred: (s: string) => void;
+          notificationOccurred: (t: string) => void;
+        };
+        initDataUnsafe?: {
+          user?: {
+            id: number;
+            username?: string;
+            first_name?: string;
+            last_name?: string;
+          };
+        };
+      };
+    };
+  }
+}
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
