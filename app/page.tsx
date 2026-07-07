@@ -493,7 +493,22 @@ export default function Home() {
   const totalListItems = selectionList.reduce((s, i) => s + i.quantity, 0);
   const totalListPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
 
-    // ============ АДМИН ПАНЕЛЬ ============
+    const updateRequestStatus = async (id: string, status: string) => {
+    const { error } = await supabase.from('user_requests').update({ status }).eq('id', id);
+    if (error) { showNotification('Ошибка: ' + error.message, 'error'); return; }
+    await loadAllRequests();
+    showNotification('Статус обновлён', 'success');
+  };
+
+  const deleteRequest = async (id: string) => {
+    if (!confirm('Удалить заявку?')) return;
+    const { error } = await supabase.from('user_requests').delete().eq('id', id);
+    if (error) { showNotification('Ошибка удаления: ' + error.message, 'error'); return; }
+    await loadAllRequests();
+    showNotification('Заявка удалена', 'success');
+  };
+
+  // ============ АДМИН ПАНЕЛЬ ============
   if (showAdminPanel) {
     const filteredAdminProducts = products.filter(p => {
       const matchSearch = p.name.toLowerCase().includes(adminSearch.toLowerCase());
