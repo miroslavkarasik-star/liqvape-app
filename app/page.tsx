@@ -1002,7 +1002,9 @@ export default function Home() {
               <h2 className="text-lg font-bold">Мой список</h2>
               <div className="flex items-center gap-1.5">
                 {selectionList.length > 0 && <button onClick={clearList} className="text-[10px] text-red-400">Очистить</button>}
-                <button onClick={() => setShowList(false)} className="w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4" /></button>
+                <button onClick={() => setShowList(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+                <Cloud className="w-5 h-5 text-white" />
+              </button>
               </div>
             </div>
             <div className="p-3">
