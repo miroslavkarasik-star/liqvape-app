@@ -781,15 +781,15 @@ export default function Home() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-5 relative z-10">
             <div className="flex items-center gap-3 mb-5">
-              <button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all">
+              <div onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center cursor-pointer hover:scale-110 transition-all">
                 <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
                 </svg>
-              </button>
+              </div>
               <h2 className="text-xl font-bold gradient-text">Настройки</h2>
             </div>
             <div className="space-y-2.5">
-              <button onClick={() => { setShowUsernamePrompt(true); setUsernameInput(username); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              <div onClick={() => { setShowUsernamePrompt(true); setUsernameInput(username); }} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <User className="w-5 h-5 text-orange-400" />
                 </div>
@@ -800,8 +800,8 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
-              <button onClick={() => setShowInstructions(true)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              </div>
+              <div onClick={() => setShowInstructions(true)} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <HelpCircle className="w-5 h-5 text-orange-400" />
                 </div>
@@ -812,8 +812,8 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
-              <button onClick={() => setShowAbout(true)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              </div>
+              <div onClick={() => setShowAbout(true)} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <Info className="w-5 h-5 text-orange-400" />
                 </div>
@@ -824,8 +824,8 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
-              <button onClick={() => setShowAdminLogin(true)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              </div>
+              <div onClick={() => setShowAdminLogin(true)} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <LogIn className="w-5 h-5 text-orange-400" />
                 </div>
@@ -836,7 +836,7 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button>
+              </div>
             </div>
           </div>
         </div>
