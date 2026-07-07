@@ -76,6 +76,10 @@ export default function Home() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Partial<Product> & { id?: string } | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminCategory, setAdminCategory] = useState('Все');
+  const [adminTab, setAdminTab] = useState<'products' | 'requests'>('products');
+  const [allRequests, setAllRequests] = useState<any[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [isSending, setIsSending] = useState(false);
@@ -197,9 +201,16 @@ export default function Home() {
     return parsed;
   }, []);
 
+  const loadAllRequests = useCallback(async () => {
+    const { data, error } = await supabase.from('user_requests').select('*').order('created_at', { ascending: false });
+    if (error) { console.error('Load requests error:', error); return; }
+    if (data) setAllRequests(data);
+  }, []);
+
   useEffect(() => {
     loadProducts(isAdmin);
-  }, [isAdmin, loadProducts]);
+    if (isAdmin) loadAllRequests();
+  }, [isAdmin, loadProducts, loadAllRequests]);
 
   useEffect(() => {
     const channel = supabase.channel('products-changes')
@@ -482,8 +493,14 @@ export default function Home() {
   const totalListItems = selectionList.reduce((s, i) => s + i.quantity, 0);
   const totalListPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
 
-  // ============ АДМИН ПАНЕЛЬ ============
+    // ============ АДМИН ПАНЕЛЬ ============
   if (showAdminPanel) {
+    const filteredAdminProducts = products.filter(p => {
+      const matchSearch = p.name.toLowerCase().includes(adminSearch.toLowerCase());
+      const matchCategory = adminCategory === 'Все' || p.category === adminCategory;
+      return matchSearch && matchCategory;
+    });
+
     return (
       <div className="min-h-screen bg-black text-white p-3 relative">
         <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div><div className="lava-blob lava-blob-3"></div><div className="lava-blob lava-blob-4"></div></div>
@@ -502,48 +519,146 @@ export default function Home() {
               <X className="w-4 h-4" />
             </button>
           </div>
-          <button onClick={() => openProductForm()} className="w-full py-3 rounded-lg text-sm font-bold bg-gradient-to-r from-orange-500 to-pink-500 mb-3 flex items-center justify-center gap-1"><Plus className="w-4 h-4" /> Добавить товар</button>
-          <div className="mb-3 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-            <input type="text" placeholder="Поиск..." className="w-full glass-panel py-2.5 pl-10 pr-3 text-sm text-white" />
+          
+          <div className="flex gap-2 mb-4">
+            <button onClick={() => setAdminTab('products')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400'}`}>
+              📦 Товары
+            </button>
+            <button onClick={() => setAdminTab('requests')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400'}`}>
+              📋 Заявки {allRequests.filter(r => r.status === 'new').length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.filter(r => r.status === 'new').length}</span>}
+            </button>
           </div>
-          <div className="space-y-2">
-            {products.map(p => (
-              <div key={p.id} className="glass-card p-3">
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <h3 className="font-bold text-sm">{p.name}</h3>
-                    <p className="text-[11px] text-gray-400">{p.price} BYN • {p.variants.reduce((s, v) => s + v.stock, 0)} шт. • {p.variants.length} вкусов</p>
-                  </div>
-                </div>
-                <div className="flex gap-1 flex-wrap">
-                  <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px] flex items-center justify-center gap-1"><Edit className="w-3 h-3" /> Изменить</button>
-                  <button onClick={() => toggleHidden(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{p.is_hidden ? 'Показать' : 'Скрыть'}</button>
-                  <button onClick={() => togglePreorder(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_preorder ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5'}`}>Предзаказ</button>
-                  <button onClick={() => deleteProduct(p.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
-                </div>
+
+          {adminTab === 'products' ? (
+            <>
+              <button onClick={() => openProductForm()} className="w-full py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-orange-500 to-pink-500 mb-3 flex items-center justify-center gap-1 shadow-lg shadow-orange-500/30">
+                <Plus className="w-4 h-4" /> Добавить товар
+              </button>
+              
+              <div className="mb-3 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <input type="text" placeholder="Поиск товаров..." value={adminSearch} onChange={e => setAdminSearch(e.target.value)} className="w-full glass-panel py-2.5 pl-10 pr-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
               </div>
-            ))}
-          </div>
+              
+              <div className="flex gap-2 overflow-x-auto pb-3 mb-3">
+                {CATEGORIES.map((c) => (
+                  <button key={c} onClick={() => setAdminCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium transition-all ${adminCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>
+                    {c}
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-2">
+                {filteredAdminProducts.map(p => (
+                  <div key={p.id} className="glass-card p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-sm">{p.name}</h3>
+                        <p className="text-[11px] text-gray-400">{p.price} BYN • {p.category} • {p.variants.reduce((s, v) => s + v.stock, 0)} шт. • {p.variants.length} вкусов</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 flex-wrap">
+                      <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px] flex items-center justify-center gap-1 hover:bg-white/10 transition-all">
+                        <Edit className="w-3 h-3" /> Изменить
+                      </button>
+                      <button onClick={() => toggleHidden(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                        {p.is_hidden ? 'Показать' : 'Скрыть'}
+                      </button>
+                      <button onClick={() => togglePreorder(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_preorder ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5'}`}>
+                        Предзаказ
+                      </button>
+                      <button onClick={() => deleteProduct(p.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-all">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {filteredAdminProducts.length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">Товаров не найдено</p>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">
+                ⚠️ Наличие списывается вручную через редактирование товара
+              </div>
+              
+              <div className="space-y-2">
+                {allRequests.map(r => (
+                  <div key={r.id} className="glass-card p-3">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-bold text-sm">Заявка от @{r.username}</h3>
+                        <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                      <span className={`text-[10px] px-2 py-1 rounded-full ${r.status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                        {r.status === 'new' ? 'Новая' : 'Обработана'}
+                      </span>
+                    </div>
+                    
+                    <div className="border-t border-white/10 pt-2 mb-2">
+                      <p className="text-[11px] text-orange-400 font-bold mb-1"> Что нужно списать:</p>
+                      {r.items.map((item: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between py-1 text-[11px]">
+                          <span className="text-gray-300">• {item.productName} ({item.variant})</span>
+                          <span className="text-white font-bold">× {item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex items-center justify-between mb-2 text-xs">
+                      <span className="text-gray-400">Итого:</span>
+                      <span className="font-bold gradient-text">{r.total_price} BYN</span>
+                    </div>
+                    
+                    <div className="flex gap-1">
+                      <button onClick={() => updateRequestStatus(r.id, r.status === 'done' ? 'new' : 'done')} className={`flex-1 py-1.5 rounded-md text-[10px] font-medium ${r.status === 'done' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>
+                        {r.status === 'done' ? 'Вернуть в новые' : '✓ Обработана'}
+                      </button>
+                      <button onClick={() => deleteRequest(r.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-all">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {allRequests.length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500">
+                    <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-xs">Заявок пока нет</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+          
           {showProductForm && editingProduct && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
               <div className="glass-panel w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-bold gradient-text flex items-center gap-2"><Edit className="w-5 h-5 text-orange-500" />{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2>
-                  <button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center"><X className="w-5 h-5" /></button>
+                  <h2 className="text-xl font-bold gradient-text flex items-center gap-2">
+                    <Edit className="w-5 h-5 text-orange-500" />
+                    {editingProduct.id ? 'Редактирование' : 'Новый товар'}
+                  </h2>
+                  <button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center">
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
                 <div className="mb-4">
                   <label className="text-xs text-gray-400 mb-1.5 block">Название товара</label>
-                  <input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50" />
+                  <input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
                     <label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label>
-                    <input type="number" value={editingProduct.price || ''} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50" />
+                    <input type="number" value={editingProduct.price || ''} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-400 mb-1.5 block">Категория</label>
-                    <select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50">
+                    <select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all">
                       {CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
                     </select>
                   </div>
@@ -573,7 +688,9 @@ export default function Home() {
                   {editingProduct.image && (
                     <div className="mt-3 relative group">
                       <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                      <button onClick={() => setEditingProduct({...editingProduct, image: null})} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"><X className="w-4 h-4" /></button>
+                      <button onClick={() => setEditingProduct({...editingProduct, image: null})} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center">
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -587,11 +704,15 @@ export default function Home() {
                       <div key={i} className="flex gap-2 items-center bg-black/30 rounded-xl p-2">
                         <input type="text" placeholder="Название" value={v.name} onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }} className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none" />
                         <input type="number" placeholder="Кол-во" value={v.stock} onChange={e => { const nv = [...formVariants]; nv[i].stock = Number(e.target.value); setFormVariants(nv); }} className="w-20 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
-                        <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center"><X className="w-4 h-4" /></button>
+                        <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center">
+                          <X className="w-4 h-4" />
+                        </button>
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Добавить вариант</button>
+                  <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium flex items-center justify-center gap-1.5">
+                    <Plus className="w-4 h-4" /> Добавить вариант
+                  </button>
                 </div>
                 <div className="mb-5">
                   <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})} className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>
