@@ -17,6 +17,30 @@ declare global {
 }
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Другое'];
+
+const CATEGORY_PRIORITY: Record<string, number> = {
+  'Жидкости': 1,
+  'Снюс': 2,
+  'Расходники': 3,
+  'POD-системы': 4,
+  'Одноразки': 5,
+  'Другое': 6,
+};
+
+const LETTER_PRIORITY: Record<string, string[]> = {
+  'Жидкости': ['R', 'D', 'C', 'A', 'B', 'E', 'P', 'G', 'S', 'F', 'H'],
+  'Снюс': ['D', 'E', 'G', 'F'],
+  'Одноразки': ['P', 'K', 'E'],
+};
+
+const getLetterPriority = (name: string, category: string): number => {
+  const firstLetter = name.charAt(0).toUpperCase();
+  const priorities = LETTER_PRIORITY[category];
+  if (!priorities) return 999;
+  const idx = priorities.indexOf(firstLetter);
+  return idx === -1 ? 999 : idx;
+};
+
 const ADMIN_PASSWORD = 'K7m2Q9';
 const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'zslvape';
@@ -408,6 +432,39 @@ export default function Home() {
     showNotification('Товар удалён');
   };
 
+  const sortedProducts = useMemo(() => {
+    return [...filteredProducts].sort((a, b) => {
+      const aAvail = a.variants.reduce((s, v) => s + getAvailableStock(a.id, v.name), 0);
+      const bAvail = b.variants.reduce((s, v) => s + getAvailableStock(b.id, v.name), 0);
+      
+      // 1. Сначала по категориям (если выбрано "Все")
+      if (selectedCategory === 'Все') {
+        const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
+        const bCatOrder = CATEGORY_PRIORITY[b.category] || 99;
+        if (aCatOrder !== bCatOrder) return aCatOrder - bCatOrder;
+        
+        // 2. Внутри категории по буквам
+        const aLetter = getLetterPriority(a.name, a.category);
+        const bLetter = getLetterPriority(b.name, b.category);
+        if (aLetter !== bLetter) return aLetter - bLetter;
+      } else {
+        // Если выбрана конкретная категория - сортируем по буквам
+        const aLetter = getLetterPriority(a.name, a.category);
+        const bLetter = getLetterPriority(b.name, b.category);
+        if (aLetter !== bLetter) return aLetter - bLetter;
+      }
+      
+      // 3. По наличию: в наличии → предзаказ → нет в наличии
+      if (aAvail > 0 && bAvail === 0 && !b.is_preorder) return -1;
+      if (aAvail === 0 && !a.is_preorder && bAvail > 0) return 1;
+      if (a.is_preorder && !b.is_preorder && bAvail > 0) return 1;
+      if (!a.is_preorder && b.is_preorder && aAvail > 0) return -1;
+      
+      // 4. По алфавиту
+      return a.name.localeCompare(b.name);
+    });
+  }, [filteredProducts, selectedCategory]);
+
   const sortedVariants = useMemo(() => {
     if (!selectedProduct) return [];
     return [...selectedProduct.variants].sort((a, b) => {
@@ -772,12 +829,12 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
             {CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ${selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{c}</button>))}
           </div>
-          <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{filteredProducts.length}</span> товаров</div>
-          {filteredProducts.length === 0 ? (
+          <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров</div>
+          {sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
           ) : (
             <div className="grid grid-cols-2 gap-3 pb-8">
-              {filteredProducts.map((p) => {
+              {sortedProducts.map((p) => {
                 const totalStock = p.variants.reduce((s, v) => s + v.stock, 0);
                 const isAvailable = totalStock > 0 || p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
