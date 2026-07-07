@@ -846,12 +846,14 @@ export default function Home() {
       {showAdminLogin && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-5 relative z-10">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-bold">Вход для админа</h2>
-              <button onClick={() => setShowAdminLogin(false)} className="w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4" /></button>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold gradient-text">Вход для админа</h2>
+              <button onClick={() => setShowAdminLogin(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+                <Cloud className="w-5 h-5 text-white" />
+              </button>
             </div>
-            <input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-lg p-2.5 mb-3 text-sm text-white" />
-            <button onClick={handleAdminLogin} className="w-full py-2.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold">Войти</button>
+            <input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
+            <button onClick={handleAdminLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold hover:from-orange-600 hover:to-pink-600 transition-all">Войти</button>
           </div>
         </div>
       )}
