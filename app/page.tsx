@@ -329,6 +329,26 @@ export default function Home() {
     try {
       const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
       
+      // Сохраняем заявку в базу
+      const { error: insertError } = await supabase.from('user_requests').insert({
+        user_id: userId,
+        username: username,
+        items: selectionList,
+        total_price: totalPrice,
+        status: 'new'
+      });
+      
+      if (insertError) {
+        console.error('Error saving request:', insertError);
+        showNotification('Ошибка сохранения: ' + insertError.message, 'error');
+        setIsSending(false);
+        return;
+      }
+      
+      console.log('✅ Request saved to database');
+
+      const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
+      
       let message = `Привет! Хочу заказать:\n\n`;
       const grouped: Record<string, ListItem[]> = {};
       selectionList.forEach(item => {
@@ -1185,3 +1205,4 @@ export default function Home() {
     </div>
   );
 }
+// Deploy 1783450020
