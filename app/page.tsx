@@ -139,18 +139,41 @@ export default function Home() {
     
     const parsed: Product[] = (data || []).map((p: any) => {
       let variants: Variant[] = [];
+      
+      console.log('🔍 Raw from DB:', p.name, '| flavors:', p.flavors, '| stock_quantity:', p.stock_quantity);
+      
       try {
         if (p.flavors) {
-          const parsed = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : p.flavors;
-          if (Array.isArray(parsed)) {
-            variants = parsed.map((v: any) => ({
-              name: String(v.name || ''),
-              stock: Number(v.stock) || 0,
-              price: v.price ? Number(v.price) : undefined
-            }));
+          let parsedFlavors = p.flavors;
+          if (typeof p.flavors === 'string') {
+            parsedFlavors = JSON.parse(p.flavors);
+          }
+          
+          if (Array.isArray(parsedFlavors)) {
+            variants = parsedFlavors.map((v: any) => {
+              console.log('  📦 Variant:', v);
+              // Пробуем все возможные варианты поля stock
+              const stockVal = v.stock ?? v.quantity ?? v.count ?? v.amount ?? 0;
+              const stock = Number(stockVal);
+              return {
+                name: String(v.name || v.flavor || v.title || 'Без названия'),
+                stock: isNaN(stock) ? 0 : stock,
+                price: v.price ? Number(v.price) : undefined
+              };
+            });
           }
         }
-      } catch (e) { console.error('Parse error:', e); }
+      } catch (e) { 
+        console.error('❌ Parse error:', e); 
+      }
+      
+      // Fallback: если variants пустой но есть stock_quantity
+      if (variants.length === 0 && p.stock_quantity > 0) {
+        variants = [{ name: 'Стандарт', stock: Number(p.stock_quantity) || 0 }];
+      }
+      
+      const totalStock = variants.reduce((s, v) => s + v.stock, 0);
+      console.log(`✅ "${p.name}": ${variants.length} variants, total stock: ${totalStock}`, variants);
       
       return {
         id: Number(p.id),
@@ -628,16 +651,16 @@ export default function Home() {
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); } }
         .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-        .glass-panel { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; }
-        .glass-card { background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
-        .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff007f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; }
+        .glass-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; transition: all 0.3s ease; }
+        .glass-card:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 94, 0, 0.3); }
+        .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-        .lava-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: float 20s infinite ease-in-out; }
-        .lava-blob-1 { width: 400px; height: 400px; background: linear-gradient(135deg, #ff5e00, #ff007f); top: -100px; left: -100px; }
-        .lava-blob-2 { width: 350px; height: 350px; background: linear-gradient(135deg, #ff007f, #7f00ff); top: 50%; right: -100px; animation-delay: -5s; }
-        .lava-blob-3 { width: 300px; height: 300px; background: linear-gradient(135deg, #7f00ff, #007fff); bottom: -100px; left: 30%; animation-delay: -10s; }
-        .lava-blob-4 { width: 250px; height: 250px; background: linear-gradient(135deg, #007fff, #ff5e00); top: 30%; left: 50%; animation-delay: -15s; }
-        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 25% { transform: translate(100px, -100px) scale(1.1); } 50% { transform: translate(-50px, 100px) scale(0.9); } 75% { transform: translate(-100px, -50px) scale(1.05); } }
+        .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4; animation: float 25s infinite ease-in-out; }
+        .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, #ff5e00, transparent); top: -150px; left: -150px; }
+        .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, #ff1493, transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
+        .lava-blob-3 { width: 400px; height: 400px; background: radial-gradient(circle, #ff8c00, transparent); top: 40%; left: 30%; animation-delay: -16s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
       `}</style>
       <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div><div className="lava-blob lava-blob-3"></div><div className="lava-blob lava-blob-4"></div></div>
 
