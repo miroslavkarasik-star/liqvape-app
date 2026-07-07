@@ -782,7 +782,7 @@ export default function Home() {
                 const isAvailable = totalStock > 0 || p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                 return (
-                  <div key={p.id} onClick={() => { if (isAvailable) { startAnimation({ target: { getBoundingClientRect: () => ({ left: 0, top: 0 } as DOMRect) } } as React.MouseEvent, p.name); openProductModal(p); } }} className={`glass-card p-3 transition-all ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
+                  <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
                     <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10">
                       {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />) : (<Package className="w-12 h-12 text-neutral-600" />)}
                       {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
