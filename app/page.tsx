@@ -651,16 +651,75 @@ export default function Home() {
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); } }
         .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; }
-        .glass-card { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; transition: all 0.3s ease; }
-        .glass-card:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 94, 0, 0.3); }
-        .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-        .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4; animation: float 25s infinite ease-in-out; }
-        .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, #ff5e00, transparent); top: -150px; left: -150px; }
-        .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, #ff1493, transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
-        .lava-blob-3 { width: 400px; height: 400px; background: radial-gradient(circle, #ff8c00, transparent); top: 40%; left: 30%; animation-delay: -16s; }
-        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
+        .glass-panel { 
+          background: rgba(30, 30, 30, 0.9); 
+          backdrop-filter: blur(20px); 
+          border: 1px solid rgba(255, 255, 255, 0.15); 
+          border-radius: 1.5rem; 
+        }
+        .glass-card { 
+          background: rgba(40, 40, 40, 0.7); 
+          backdrop-filter: blur(10px); 
+          border: 1px solid rgba(255, 255, 255, 0.1); 
+          border-radius: 1rem; 
+          transition: all 0.3s ease; 
+        }
+        .glass-card:hover { 
+          background: rgba(50, 50, 50, 0.8); 
+          border-color: rgba(255, 94, 0, 0.4); 
+          transform: translateY(-2px);
+        }
+        .gradient-text { 
+          background: linear-gradient(135deg, #ff5e00, #ff1493); 
+          -webkit-background-clip: text; 
+          -webkit-text-fill-color: transparent; 
+          background-clip: text; 
+        }
+        .lava-lamp { 
+          position: fixed; 
+          top: 0; 
+          left: 0; 
+          right: 0; 
+          bottom: 0; 
+          overflow: hidden; 
+          z-index: 0; 
+          pointer-events: none; 
+        }
+        .lava-blob { 
+          position: absolute; 
+          border-radius: 50%; 
+          filter: blur(100px); 
+          opacity: 0.35; 
+          animation: float 25s infinite ease-in-out; 
+        }
+        .lava-blob-1 { 
+          width: 500px; 
+          height: 500px; 
+          background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); 
+          top: -150px; 
+          left: -150px; 
+        }
+        .lava-blob-2 { 
+          width: 450px; 
+          height: 450px; 
+          background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); 
+          bottom: -150px; 
+          right: -150px; 
+          animation-delay: -8s; 
+        }
+        .lava-blob-3 { 
+          width: 400px; 
+          height: 400px; 
+          background: radial-gradient(circle, rgba(255, 140, 0, 0.5), transparent); 
+          top: 40%; 
+          left: 30%; 
+          animation-delay: -16s; 
+        }
+        @keyframes float { 
+          0%, 100% { transform: translate(0, 0) scale(1); } 
+          33% { transform: translate(80px, -80px) scale(1.1); } 
+          66% { transform: translate(-60px, 60px) scale(0.9); } 
+        }
       `}</style>
       <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div><div className="lava-blob lava-blob-3"></div><div className="lava-blob lava-blob-4"></div></div>
 
@@ -865,21 +924,23 @@ export default function Home() {
                 const isAvailable = totalStock > 0 || p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                 return (
-                  <div key={p.id} onClick={() => isAvailable && openProductModal(p)} className={`glass-card p-2 transition-all ${isAvailable ? 'cursor-pointer hover:border-orange-500/30' : 'opacity-50'}`}>
-                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden">
-                      {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />) : (<Package className="w-12 h-12 text-neutral-700" />)}
-                      {p.is_preorder && (<div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center"><span className="text-white font-bold text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500">ПРЕДЗАКАЗ</span></div>)}
+                  <div key={p.id} onClick={() => isAvailable && openProductModal(p)} className={`glass-card p-3 transition-all ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
+                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10">
+                      {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />) : (<Package className="w-12 h-12 text-neutral-600" />)}
+                      {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
                     </div>
-                    <h3 className="font-semibold text-xs mb-1 line-clamp-2 text-center text-white">{p.name}</h3>
+                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight">{p.name}</h3>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold gradient-text">{p.price} BYN</span>
-                      <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">{p.category}</span>
+                      <span className="text-base font-bold gradient-text">{p.price} BYN</span>
+                      <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
                     </div>
                     {inList > 0 ? (
-                      <div className="w-full py-2 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-bold text-center">В списке: {inList}</div>
+                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center">
+                         в списке: {inList}
+                      </div>
                     ) : (
-                      <div className={`w-full py-2 rounded-lg text-xs font-bold text-center ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-500'}`}>
-                        {isAvailable ? (p.is_preorder ? 'Предзаказ' : 'Выбрать') : 'Нет в наличии'}
+                      <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
+                        {isAvailable ? (p.is_preorder ? '  Предзаказ' : '  Выбрать') : 'Нет в наличии'}
                       </div>
                     )}
                   </div>
