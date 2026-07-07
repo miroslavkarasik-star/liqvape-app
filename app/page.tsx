@@ -698,13 +698,11 @@ export default function Home() {
       {showUsernamePrompt && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 relative z-10">
-            <div className="flex items-center gap-3 mb-5">
-              <button onClick={() => { setShowUsernamePrompt(false); setUsernameInput(''); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all">
-                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold gradient-text">Сменить username</h2>
+              <button onClick={() => { setShowUsernamePrompt(false); setUsernameInput(''); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+                <Cloud className="w-5 h-5 text-white" />
+              </button>
             </div>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><User className="w-8 h-8 text-white" /></div>
             <p className="text-gray-400 text-xs mb-4 text-center">Введи свой Telegram username (без @)</p>
@@ -735,13 +733,11 @@ export default function Home() {
       {showInstructions && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm max-h-[80vh] overflow-y-auto p-5 relative z-10">
-            <div className="flex items-center gap-3 mb-5">
-              <button onClick={() => setShowInstructions(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all">
-                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold gradient-text">Инструкция</h2>
+              <button onClick={() => setShowInstructions(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+                <Cloud className="w-5 h-5 text-white" />
+              </button>
             </div>
             <div className="space-y-3 text-xs text-gray-300">
               <div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">1. Выбор товара</h3><p>Нажми на карточку товара или кнопку <span className="text-orange-400 font-bold">+</span> чтобы открыть выбор вкусов</p></div>
@@ -756,13 +752,11 @@ export default function Home() {
       {showAbout && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
-            <div className="flex items-center gap-3 mb-5">
-              <button onClick={() => setShowAbout(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all">
-                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold gradient-text">О приложении</h2>
+              <button onClick={() => setShowAbout(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+                <Cloud className="w-5 h-5 text-white" />
+              </button>
             </div>
             <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-10 h-10 text-white" /></div>
             <h3 className="text-xl font-bold mb-1">Liq<span className="text-orange-500">Vape</span></h3>
@@ -780,16 +774,14 @@ export default function Home() {
       {showSettings && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-5 relative z-10">
-            <div className="flex items-center gap-3 mb-5">
-              <div onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center cursor-pointer hover:scale-110 transition-all">
-                <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                </svg>
-              </div>
+            <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold gradient-text">Настройки</h2>
+              <button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+                <Cloud className="w-5 h-5 text-white" />
+              </button>
             </div>
             <div className="space-y-2.5">
-              <div onClick={() => { setShowUsernamePrompt(true); setUsernameInput(username); }} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              <button onClick={() => { setShowUsernamePrompt(true); setUsernameInput(username); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <User className="w-5 h-5 text-orange-400" />
                 </div>
@@ -800,8 +792,8 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </div>
-              <div onClick={() => setShowInstructions(true)} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              </button>
+              <button onClick={() => setShowInstructions(true)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <HelpCircle className="w-5 h-5 text-orange-400" />
                 </div>
@@ -812,8 +804,8 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </div>
-              <div onClick={() => setShowAbout(true)} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              </button>
+              <button onClick={() => setShowAbout(true)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <Info className="w-5 h-5 text-orange-400" />
                 </div>
@@ -824,8 +816,8 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </div>
-              <div onClick={() => setShowAdminLogin(true)} className="w-full glass-card p-4 flex items-center gap-3 cursor-pointer hover:bg-white/10 hover:border-orange-500/40 transition-all group">
+              </button>
+              <button onClick={() => setShowAdminLogin(true)} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all">
                   <LogIn className="w-5 h-5 text-orange-400" />
                 </div>
@@ -836,7 +828,7 @@ export default function Home() {
                 <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </div>
+              </button>
             </div>
           </div>
         </div>
