@@ -347,7 +347,6 @@ export default function Home() {
       
       console.log('✅ Request saved to database');
 
-      const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
       
       let message = `Привет! Хочу заказать:\n\n`;
       const grouped: Record<string, ListItem[]> = {};
