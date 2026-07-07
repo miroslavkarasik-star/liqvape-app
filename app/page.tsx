@@ -37,7 +37,7 @@ const getLetterPriority = (name: string, category: string): number => {
 const ADMIN_PASSWORD = 'K7m2Q9';
 const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'zslvape';
-const CHANNEL_LINK = `https://t.me/${CHANNEL_USERNAME}`;
+const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 
 interface Variant { name: string; stock: number; price?: number; }
 interface Product {
@@ -169,7 +169,7 @@ export default function Home() {
         }
       } catch (e) { console.error('Parse error:', e); }
       const totalStock = variants.reduce((s, v) => s + v.stock, 0);
-      console.log('Loaded:', p.name, 'Variants:', variants.length, 'Stock:', totalStock, variants);
+      console.log('Loaded:', p.name, 'Variants:', variants.length, 'Stock:', totalStock);
       return {
         id: String(p.id), name: p.name, category: p.category || 'Другое',
         price: Number(p.price), image: p.image_url || null, variants,
@@ -329,7 +329,6 @@ export default function Home() {
         setIsSending(false);
         return;
       }
-      console.log('Request saved to database');
       let message = 'Привет! Хочу заказать:\n\n';
       const grouped: Record<string, ListItem[]> = {};
       selectionList.forEach(item => {
@@ -464,7 +463,6 @@ export default function Home() {
   const totalListItems = selectionList.reduce((s, i) => s + i.quantity, 0);
   const totalListPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
 
-  // Группировка списка для рендера (без IIFE)
   const groupedSelectionList = useMemo(() => {
     const grouped: Record<string, ListItem[]> = {};
     selectionList.forEach(item => {
@@ -482,7 +480,6 @@ export default function Home() {
     });
   }, [products, adminSearch, adminCategory]);
 
-  // ============ РЕНДЕРИНГ ============
   return (
     <div className="min-h-screen text-white relative bg-black">
       <style jsx global>{`
@@ -510,12 +507,12 @@ export default function Home() {
 
       {notification && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
-          <div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}>
+          <div className={'w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ' + (notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90') + ' ' + (notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40')}>
             <div className="flex flex-col items-center text-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>
+              <div className={'w-10 h-10 rounded-full flex items-center justify-center mb-2 ' + (notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30')}>
                 {notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}
               </div>
-              <p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p>
+              <p className={'text-xs font-medium ' + (notification.type === 'error' ? 'text-red-100' : 'text-green-100')}>{notification.message}</p>
             </div>
           </div>
         </div>
@@ -550,7 +547,7 @@ export default function Home() {
             )}
             {tutorialStep === 3 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">📤</div>
+                <div className="text-4xl mb-4"></div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй менеджеру</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми "Отправить" и тебя перекинет в Telegram</p>
                 <button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button>
@@ -577,13 +574,18 @@ export default function Home() {
           <div className="glass-panel w-full max-w-sm p-6 relative z-10">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold gradient-text">Сменить username</h2>
-              <button onClick={() => { setShowUsernamePrompt(false); setUsernameInput(''); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+              <button onClick={() => { setShowUsernamePrompt(false); setUsernameInput(''); setUsernameMessage(''); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
                 <Cloud className="w-5 h-5 text-white" />
               </button>
             </div>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><User className="w-8 h-8 text-white" /></div>
             <p className="text-gray-400 text-xs mb-4 text-center">Введи свой Telegram username (без @)</p>
-            <input type="text" placeholder="username" value={usernameInput} onChange={e => setUsernameInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && saveUsername(usernameInput)} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
+            <input type="text" placeholder="username" value={usernameInput} onChange={e => { setUsernameInput(e.target.value); setUsernameMessage(''); }} onKeyDown={e => e.key === 'Enter' && saveUsername(usernameInput)} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-2 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
+            {usernameMessage && (
+              <div className="mb-3 p-2.5 rounded-xl bg-green-500/20 border border-green-500/40 text-center">
+                <p className="text-xs font-medium text-green-300">✓ {usernameMessage}</p>
+              </div>
+            )}
             <button onClick={() => saveUsername(usernameInput)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-all">Сохранить</button>
           </div>
         </div>
@@ -712,9 +714,9 @@ export default function Home() {
               <button onClick={handleAdminLogout} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
             </div>
             <div className="flex gap-2 mb-4">
-              <button onClick={() => setAdminTab('products')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400'}`}>📦 Товары</button>
-              <button onClick={() => setAdminTab('requests')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400'}`}>
-                📋 Заявки {allRequests.filter(r => r.status === 'new').length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.filter(r => r.status === 'new').length}</span>}
+              <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}> Товары</button>
+              <button onClick={() => setAdminTab('requests')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>
+                 Заявки {allRequests.filter(r => r.status === 'new').length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.filter(r => r.status === 'new').length}</span>}
               </button>
             </div>
             {adminTab === 'products' ? (
@@ -726,7 +728,7 @@ export default function Home() {
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-3 mb-3">
                   {CATEGORIES.map((c) => (
-                    <button key={c} onClick={() => setAdminCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium transition-all ${adminCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{c}</button>
+                    <button key={c} onClick={() => setAdminCategory(c)} className={'px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium transition-all ' + (adminCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400')}>{c}</button>
                   ))}
                 </div>
                 <div className="space-y-2">
@@ -740,8 +742,8 @@ export default function Home() {
                       </div>
                       <div className="flex gap-1 flex-wrap">
                         <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px] flex items-center justify-center gap-1 hover:bg-white/10 transition-all"><Edit className="w-3 h-3" /> Изменить</button>
-                        <button onClick={() => toggleHidden(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{p.is_hidden ? 'Показать' : 'Скрыть'}</button>
-                        <button onClick={() => togglePreorder(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_preorder ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5'}`}>Предзаказ</button>
+                        <button onClick={() => toggleHidden(p)} className={'flex-1 py-1.5 rounded-md text-[10px] ' + (p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400')}>{p.is_hidden ? 'Показать' : 'Скрыть'}</button>
+                        <button onClick={() => togglePreorder(p)} className={'flex-1 py-1.5 rounded-md text-[10px] ' + (p.is_preorder ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5')}>Предзаказ</button>
                         <button onClick={() => deleteProduct(p.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-all"><Trash2 className="w-3 h-3" /></button>
                       </div>
                     </div>
@@ -753,7 +755,7 @@ export default function Home() {
               </div>
             ) : (
               <div>
-                <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Наличие списывается вручную через редактирование товара</div>
+                <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">️ Наличие списывается вручную через редактирование товара</div>
                 <div className="space-y-2">
                   {allRequests.map(r => (
                     <div key={r.id} className="glass-card p-3">
@@ -762,7 +764,7 @@ export default function Home() {
                           <h3 className="font-bold text-sm">Заявка от @{r.username}</h3>
                           <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                         </div>
-                        <span className={`text-[10px] px-2 py-1 rounded-full ${r.status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'}`}>{r.status === 'new' ? 'Новая' : 'Обработана'}</span>
+                        <span className={'text-[10px] px-2 py-1 rounded-full ' + (r.status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400')}>{r.status === 'new' ? 'Новая' : 'Обработана'}</span>
                       </div>
                       <div className="border-t border-white/10 pt-2 mb-2">
                         <p className="text-[11px] text-orange-400 font-bold mb-1">Что нужно списать:</p>
@@ -778,7 +780,7 @@ export default function Home() {
                         <span className="font-bold gradient-text">{r.total_price} BYN</span>
                       </div>
                       <div className="flex gap-1">
-                        <button onClick={() => updateRequestStatus(r.id, r.status === 'done' ? 'new' : 'done')} className={`flex-1 py-1.5 rounded-md text-[10px] font-medium ${r.status === 'done' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>{r.status === 'done' ? 'Вернуть в новые' : '✓ Обработана'}</button>
+                        <button onClick={() => updateRequestStatus(r.id, r.status === 'done' ? 'new' : 'done')} className={'flex-1 py-1.5 rounded-md text-[10px] font-medium ' + (r.status === 'done' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400')}>{r.status === 'done' ? 'Вернуть в новые' : '✓ Обработана'}</button>
                         <button onClick={() => deleteRequest(r.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-all"><Trash2 className="w-3 h-3" /></button>
                       </div>
                     </div>
@@ -853,7 +855,7 @@ export default function Home() {
                     <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Добавить вариант</button>
                   </div>
                   <div className="mb-5">
-                    <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})} className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}</button>
+                    <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})} className={'w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ' + (editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400')}>{editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}</button>
                   </div>
                   <div className="flex gap-3">
                     <button onClick={() => setShowProductForm(false)} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium">Отмена</button>
@@ -888,7 +890,7 @@ export default function Home() {
             <input type="text" placeholder="Поиск товаров..." className="w-full glass-panel py-3 pl-10 pr-3 text-sm text-white" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
-            {CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ${selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{c}</button>))}
+            {CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={'px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ' + (selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400')}>{c}</button>))}
           </div>
           <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров</div>
           {sortedProducts.length === 0 ? (
@@ -900,7 +902,7 @@ export default function Home() {
                 const isAvailable = totalStock > 0 || p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                 return (
-                  <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
+                  <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={'glass-card p-3 transition-all ' + (isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed')}>
                     <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10">
                       {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />) : (<Package className="w-12 h-12 text-neutral-600" />)}
                       {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
@@ -913,7 +915,7 @@ export default function Home() {
                     {inList > 0 ? (
                       <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center">🛒 в списке: {inList}</div>
                     ) : (
-                      <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
+                      <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
                         {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : '❌ Нет в наличии'}
                       </div>
                     )}
@@ -944,7 +946,7 @@ export default function Home() {
                       const selectedQty = selectedVariants.find(sv => sv.name === v.name)?.quantity || 1;
                       const isAvailable = avail > 0 || selectedProduct.is_preorder;
                       return (
-                        <div key={v.name} className={`rounded-lg border transition-all ${isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5'} ${!isAvailable ? 'opacity-50' : ''}`}>
+                        <div key={v.name} className={'rounded-lg border transition-all ' + (isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5') + ' ' + (!isAvailable ? 'opacity-50' : '')}>
                           <div className="flex items-center justify-between p-2.5">
                             <div className="flex items-center gap-2 flex-1">
                               <input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer" disabled={!isAvailable} />
@@ -953,7 +955,7 @@ export default function Home() {
                                 <span className="text-[10px] text-gray-400 ml-2">{v.price || selectedProduct.price} BYN</span>
                               </div>
                             </div>
-                            <span className={`text-[10px] font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>{isAvailable ? avail + ' шт.' : 'Нет'}</span>
+                            <span className={'text-[10px] font-medium ' + (isAvailable ? 'text-green-400' : 'text-red-400')}>{isAvailable ? avail + ' шт.' : 'Нет'}</span>
                           </div>
                           {isSelected && isAvailable && (
                             <div className="flex items-center justify-between px-2.5 pb-2.5 border-t border-white/5 pt-2">
@@ -1009,7 +1011,7 @@ export default function Home() {
                         {items.map((item) => {
                           const idx = selectionList.indexOf(item);
                           return (
-                            <div key={idx} className={`glass-card p-2.5 ${item.isPreorder ? 'border-orange-500/30' : ''}`}>
+                            <div key={idx} className={'glass-card p-2.5 ' + (item.isPreorder ? 'border-orange-500/30' : '')}>
                               <div className="flex items-start justify-between mb-1.5">
                                 <div className="flex-1">
                                   <p className="text-xs font-medium">{item.variant}{item.isPreorder && <span className="ml-1 text-[9px] text-orange-400">[ПРЕДЗАКАЗ]</span>}</p>
