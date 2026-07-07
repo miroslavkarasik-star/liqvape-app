@@ -59,6 +59,7 @@ export default function Home() {
   const [username, setUsername] = useState('');
   const [showUsernamePrompt, setShowUsernamePrompt] = useState(false);
   const [usernameInput, setUsernameInput] = useState('');
+  const [usernameMessage, setUsernameMessage] = useState('');
   const [notification, setNotification] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
   const [notificationVisible, setNotificationVisible] = useState(false);
   const [showSubscribePrompt, setShowSubscribePrompt] = useState(false);
@@ -143,7 +144,8 @@ export default function Home() {
     await supabase.from('user_profiles').upsert({ user_id: userId, username: name.trim() }, { onConflict: 'user_id' });
     setUsername(name.trim());
     setUsernameInput('');
-    showNotification('Username изменён!', 'success');
+    setUsernameMessage('Username успешно изменён!');
+    setTimeout(() => setUsernameMessage(''), 3000);
   };
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
