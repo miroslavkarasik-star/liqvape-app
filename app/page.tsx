@@ -1,7 +1,20 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Clock, Edit, Eye, EyeOff, MessageCircle, Send, Settings, HelpCircle, Info, LogIn, User } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Eye, EyeOff, MessageCircle, Send, Settings, HelpCircle, Info, LogIn, User } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        ready: () => void; expand: () => void; close: () => void;
+        openTelegramLink: (url: string) => void;
+        HapticFeedback: { impactOccurred: (s: string) => void; notificationOccurred: (t: string) => void; };
+        initDataUnsafe?: { user?: { id: number; username?: string; first_name?: string; last_name?: string; } };
+      };
+    };
+  }
+}
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Другое'];
 const ADMIN_PASSWORD = 'K7m2Q9';
@@ -18,31 +31,6 @@ interface ListItem { productId: number; productName: string; variant: string; pr
 interface Request { 
   id: string; user_id: string; username: string; items: ListItem[]; 
   total_price: number; status: string; created_at: string;
-}
-
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: {
-        ready: () => void;
-        expand: () => void;
-        close: () => void;
-        openTelegramLink: (url: string) => void;
-        HapticFeedback: {
-          impactOccurred: (s: string) => void;
-          notificationOccurred: (t: string) => void;
-        };
-        initDataUnsafe?: {
-          user?: {
-            id: number;
-            username?: string;
-            first_name?: string;
-            last_name?: string;
-          };
-        };
-      };
-    };
-  }
 }
 
 export default function Home() {
@@ -69,8 +57,7 @@ export default function Home() {
   const [allRequests, setAllRequests] = useState<Request[]>([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [adminSearch, setAdminSearch] = useState('');
-  const [adminCategory, setAdminCategory] = useState('Все');
-  const [editingProduct, setEditingProduct] = useState<Partial<Product> | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Partial<Product> & { id?: number } | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
   const [showSettings, setShowSettings] = useState(false);
   const [showSendConfirm, setShowSendConfirm] = useState(false);
@@ -94,10 +81,7 @@ export default function Home() {
 
   useEffect(() => {
     const firstTime = localStorage.getItem('liqvape_first_time');
-    if (!firstTime) {
-      setShowFirstTimeTutorial(true);
-      localStorage.setItem('liqvape_first_time', 'true');
-    }
+    if (!firstTime) { setShowFirstTimeTutorial(true); localStorage.setItem('liqvape_first_time', 'true'); }
   }, []);
 
   const handleSubscribe = () => {
@@ -151,7 +135,6 @@ export default function Home() {
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
     if (!includeHidden) query = query.eq('is_hidden', false);
     const { data, error } = await query;
-    
     if (error) { console.error('Load error:', error); return []; }
     
     const parsed: Product[] = (data || []).map((p: any) => {
@@ -168,8 +151,6 @@ export default function Home() {
           }
         }
       } catch (e) { console.error('Parse error:', e); }
-      
-      console.log('✅ Product:', p.name, '| Variants:', variants.length, '| Stock:', variants.reduce((s, v) => s + v.stock, 0));
       
       return {
         id: Number(p.id),
@@ -334,7 +315,7 @@ export default function Home() {
       });
       
       for (const [name, items] of Object.entries(grouped)) {
-        message += `🧃 ${name}\n`;
+        message += ` ${name}\n`;
         for (const item of items) {
           const tag = item.isPreorder ? ' [ПРЕДЗАКАЗ]' : '';
           message += `  • ${item.variant} × ${item.quantity}${tag}\n`;
@@ -410,10 +391,12 @@ export default function Home() {
     };
     
     if (editingProduct.id) {
-      await supabase.from('products').update(data).eq('id', editingProduct.id);
+      const { error } = await supabase.from('products').update(data).eq('id', editingProduct.id);
+      if (error) { showNotification('Ошибка: ' + error.message, 'error'); return; }
       showNotification('Товар обновлён');
     } else {
-      await supabase.from('products').insert(data);
+      const { error } = await supabase.from('products').insert(data);
+      if (error) { showNotification('Ошибка: ' + error.message, 'error'); return; }
       showNotification('Товар добавлен');
     }
     setShowProductForm(false);
@@ -433,8 +416,9 @@ export default function Home() {
   };
 
   const deleteProduct = async (id: number) => {
-    if (!confirm('Удалить?')) return;
-    await supabase.from('products').delete().eq('id', id);
+    if (!confirm('Удалить товар?')) return;
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) { showNotification('Ошибка удаления: ' + error.message, 'error'); return; }
     await loadProducts(true);
     showNotification('Товар удалён');
   };
@@ -445,7 +429,7 @@ export default function Home() {
   };
 
   const deleteRequest = async (id: string) => {
-    if (!confirm('Удалить?')) return;
+    if (!confirm('Удалить заявку?')) return;
     await supabase.from('user_requests').delete().eq('id', id);
     await loadAllRequests();
   };
@@ -470,10 +454,11 @@ export default function Home() {
   if (showAdminPanel) {
     return (
       <div className="min-h-screen bg-black text-white p-3 relative">
+        <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div><div className="lava-blob lava-blob-3"></div><div className="lava-blob lava-blob-4"></div></div>
         <div className="max-w-2xl mx-auto relative z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow">
                 <Cloud className="w-5 h-5 text-white" />
               </div>
               <div>
@@ -504,17 +489,20 @@ export default function Home() {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <h3 className="font-bold text-sm">{p.name}</h3>
-                        <p className="text-[11px] text-gray-400">{p.price} BYN • {p.variants.reduce((s, v) => s + v.stock, 0)} шт.</p>
+                        <p className="text-[11px] text-gray-400">{p.price} BYN • {p.variants.reduce((s, v) => s + v.stock, 0)} шт. • {p.variants.length} вкусов</p>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px]"><Edit className="w-3 h-3 inline mr-1" /> Изменить</button>
+                    <div className="flex gap-1 flex-wrap">
+                      <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px] flex items-center justify-center gap-1"><Edit className="w-3 h-3" /> Изменить</button>
                       <button onClick={() => toggleHidden(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{p.is_hidden ? 'Показать' : 'Скрыть'}</button>
                       <button onClick={() => togglePreorder(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_preorder ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5'}`}>Предзаказ</button>
-                      <button onClick={() => deleteProduct(p.id)} className="w-8 py-1.5 rounded-md bg-red-500/20 text-red-400"><Trash2 className="w-3 h-3" /></button>
+                      <button onClick={() => deleteProduct(p.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
                     </div>
                   </div>
                 ))}
+                {products.filter(p => p.name.toLowerCase().includes(adminSearch.toLowerCase())).length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500"><Package className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-xs">Товаров нет</p></div>
+                )}
               </div>
             </>
           ) : (
@@ -532,15 +520,18 @@ export default function Home() {
                     </div>
                     <div className="border-t border-white/10 pt-2 mb-2">
                       {r.items.map((item, i) => (
-                        <p key={i} className="text-[11px] text-gray-300">• {item.productName} ({item.variant}) × {item.quantity}</p>
+                        <p key={i} className="text-[11px] text-gray-300">• {item.productName} ({item.variant}) × {item.quantity}{item.isPreorder ? ' [ПРЕДЗАКАЗ]' : ''}</p>
                       ))}
                     </div>
                     <div className="flex gap-1">
-                      <button onClick={() => updateRequestStatus(r.id, r.status === 'done' ? 'new' : 'done')} className={`flex-1 py-1.5 rounded-md text-[10px] ${r.status === 'done' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>{r.status === 'done' ? 'Вернуть' : '✓'}</button>
-                      <button onClick={() => deleteRequest(r.id)} className="w-8 py-1.5 rounded-md bg-red-500/20 text-red-400"><Trash2 className="w-3 h-3" /></button>
+                      <button onClick={() => updateRequestStatus(r.id, r.status === 'done' ? 'new' : 'done')} className={`flex-1 py-1.5 rounded-md text-[10px] ${r.status === 'done' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400'}`}>{r.status === 'done' ? 'Вернуть' : '✓ Обработана'}</button>
+                      <button onClick={() => deleteRequest(r.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
                     </div>
                   </div>
                 ))}
+                {allRequests.length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500"><Package className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-xs">Заявок нет</p></div>
+                )}
               </div>
             </>
           )}
@@ -548,44 +539,79 @@ export default function Home() {
             <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
               <div className="glass-panel w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-bold">{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2>
-                  <button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5"><X className="w-5 h-5" /></button>
+                  <h2 className="text-xl font-bold gradient-text flex items-center gap-2"><Edit className="w-5 h-5 text-orange-500" />{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2>
+                  <button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center"><X className="w-5 h-5" /></button>
                 </div>
                 <div className="mb-4">
-                  <label className="text-xs text-gray-400 mb-1.5 block">Название</label>
-                  <input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white" />
+                  <label className="text-xs text-gray-400 mb-1.5 block">Название товара</label>
+                  <input type="text" placeholder="Например: Xros 5 mini" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50" />
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
-                    <label className="text-xs text-gray-400 mb-1.5 block">Цена</label>
-                    <input type="number" value={editingProduct.price || ''} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white" />
+                    <label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label>
+                    <input type="number" placeholder="0" value={editingProduct.price || ''} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50" />
                   </div>
                   <div>
                     <label className="text-xs text-gray-400 mb-1.5 block">Категория</label>
-                    <select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white">
-                      {CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c}>{c}</option>)}
+                    <select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50">
+                      {CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}
                     </select>
                   </div>
                 </div>
                 <div className="mb-4">
+                  <label className="text-xs text-gray-400 mb-1.5 block">Фото товара</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      showNotification('Загрузка фото...');
+                      const fileExt = file.name.split('.').pop();
+                      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                      const filePath = `products/${fileName}`;
+                      try {
+                        const { error } = await supabase.storage.from('product-images').upload(filePath, file, { cacheControl: '3600', upsert: false });
+                        if (error) { showNotification('Ошибка: ' + error.message, 'error'); return; }
+                        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(filePath);
+                        setEditingProduct({...editingProduct, image: publicUrl});
+                        showNotification('Фото загружено!', 'success');
+                      } catch (err) { showNotification('Ошибка загрузки', 'error'); }
+                    }}
+                    className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-gradient-to-r file:from-orange-500 file:to-pink-500 file:text-white file:cursor-pointer"
+                  />
+                  {editingProduct.image && (
+                    <div className="mt-3 relative group">
+                      <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <button onClick={() => setEditingProduct({...editingProduct, image: null})} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"><X className="w-4 h-4" /></button>
+                    </div>
+                  )}
+                </div>
+                <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs text-gray-400">Варианты</label>
-                    <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">{formVariants.length}</span>
+                    <label className="text-xs text-gray-400">Варианты (цвет/вкус)</label>
+                    <span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-medium">{formVariants.length} шт.</span>
                   </div>
                   <div className="space-y-2 max-h-56 overflow-y-auto">
                     {formVariants.map((v, i) => (
                       <div key={i} className="flex gap-2 items-center bg-black/30 rounded-xl p-2">
-                        <input type="text" placeholder="Название" value={v.name} onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }} className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white" />
-                        <input type="number" placeholder="Кол-во" value={v.stock} onChange={e => { const nv = [...formVariants]; nv[i].stock = Number(e.target.value); setFormVariants(nv); }} className="w-16 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white text-center" />
-                        <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-9 h-9 rounded-lg bg-red-500/20 text-red-400"><X className="w-4 h-4" /></button>
+                        <input type="text" placeholder="Название" value={v.name} onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }} className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none" />
+                        <input type="number" placeholder="Кол-во" value={v.stock === 0 ? '' : v.stock} onChange={e => { const val = e.target.value.replace(/[^0-9]/g, ''); const nv = [...formVariants]; nv[i].stock = val === '' ? 0 : Number(val); setFormVariants(nv); }} className="w-16 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
+                        <input type="number" placeholder="Цена" value={v.price || ''} onChange={e => { const nv = [...formVariants]; nv[i].price = e.target.value === '' ? undefined : Number(e.target.value); setFormVariants(nv); }} className="w-16 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
+                        <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center"><X className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs"><Plus className="w-4 h-4 inline mr-1" /> Добавить</button>
+                  <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Добавить вариант</button>
+                </div>
+                <div className="mb-5">
+                  <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})} className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>
+                    {editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}
+                  </button>
                 </div>
                 <div className="flex gap-3">
-                  <button onClick={() => setShowProductForm(false)} className="flex-1 py-3 rounded-xl bg-white/5 text-gray-300">Отмена</button>
-                  <button onClick={saveProduct} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold">Сохранить</button>
+                  <button onClick={() => setShowProductForm(false)} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium">Отмена</button>
+                  <button onClick={saveProduct} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold">Сохранить</button>
                 </div>
               </div>
             </div>
@@ -599,84 +625,22 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative">
       <style jsx global>{`
-        @keyframes gradient-shift {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); }
-          50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); }
-        }
+        @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); } }
         .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-        .glass-panel {
-          background: rgba(20, 20, 20, 0.8);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 1.5rem;
-        }
-        .glass-card {
-          background: rgba(30, 30, 30, 0.6);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-          border-radius: 1rem;
-        }
-        .gradient-text {
-          background: linear-gradient(135deg, #ff5e00, #ff007f);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .lava-lamp {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          overflow: hidden;
-          z-index: 0;
-          pointer-events: none;
-        }
-        .lava-blob {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(80px);
-          opacity: 0.3;
-          animation: float 20s infinite ease-in-out;
-        }
-        .lava-blob-1 {
-          width: 400px; height: 400px;
-          background: linear-gradient(135deg, #ff5e00, #ff007f);
-          top: -100px; left: -100px;
-          animation-delay: 0s;
-        }
-        .lava-blob-2 {
-          width: 350px; height: 350px;
-          background: linear-gradient(135deg, #ff007f, #7f00ff);
-          top: 50%; right: -100px;
-          animation-delay: -5s;
-        }
-        .lava-blob-3 {
-          width: 300px; height: 300px;
-          background: linear-gradient(135deg, #7f00ff, #007fff);
-          bottom: -100px; left: 30%;
-          animation-delay: -10s;
-        }
-        .lava-blob-4 {
-          width: 250px; height: 250px;
-          background: linear-gradient(135deg, #007fff, #ff5e00);
-          top: 30%; left: 50%;
-          animation-delay: -15s;
-        }
-        @keyframes float {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          25% { transform: translate(100px, -100px) scale(1.1); }
-          50% { transform: translate(-50px, 100px) scale(0.9); }
-          75% { transform: translate(-100px, -50px) scale(1.05); }
-        }
+        .glass-panel { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; }
+        .glass-card { background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1rem; }
+        .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff007f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+        .lava-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: float 20s infinite ease-in-out; }
+        .lava-blob-1 { width: 400px; height: 400px; background: linear-gradient(135deg, #ff5e00, #ff007f); top: -100px; left: -100px; }
+        .lava-blob-2 { width: 350px; height: 350px; background: linear-gradient(135deg, #ff007f, #7f00ff); top: 50%; right: -100px; animation-delay: -5s; }
+        .lava-blob-3 { width: 300px; height: 300px; background: linear-gradient(135deg, #7f00ff, #007fff); bottom: -100px; left: 30%; animation-delay: -10s; }
+        .lava-blob-4 { width: 250px; height: 250px; background: linear-gradient(135deg, #007fff, #ff5e00); top: 30%; left: 50%; animation-delay: -15s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 25% { transform: translate(100px, -100px) scale(1.1); } 50% { transform: translate(-50px, 100px) scale(0.9); } 75% { transform: translate(-100px, -50px) scale(1.05); } }
       `}</style>
-      <div className="lava-lamp">
-        <div className="lava-blob lava-blob-1"></div>
-        <div className="lava-blob lava-blob-2"></div>
-        <div className="lava-blob lava-blob-3"></div>
-        <div className="lava-blob lava-blob-4"></div>
-      </div>
+      <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div><div className="lava-blob lava-blob-3"></div><div className="lava-blob lava-blob-4"></div></div>
+
       {notification && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
           <div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}>
@@ -690,11 +654,42 @@ export default function Home() {
         </div>
       )}
 
+      {showFirstTimeTutorial && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-6 relative z-10">
+            {tutorialStep === 0 && (<>
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><ShoppingBag className="w-10 h-10 text-white" /></div>
+              <h2 className="text-xl font-bold text-white mb-3 text-center">Добро пожаловать в LiqVape!</h2>
+              <p className="text-gray-400 text-xs mb-4 text-center">Давай покажем как делать заказы</p>
+              <button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать →</button>
+            </>)}
+            {tutorialStep === 1 && (<>
+              <div className="text-4xl mb-4 text-center">🛍️</div>
+              <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 1: Выбирай товары</h2>
+              <p className="text-gray-400 text-xs mb-4 text-center">Нажми на карточку товара чтобы выбрать вкус и количество</p>
+              <button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее →</button>
+            </>)}
+            {tutorialStep === 2 && (<>
+              <div className="text-4xl mb-4 text-center">📋</div>
+              <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 2: Смотри список</h2>
+              <p className="text-gray-400 text-xs mb-4 text-center">Нажми на плавающую кнопку внизу справа</p>
+              <button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее →</button>
+            </>)}
+            {tutorialStep === 3 && (<>
+              <div className="text-4xl mb-4 text-center">📤</div>
+              <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 3: Отправляй менеджеру</h2>
+              <p className="text-gray-400 text-xs mb-4 text-center">Нажми "Отправить" и тебя перекинет в Telegram</p>
+              <button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно! </button>
+            </>)}
+          </div>
+        </div>
+      )}
+
       {showSubscribePrompt && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
             <button onClick={() => setShowSubscribePrompt(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4 text-gray-400" /></button>
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div>
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><Send className="w-10 h-10 text-white" /></div>
             <h2 className="text-xl font-bold text-white mb-2">Подпишись на канал</h2>
             <button onClick={handleSubscribe} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white mb-2">Подписаться</button>
             <button onClick={() => setShowSubscribePrompt(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">Продолжить</button>
@@ -714,41 +709,20 @@ export default function Home() {
         </div>
       )}
 
-      {showFirstTimeTutorial && (
+      {showSendConfirm && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-          <div className="glass-panel w-full max-w-sm p-6 relative z-10">
-            {tutorialStep === 0 && (
-              <>
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><ShoppingBag className="w-10 h-10 text-white" /></div>
-                <h2 className="text-xl font-bold text-white mb-3 text-center">Добро пожаловать в LiqVape!</h2>
-                <p className="text-gray-400 text-xs mb-4 text-center">Давай покажем как делать заказы</p>
-                <button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать →</button>
-              </>
-            )}
-            {tutorialStep === 1 && (
-              <>
-                <div className="text-4xl mb-4 text-center">🛍️</div>
-                <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 1: Выбирай товары</h2>
-                <p className="text-gray-400 text-xs mb-4 text-center">Нажми на карточку товара чтобы выбрать вкус и количество</p>
-                <button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее →</button>
-              </>
-            )}
-            {tutorialStep === 2 && (
-              <>
-                <div className="text-4xl mb-4 text-center">📋</div>
-                <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 2: Смотри список</h2>
-                <p className="text-gray-400 text-xs mb-4 text-center">Нажми на плавающую кнопку внизу справа чтобы увидеть свой список</p>
-                <button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее →</button>
-              </>
-            )}
-            {tutorialStep === 3 && (
-              <>
-                <div className="text-4xl mb-4 text-center">📤</div>
-                <h2 className="text-xl font-bold text-white mb-3 text-center">Шаг 3: Отправляй менеджеру</h2>
-                <p className="text-gray-400 text-xs mb-4 text-center">Нажми "Отправить" и тебя перекинет в Telegram с готовым сообщением</p>
-                <button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно! 🎉</button>
-              </>
-            )}
+          <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><Send className="w-10 h-10 text-white" /></div>
+            <h2 className="text-xl font-bold text-white mb-2">Отправить заявку?</h2>
+            <p className="text-gray-400 text-xs mb-4">Тебя перекинет в Telegram с готовым списком</p>
+            <div className="glass-card p-3 mb-4 text-left">
+              <p className="text-xs text-gray-400 mb-1">Товаров: <span className="text-white font-bold">{totalListItems}</span></p>
+              <p className="text-xs text-gray-400">Сумма: <span className="gradient-text font-bold">{totalListPrice.toFixed(2)} BYN</span></p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setShowSendConfirm(false)} className="flex-1 py-3 rounded-xl bg-white/5 text-gray-400">Отмена</button>
+              <button onClick={sendToManager} disabled={isSending} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white disabled:opacity-50">{isSending ? '...' : 'Отправить'}</button>
+            </div>
           </div>
         </div>
       )}
@@ -761,22 +735,10 @@ export default function Home() {
               <button onClick={() => setShowInstructions(false)} className="w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4" /></button>
             </div>
             <div className="space-y-3 text-xs text-gray-300">
-              <div className="glass-card p-3">
-                <h3 className="font-bold text-orange-400 mb-1">1. Выбор товара</h3>
-                <p>Нажми на карточку товара чтобы открыть выбор вкусов</p>
-              </div>
-              <div className="glass-card p-3">
-                <h3 className="font-bold text-orange-400 mb-1">2. Выбор вкуса</h3>
-                <p>Отметь галочкой нужные вкусы и укажи количество</p>
-              </div>
-              <div className="glass-card p-3">
-                <h3 className="font-bold text-orange-400 mb-1">3. Просмотр списка</h3>
-                <p>Нажми на плавающую кнопку внизу справа</p>
-              </div>
-              <div className="glass-card p-3">
-                <h3 className="font-bold text-orange-400 mb-1">4. Отправка</h3>
-                <p>Нажми "Отправить" — тебя перекинет в Telegram</p>
-              </div>
+              <div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">1. Выбор товара</h3><p>Нажми на карточку товара чтобы открыть выбор вкусов</p></div>
+              <div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">2. Выбор вкуса</h3><p>Отметь галочкой нужные вкусы и укажи количество</p></div>
+              <div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">3. Просмотр списка</h3><p>Нажми на плавающую кнопку внизу справа</p></div>
+              <div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">4. Отправка</h3><p>Нажми "Отправить" — тебя перекинет в Telegram</p></div>
             </div>
           </div>
         </div>
@@ -798,24 +760,6 @@ export default function Home() {
               <p className="text-gray-400">Менеджер: <span className="text-orange-400">@{MANAGER_USERNAME}</span></p>
             </div>
             <p className="text-[10px] text-gray-500">© 2026 LiqVape</p>
-          </div>
-        </div>
-      )}
-
-      {showSendConfirm && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-          <div className="glass-panel w-full max-w-sm p-6 text-center relative z-10">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div>
-            <h2 className="text-xl font-bold text-white mb-2">Отправить заявку?</h2>
-            <p className="text-gray-400 text-xs mb-4">Тебя перекинет в Telegram с готовым списком</p>
-            <div className="glass-card p-3 mb-4 text-left">
-              <p className="text-xs text-gray-400 mb-1">Товаров: <span className="text-white font-bold">{totalListItems}</span></p>
-              <p className="text-xs text-gray-400">Сумма: <span className="gradient-text font-bold">{totalListPrice.toFixed(2)} BYN</span></p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setShowSendConfirm(false)} className="flex-1 py-3 rounded-xl bg-white/5 text-gray-400">Отмена</button>
-              <button onClick={sendToManager} disabled={isSending} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white disabled:opacity-50">{isSending ? '...' : 'Отправить'}</button>
-            </div>
           </div>
         </div>
       )}
@@ -899,8 +843,9 @@ export default function Home() {
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                 return (
                   <div key={p.id} onClick={() => isAvailable && openProductModal(p)} className={`glass-card p-2 transition-all ${isAvailable ? 'cursor-pointer hover:border-orange-500/30' : 'opacity-50'}`}>
-                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center">
+                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl mb-2 flex items-center justify-center relative overflow-hidden">
                       {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />) : (<Package className="w-12 h-12 text-neutral-700" />)}
+                      {p.is_preorder && (<div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center"><span className="text-white font-bold text-xs px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-pink-500">ПРЕДЗАКАЗ</span></div>)}
                     </div>
                     <h3 className="font-semibold text-xs mb-1 line-clamp-2 text-center text-white">{p.name}</h3>
                     <div className="flex items-center justify-between mb-2">
@@ -908,9 +853,7 @@ export default function Home() {
                       <span className="text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">{p.category}</span>
                     </div>
                     {inList > 0 ? (
-                      <div className="w-full py-2 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-bold text-center">
-                        В списке: {inList}
-                      </div>
+                      <div className="w-full py-2 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-bold text-center">В списке: {inList}</div>
                     ) : (
                       <div className={`w-full py-2 rounded-lg text-xs font-bold text-center ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-500'}`}>
                         {isAvailable ? (p.is_preorder ? 'Предзаказ' : 'Выбрать') : 'Нет в наличии'}
@@ -946,7 +889,7 @@ export default function Home() {
                         <div key={v.name} className={`rounded-lg border transition-all ${isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5'} ${!isAvailable ? 'opacity-50' : ''}`}>
                           <div className="flex items-center justify-between p-2.5">
                             <div className="flex items-center gap-2 flex-1">
-                              <input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500" disabled={!isAvailable} />
+                              <input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer" disabled={!isAvailable} />
                               <div>
                                 <span className="text-xs font-medium">{v.name}</span>
                                 <span className="text-[10px] text-gray-400 ml-2">{v.price || selectedProduct.price} BYN</span>
@@ -958,9 +901,9 @@ export default function Home() {
                             <div className="flex items-center justify-between px-2.5 pb-2.5 border-t border-white/5 pt-2">
                               <span className="text-[10px] text-gray-400">Количество:</span>
                               <div className="flex items-center gap-2">
-                                <button onClick={() => updateVariantQuantity(v.name, -1)} className="w-6 h-6 rounded-full bg-white/10"><Minus className="w-3 h-3" /></button>
+                                <button onClick={() => updateVariantQuantity(v.name, -1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><Minus className="w-3 h-3" /></button>
                                 <span className="text-xs font-bold w-6 text-center">{selectedQty}</span>
-                                <button onClick={() => updateVariantQuantity(v.name, 1)} className="w-6 h-6 rounded-full bg-white/10"><Plus className="w-3 h-3" /></button>
+                                <button onClick={() => updateVariantQuantity(v.name, 1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><Plus className="w-3 h-3" /></button>
                               </div>
                             </div>
                           )}
@@ -1003,25 +946,28 @@ export default function Home() {
                       <div key={productName} className="mb-3">
                         <div className="text-xs font-bold text-orange-400 mb-1.5 px-1">{productName}</div>
                         <div className="space-y-1.5">
-                          {items.map((item, idx) => (
-                            <div key={idx} className={`glass-card p-2.5 ${item.isPreorder ? 'border-orange-500/30' : ''}`}>
-                              <div className="flex items-start justify-between mb-1.5">
-                                <div className="flex-1">
-                                  <p className="text-xs font-medium">{item.variant}{item.isPreorder && <span className="ml-1 text-[9px] text-orange-400">[ПРЕДЗАКАЗ]</span>}</p>
-                                  <p className="text-[10px] text-gray-400">{item.price} BYN</p>
+                          {items.map((item) => {
+                            const idx = selectionList.indexOf(item);
+                            return (
+                              <div key={idx} className={`glass-card p-2.5 ${item.isPreorder ? 'border-orange-500/30' : ''}`}>
+                                <div className="flex items-start justify-between mb-1.5">
+                                  <div className="flex-1">
+                                    <p className="text-xs font-medium">{item.variant}{item.isPreorder && <span className="ml-1 text-[9px] text-orange-400">[ПРЕДЗАКАЗ]</span>}</p>
+                                    <p className="text-[10px] text-gray-400">{item.price} BYN</p>
+                                  </div>
+                                  <button onClick={() => removeFromList(idx)} className="w-6 h-6 rounded-md bg-red-500/10 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
                                 </div>
-                                <button onClick={() => removeFromList(selectionList.indexOf(item))} className="w-6 h-6 rounded-md bg-red-500/10 text-red-400"><Trash2 className="w-3 h-3" /></button>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <button onClick={() => updateListQuantity(selectionList.indexOf(item), -1)} className="w-7 h-7 rounded-full bg-white/5"><Minus className="w-2.5 h-2.5" /></button>
-                                  <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
-                                  <button onClick={() => updateListQuantity(selectionList.indexOf(item), 1)} className="w-7 h-7 rounded-full bg-white/5"><Plus className="w-2.5 h-2.5" /></button>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <button onClick={() => updateListQuantity(idx, -1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Minus className="w-2.5 h-2.5" /></button>
+                                    <span className="text-xs font-bold w-5 text-center">{item.quantity}</span>
+                                    <button onClick={() => updateListQuantity(idx, 1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Plus className="w-2.5 h-2.5" /></button>
+                                  </div>
+                                  <span className="text-sm font-bold gradient-text">{item.price * item.quantity} BYN</span>
                                 </div>
-                                <span className="text-sm font-bold gradient-text">{item.price * item.quantity} BYN</span>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ));
