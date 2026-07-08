@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Cloud, RefreshCw, MessageCircle } from 'lucide-react';
 
@@ -103,7 +105,7 @@ export default function NotFound() {
           </p>
           
           <div className="border-t border-white/10 pt-3">
-            <p className="text-[10px] text-orange-400 font-bold mb-2">🔧 Как исправить:</p>
+            <p className="text-[10px] text-orange-400 font-bold mb-2"> Как исправить:</p>
             <ol className="text-[10px] text-gray-400 text-left space-y-1.5">
               <li className="flex items-start gap-2">
                 <span className="text-orange-500 font-bold">1.</span>
