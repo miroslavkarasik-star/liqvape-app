@@ -679,8 +679,10 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative bg-black">
       <style jsx global>{`
-        html, body { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        html, body { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-text-size-adjust: none; }
         * { -webkit-tap-highlight-color: transparent; }
+        input, textarea, select { font-size: 16px !important; }
+        @media screen and (max-device-width: 480px) { body { -webkit-text-size-adjust: none; } }
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); } }
         .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
