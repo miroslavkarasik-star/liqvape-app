@@ -25,7 +25,7 @@ const LETTER_PRIORITY: Record<string, string[]> = {
   'Жидкости': ['R','D','C','A','B','E','P','G','S','F','H'],
   'Снюс': ['D','E','G','F'],
   'Одноразки': ['P','K','E'],
-  'Расходники': ['X'],
+  'Расходники': ['V'],
 };
 const getLetterPriority = (name: string, category: string): number => {
   const firstLetter = name.charAt(0).toUpperCase();
