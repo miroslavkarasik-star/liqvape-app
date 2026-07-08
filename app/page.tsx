@@ -88,6 +88,26 @@ export default function Home() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
     }
+    
+    // Отключаем double-tap zoom
+    let lastTouchEnd = 0;
+    const handleTouchEnd = (e: TouchEvent) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    };
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
+    
+    // Отключаем pinch zoom
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+    document.addEventListener('gestureend', (e) => e.preventDefault());
+    
+    return () => {
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
   }, []);
 
   useEffect(() => {
@@ -659,6 +679,8 @@ export default function Home() {
   return (
     <div className="min-h-screen text-white relative bg-black">
       <style jsx global>{`
+        html, body { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        * { -webkit-tap-highlight-color: transparent; }
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); } }
         .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
