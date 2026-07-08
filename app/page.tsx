@@ -25,6 +25,7 @@ const LETTER_PRIORITY: Record<string, string[]> = {
   'Жидкости': ['R','D','C','A','B','E','P','G','S','F','H'],
   'Снюс': ['D','E','G','F'],
   'Одноразки': ['P','K','E'],
+  'Расходники': ['X'],
 };
 const getLetterPriority = (name: string, category: string): number => {
   const firstLetter = name.charAt(0).toUpperCase();
@@ -905,27 +906,27 @@ export default function Home() {
           {sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 pb-8">
+            <div className="grid grid-cols-2 gap-3 pb-8 auto-rows-fr">
               {sortedProducts.map((p) => {
                 const totalStock = p.variants.reduce((s, v) => s + v.stock, 0);
                 const isAvailable = totalStock > 0 || p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                 return (
-                  <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={'glass-card p-3 transition-all ' + (isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed')}>
-                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10">
+                  <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={'glass-card p-3 transition-all flex flex-col h-full ' + (isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed')}>
+                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
                       {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />) : (<Package className="w-12 h-12 text-neutral-600" />)}
                       {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
                     </div>
-                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight">{p.name}</h3>
-                    <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
+                    <div className="flex items-center justify-between mb-2 flex-shrink-0">
                       <span className="text-base font-bold gradient-text">{p.price} BYN</span>
                       <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
                     </div>
                     {inList > 0 ? (
-                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center"> в списке: {inList}</div>
+                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
                     ) : (
-                      <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
-                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : '❌ Нет в наличии'}
+                      <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
+                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : ' Нет в наличии'}
                       </div>
                     )}
                   </div>
