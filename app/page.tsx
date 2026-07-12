@@ -349,24 +349,15 @@ export default function Home() {
       
       const link = 'https://t.me/' + MANAGER_USERNAME + '?text=' + encodeURIComponent(message);
       
-      // ГАРАНТИРОВАННЫЙ СПОСОБ ОТКРЫТИЯ TELEGRAM
+      // ЖЕЛЕЗОБЕТОННЫЙ СПОСОБ (РАБОТАЕТ ВЕЗДЕ)
       if (typeof window !== 'undefined') {
-        try {
-          // 1. Пытаемся использовать официальный API Telegram
-          if (window.Telegram?.WebApp?.openTelegramLink) {
-            window.Telegram.WebApp.openTelegramLink(link);
-          } else {
-            throw new Error('API not available');
-          }
-        } catch (e) {
-          // 2. Fallback: Создаем временную ссылку и кликаем по ней программно
-          const a = document.createElement('a');
-          a.href = link;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+        // Метод 1: Нативный API Telegram (самый надежный внутри Mini App)
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+          window.Telegram.WebApp.openTelegramLink(link);
+        } 
+        // Метод 2: Прямое перенаправление (работает если API заблокирован)
+        else {
+          window.location.href = link;
         }
       }
       
