@@ -165,7 +165,7 @@ export default function Home() {
               name: String(v.name || ''),
               stock: Number(v.stock) || 0,
               price: v.price ? Number(v.price) : undefined
-            }));
+            })).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
           }
         }
       } catch (e) { console.error('Parse error:', e); }
@@ -396,7 +396,7 @@ export default function Home() {
         category: product.category, image: product.image,
         is_hidden: product.is_hidden, is_preorder: product.is_preorder
       });
-      setFormVariants([...product.variants]);
+      setFormVariants([...product.variants].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })));
     } else {
       setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false });
       setFormVariants([]);
@@ -659,7 +659,7 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => setFormVariants([...formVariants, { name: '', stock: 0 }])} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Добавить вариант</button>
+                  <button onClick={() => { const newVariant = { name: '', stock: 0 }; const sorted = [...formVariants, newVariant].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })); setFormVariants(sorted); }} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Добавить вариант</button>
                 </div>
                 <div className="mb-5">
                   <button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})} className={'w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ' + (editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400')}>{editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}</button>
