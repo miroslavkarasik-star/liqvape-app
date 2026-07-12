@@ -145,11 +145,21 @@ export default function Home() {
     await supabase.from('user_profiles').upsert({ user_id: userId, username: name.trim() }, { onConflict: 'user_id' });
     setUsername(name.trim());
     setUsernameInput('');
-    setUsernameMessage('Username успешно изменён!');
-    setTimeout(() => setUsernameMessage(''), 3000);
     
-    // Закрываем модалку при первом входе (показываем главную страницу)
-    setShowUsernamePrompt(false);
+    // Проверяем, это первый вход или смена ника в настройках
+    const isFirstTime = !username; 
+    
+    if (isFirstTime) {
+      setUsernameMessage('Добро пожаловать!');
+      setShowUsernamePrompt(false);
+      
+      // Запускаем цепочку приветствия: Подписка -> Туториал
+      setTimeout(() => setShowSubscribePrompt(true), 500);
+      setTimeout(() => setShowFirstTimeTutorial(true), 4000);
+    } else {
+      setUsernameMessage('Username успешно изменён!');
+      setTimeout(() => setUsernameMessage(''), 3000);
+    }
   };
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
@@ -773,13 +783,15 @@ export default function Home() {
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 relative z-10">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold gradient-text">Сменить username</h2>
-              <button onClick={() => { setShowUsernamePrompt(false); setUsernameInput(''); setUsernameMessage(''); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
-                <Cloud className="w-5 h-5 text-white" />
-              </button>
+              <h2 className="text-xl font-bold gradient-text">{!username ? 'Введи username' : 'Сменить username'}</h2>
+              {username && (
+                <button onClick={() => { setShowUsernamePrompt(false); setUsernameInput(''); setUsernameMessage(''); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
+                  <Cloud className="w-5 h-5 text-white" />
+                </button>
+              )}
             </div>
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><User className="w-8 h-8 text-white" /></div>
-            <p className="text-gray-400 text-xs mb-4 text-center">Введи свой Telegram username (без @)</p>
+            <p className="text-gray-400 text-xs mb-4 text-center">{!username ? 'Придумай никнейм для заказов (без @)' : 'Введи новый Telegram username (без @)'}</p>
             <input type="text" placeholder="username" value={usernameInput} onChange={e => { setUsernameInput(e.target.value); setUsernameMessage(''); }} onKeyDown={e => e.key === 'Enter' && saveUsername(usernameInput)} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-2 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
             {usernameMessage && (
               <div className="mb-3 p-2.5 rounded-xl bg-green-500/20 border border-green-500/40 text-center">
