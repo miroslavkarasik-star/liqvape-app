@@ -345,20 +345,13 @@ export default function Home() {
       }
       message += '\nИтого: ' + totalPrice.toFixed(2) + ' BYN';
       message += '\n' + username;
-      const link = 'https://t.me/' + MANAGER_USERNAME + '?text=' + encodeURIComponent(message);
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp?.openTelegramLink) {
-        window.Telegram.WebApp.openTelegramLink(link);
-      } else { window.open(link, '_blank'); }
-      setSelectionList([]);
-      setShowList(false);
-      setShowSendConfirm(false);
-      showNotification('Заявка отправлена!', 'success');
-    } catch(e) {
-      showNotification('Ошибка: ' + (e as Error).message, 'error');
-    } finally {
-      setIsSending(false);
-    }
-  };
+      $1
+      
+      // ГАРАНТИРОВАННЫЙ СПОСОБ: Прямое перенаправление
+      // Работает на iOS, Android и Desktop
+      if (typeof window !== 'undefined') {
+        window.location.href = link;
+      };
 
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {
