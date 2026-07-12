@@ -463,11 +463,20 @@ export default function Home() {
   const sortedVariants = useMemo(() => {
     if (!selectedProduct) return [];
     return [...selectedProduct.variants].sort((a, b) => {
-      const aa = getAvailableStock(selectedProduct.id, a.name);
-      const ba = getAvailableStock(selectedProduct.id, b.name);
-      if (aa > 0 && ba === 0) return -1;
-      if (aa === 0 && ba > 0) return 1;
-      return a.name.localeCompare(b.name);
+      const aAvail = getAvailableStock(selectedProduct.id, a.name);
+      const bAvail = getAvailableStock(selectedProduct.id, b.name);
+      const aIsAvailable = aAvail > 0 || selectedProduct.is_preorder;
+      const bIsAvailable = bAvail > 0 || selectedProduct.is_preorder;
+
+      // Сначала доступные, потом недоступные
+      if (aIsAvailable && !bIsAvailable) return -1;
+      if (!aIsAvailable && bIsAvailable) return 1;
+
+      // Алфавитная сортировка RU + EN (автоопределение языка браузера)
+      return a.name.localeCompare(b.name, undefined, {
+        numeric: true,
+        sensitivity: 'base'
+      });
     });
   }, [selectedProduct]);
 
@@ -968,16 +977,16 @@ export default function Home() {
                       const selectedQty = selectedVariants.find(sv => sv.name === v.name)?.quantity || 1;
                       const isAvailable = avail > 0 || selectedProduct.is_preorder;
                       return (
-                        <div key={v.name} className={'rounded-lg border transition-all ' + (isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5') + ' ' + (!isAvailable ? 'opacity-50' : '')}>
+                        <div key={v.name} className={'rounded-lg border transition-all ' + (isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5') + ' ' + (!isAvailable ? 'opacity-50 grayscale-[0.5]' : '')}>
                           <div className="flex items-center justify-between p-2.5">
                             <div className="flex items-center gap-2 flex-1">
-                              <input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer" disabled={!isAvailable} />
+                              <input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" disabled={!isAvailable} />
                               <div>
-                                <span className="text-xs font-medium">{v.name}</span>
+                                <span className={'text-xs font-medium ' + (!isAvailable ? 'text-gray-500 line-through' : '')}>{v.name}</span>
                                 <span className="text-[10px] text-gray-400 ml-2">{v.price || selectedProduct.price} BYN</span>
                               </div>
                             </div>
-                            <span className={'text-[10px] font-medium ' + (isAvailable ? 'text-green-400' : 'text-red-400')}>{isAvailable ? avail + ' шт.' : 'Нет'}</span>
+                            <span className={'text-[10px] font-medium ' + (isAvailable ? 'text-green-400' : 'text-red-400')}>{isAvailable ? avail + ' шт.' : 'Нет в наличии'}</span>
                           </div>
                           {isSelected && isAvailable && (
                             <div className="flex items-center justify-between px-2.5 pb-2.5 border-t border-white/5 pt-2">
