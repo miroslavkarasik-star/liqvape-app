@@ -147,6 +147,9 @@ export default function Home() {
     setUsernameInput('');
     setUsernameMessage('Username успешно изменён!');
     setTimeout(() => setUsernameMessage(''), 3000);
+    
+    // Закрываем модалку при первом входе (показываем главную страницу)
+    setShowUsernamePrompt(false);
   };
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
