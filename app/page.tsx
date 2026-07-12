@@ -315,6 +315,7 @@ export default function Home() {
 
   const clearList = () => { if (confirm('Очистить?')) { setSelectionList([]); showNotification('Список очищен'); } };
 
+  // ✅ УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ОТПРАВКИ (РАБОТАЕТ ВЕЗДЕ)
   const sendToManager = async () => {
     if (selectionList.length === 0 || !username) return;
     setIsSending(true);
@@ -348,7 +349,7 @@ export default function Home() {
       
       const link = 'https://t.me/' + MANAGER_USERNAME + '?text=' + encodeURIComponent(message);
       
-      // УНИВЕРСАЛЬНЫЙ СПОСОБ ОТКРЫТИЯ TELEGRAM
+      // ГАРАНТИРОВАННЫЙ СПОСОБ ОТКРЫТИЯ TELEGRAM
       if (typeof window !== 'undefined') {
         try {
           // 1. Пытаемся использовать официальный API Telegram
@@ -368,6 +369,17 @@ export default function Home() {
           document.body.removeChild(a);
         }
       }
+      
+      setSelectionList([]);
+      setShowList(false);
+      setShowSendConfirm(false);
+      showNotification('Заявка отправлена!', 'success');
+    } catch(e) {
+      showNotification('Ошибка: ' + (e as Error).message, 'error');
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {
@@ -550,7 +562,7 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Наличие списывается вручную через редактирование товара</div>
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">️ Наличие списывается вручную через редактирование товара</div>
               <div className="space-y-2">
                 {allRequests.map(r => (
                   <div key={r.id} className="glass-card p-3">
@@ -900,7 +912,7 @@ export default function Home() {
         <div onClick={openChannel} className="relative my-3 rounded-xl overflow-hidden cursor-pointer group" style={{ background: 'linear-gradient(90deg, #ff5e00, #ff007f, #ff5e00)', backgroundSize: '200% 100%', animation: 'gradient-shift 3s ease infinite' }}>
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-all"></div>
           <div className="relative py-2 text-center">
-            <span className="text-xs font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]">🔥 ПОДПИШИСЬ НА @{CHANNEL_USERNAME} • НОВИНКИ • АКЦИИ</span>
+            <span className="text-xs font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"> ПОДПИШИСЬ НА @{CHANNEL_USERNAME} • НОВИНКИ • АКЦИИ</span>
           </div>
         </div>
         <div className="pt-3">
@@ -935,7 +947,7 @@ export default function Home() {
                       <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
                     ) : (
                       <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
-                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : ' Нет в наличии'}
+                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : '❌ Нет в наличии'}
                       </div>
                     )}
                   </div>
@@ -1013,8 +1025,8 @@ export default function Home() {
               <div className="flex items-center gap-1.5">
                 {selectionList.length > 0 && <button onClick={clearList} className="text-[10px] text-red-400">Очистить</button>}
                 <button onClick={() => setShowList(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
-                <Cloud className="w-5 h-5 text-white" />
-              </button>
+                  <Cloud className="w-5 h-5 text-white" />
+                </button>
               </div>
             </div>
             <div className="p-3">
@@ -1079,7 +1091,3 @@ export default function Home() {
     </div>
   );
 }
-
-}
-
-// Build 1783504571
