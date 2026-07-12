@@ -345,13 +345,29 @@ export default function Home() {
       }
       message += '\nИтого: ' + totalPrice.toFixed(2) + ' BYN';
       message += '\n' + username;
-      $1
       
-      // ГАРАНТИРОВАННЫЙ СПОСОБ: Прямое перенаправление
-      // Работает на iOS, Android и Desktop
+      const link = 'https://t.me/' + MANAGER_USERNAME + '?text=' + encodeURIComponent(message);
+      
+      // УНИВЕРСАЛЬНЫЙ СПОСОБ ОТКРЫТИЯ TELEGRAM
       if (typeof window !== 'undefined') {
-        window.location.href = link;
-      };
+        try {
+          // 1. Пытаемся использовать официальный API Telegram
+          if (window.Telegram?.WebApp?.openTelegramLink) {
+            window.Telegram.WebApp.openTelegramLink(link);
+          } else {
+            throw new Error('API not available');
+          }
+        } catch (e) {
+          // 2. Fallback: Создаем временную ссылку и кликаем по ней программно
+          const a = document.createElement('a');
+          a.href = link;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+      }
 
   const handleAdminLogin = () => {
     if (adminPassword === ADMIN_PASSWORD) {
