@@ -257,10 +257,34 @@ export default function Home() {
         const bLetter = getLetterPriority(b.name, b.category);
         if (aLetter !== bLetter) return aLetter - bLetter;
       }
-      // Строгая сортировка: 1.В наличии -> 2.Предзаказ -> 3.Нет в наличии
-      const aStatus = aAvail > 0 ? 1 : (a.is_preorder ? 2 : 3);
-      const bStatus = bAvail > 0 ? 1 : (b.is_preorder ? 2 : 3);
-      if (aStatus !== bStatus) return aStatus - bStatus;
+      // 1. Сначала все товары В НАЛИЧИИ (сортируются по категории и буквам)
+      // 2. Потом ПРЕДЗАКАЗ (без дополнительной сортировки)
+      // 3. В конце НЕТ В НАЛИЧИИ (без дополнительной сортировки)
+      const aIsAvailable = aAvail > 0;
+      const bIsAvailable = bAvail > 0;
+      
+      if (aIsAvailable && !bIsAvailable) return -1;
+      if (!aIsAvailable && bIsAvailable) return 1;
+      
+      // Если оба доступны — применяем полную сортировку по категории и буквам
+      if (aIsAvailable && bIsAvailable) {
+        if (selectedCategory === 'Все') {
+          const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
+          const bCatOrder = CATEGORY_PRIORITY[b.category] || 99;
+          if (aCatOrder !== bCatOrder) return aCatOrder - bCatOrder;
+          const aLetter = getLetterPriority(a.name, a.category);
+          const bLetter = getLetterPriority(b.name, b.category);
+          if (aLetter !== bLetter) return aLetter - bLetter;
+        } else {
+          const aLetter = getLetterPriority(a.name, a.category);
+          const bLetter = getLetterPriority(b.name, b.category);
+          if (aLetter !== bLetter) return aLetter - bLetter;
+        }
+      }
+      
+      // Для недоступных товаров сохраняем порядок из БД (created_at desc)
+      // Т.к. мы уже отфильтровали доступные выше, сюда попадают только предзаказ/нет в наличии
+      return 0;
       return a.name.localeCompare(b.name);
     });
   }, [filteredProducts, selectedCategory]);
