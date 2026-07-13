@@ -146,18 +146,15 @@ export default function Home() {
     setUsername(name.trim());
     setUsernameInput('');
     
-    // Проверяем, это первый вход или смена ника в настройках
     const isFirstTime = !username; 
     
     if (isFirstTime) {
       setUsernameMessage('Добро пожаловать!');
       setShowUsernamePrompt(false);
       
-      // Сбрасываем localStorage флаги, чтобы модалки точно открылись
       localStorage.removeItem('liqvape_seen_subscribe');
       localStorage.removeItem('liqvape_first_time');
       
-      // Принудительно запускаем цепочку приветствия
       setTimeout(() => {
         setShowSubscribePrompt(true);
         setShowFirstTimeTutorial(true);
@@ -243,7 +240,6 @@ export default function Home() {
 
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
-      // 1. Сначала ВСЕ товары В НАЛИЧИИ (сортируются по категории и буквам)
       const aAvail = a.variants.reduce((s, v) => s + v.stock, 0);
       const bAvail = b.variants.reduce((s, v) => s + v.stock, 0);
       const aIsAvailable = aAvail > 0;
@@ -252,7 +248,6 @@ export default function Home() {
       if (aIsAvailable && !bIsAvailable) return -1;
       if (!aIsAvailable && bIsAvailable) return 1;
       
-      // 2. Если ОБА доступны — применяем полную сортировку по категории и буквам
       if (aIsAvailable && bIsAvailable) {
         if (selectedCategory === 'Все') {
           const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
@@ -268,9 +263,9 @@ export default function Home() {
         }
       }
       
-      // 3. Предзаказ и Нет в наличии — без сортировки (как в БД)
       return 0;
-}, [filteredProducts, selectedCategory]);
+    });
+  }, [filteredProducts, selectedCategory]);
 
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
@@ -341,7 +336,6 @@ export default function Home() {
 
   const clearList = () => { if (confirm('Очистить?')) { setSelectionList([]); showNotification('Список очищен'); } };
 
-  // ✅ УНИВЕРСАЛЬНАЯ ФУНКЦИЯ ОТПРАВКИ (РАБОТАЕТ ВЕЗДЕ)
   const sendToManager = async () => {
     if (selectionList.length === 0 || !username) return;
     setIsSending(true);
@@ -375,14 +369,10 @@ export default function Home() {
       
       const link = 'https://t.me/' + MANAGER_USERNAME + '?text=' + encodeURIComponent(message);
       
-      // ЖЕЛЕЗОБЕТОННЫЙ СПОСОБ (РАБОТАЕТ ВЕЗДЕ)
       if (typeof window !== 'undefined') {
-        // Метод 1: Нативный API Telegram (самый надежный внутри Mini App)
         if (window.Telegram?.WebApp?.openTelegramLink) {
           window.Telegram.WebApp.openTelegramLink(link);
-        } 
-        // Метод 2: Прямое перенаправление (работает если API заблокирован)
-        else {
+        } else {
           window.location.href = link;
         }
       }
@@ -494,14 +484,12 @@ export default function Home() {
       const aIsAvailable = aAvail > 0 || selectedProduct.is_preorder;
       const bIsAvailable = bAvail > 0 || selectedProduct.is_preorder;
 
-      // Сначала доступные, потом недоступные
       if (aIsAvailable && !bIsAvailable) return -1;
       if (!aIsAvailable && bIsAvailable) return 1;
 
-      // Алфавитная сортировка RU + EN (автоопределение языка браузера)
-      return a.name.localeCompare(b.name, undefined, {
-        numeric: true,
-        sensitivity: 'base'
+      return a.name.localeCompare(b.name, undefined, { 
+        numeric: true, 
+        sensitivity: 'base' 
       });
     });
   }, [selectedProduct]);
@@ -547,7 +535,7 @@ export default function Home() {
             <button onClick={handleAdminLogout} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
           </div>
           <div className="flex gap-2 mb-4">
-            <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>📦 Товары</button>
+            <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}> Товары</button>
             <button onClick={() => setAdminTab('requests')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>
               📋 Заявки {allRequests.filter(r => r.status === 'new').length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.filter(r => r.status === 'new').length}</span>}
             </button>
@@ -754,7 +742,7 @@ export default function Home() {
             )}
             {tutorialStep === 1 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">🛍️</div>
+                <div className="text-4xl mb-4">️</div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми на карточку товара чтобы выбрать вкус и количество</p>
                 <button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
@@ -1005,16 +993,24 @@ export default function Home() {
                       const selectedQty = selectedVariants.find(sv => sv.name === v.name)?.quantity || 1;
                       const isAvailable = avail > 0 || selectedProduct.is_preorder;
                       return (
-                        <div key={v.name} className={'rounded-lg border transition-all ' + (isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5') + ' ' + (!isAvailable ? 'opacity-50 grayscale-[0.5]' : '')}>
+                        <div key={v.name} className={`rounded-lg border transition-all ${isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5'} ${!isAvailable ? 'opacity-50 grayscale-[0.5]' : ''}`}>
                           <div className="flex items-center justify-between p-2.5">
                             <div className="flex items-center gap-2 flex-1">
-                              <input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" disabled={!isAvailable} />
+                              <input 
+                                type="checkbox" 
+                                checked={isSelected} 
+                                onChange={() => isAvailable && toggleVariantSelection(v.name)} 
+                                className="w-4 h-4 rounded accent-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" 
+                                disabled={!isAvailable} 
+                              />
                               <div>
-                                <span className={'text-xs font-medium ' + (!isAvailable ? 'text-gray-500 line-through' : '')}>{v.name}</span>
+                                <span className={`text-xs font-medium ${!isAvailable ? 'text-gray-500 line-through' : ''}`}>{v.name}</span>
                                 <span className="text-[10px] text-gray-400 ml-2">{v.price || selectedProduct.price} BYN</span>
                               </div>
                             </div>
-                            <span className={'text-[10px] font-medium ' + (isAvailable ? 'text-green-400' : 'text-red-400')}>{isAvailable ? avail + ' шт.' : 'Нет в наличии'}</span>
+                            <span className={`text-[10px] font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
+                              {isAvailable ? avail + ' шт.' : 'Нет в наличии'}
+                            </span>
                           </div>
                           {isSelected && isAvailable && (
                             <div className="flex items-center justify-between px-2.5 pb-2.5 border-t border-white/5 pt-2">
