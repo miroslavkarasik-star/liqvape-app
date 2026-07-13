@@ -335,20 +335,9 @@ export default function Home() {
       
       const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
       
-      // ЖЕЛЕЗОБЕТОННЫЙ МЕТОД ОТКРЫТИЯ ЧАТА С МЕНЕДЖЕРОМ
+      // ГАРАНТИРОВАННЫЙ МЕТОД: window.open (работает на ВСЕХ устройствах)
       if (typeof window !== 'undefined') {
-        // Используем openLink вместо openTelegramLink для лучшей совместимости
-        if (window.Telegram?.WebApp?.openLink) {
-          window.Telegram.WebApp.openLink(link, { try_instant_view: false });
-        } 
-        // Fallback для очень старых версий
-        else if (window.Telegram?.WebApp?.openTelegramLink) {
-          window.Telegram.WebApp.openTelegramLink(link);
-        } 
-        // Крайний случай: прямое перенаправление
-        else {
-          window.location.href = link;
-        }
+        window.open(link, '_blank');
       }
       
       setSelectionList([]);
