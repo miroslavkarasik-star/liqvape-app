@@ -334,13 +334,29 @@ export default function Home() {
       
       const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
       
-      // ПРОВЕРЕННЫЙ МЕТОД ОТКРЫТИЯ
+      // УНИВЕРСАЛЬНЫЙ МЕТОД ДЛЯ ВСЕХ УСТРОЙСТВ
       if (typeof window !== 'undefined') {
-        if (window.Telegram?.WebApp?.openTelegramLink) {
-          window.Telegram.WebApp.openTelegramLink(link);
-        } else {
-          window.open(link, '_blank');
-        }
+        try {
+          // Метод 1: Нативный API Telegram
+          if (window.Telegram?.WebApp?.openTelegramLink) {
+            window.Telegram.WebApp.openTelegramLink(link);
+            return;
+          }
+        } catch(e) {}
+        
+        // Метод 2: Программный клик по ссылке (работает везде)
+        const a = document.createElement('a');
+        a.href = link;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        
+        // Небольшая задержка для корректной обработки на iOS
+        setTimeout(() => {
+          a.click();
+          document.body.removeChild(a);
+        }, 100);
       }
       
       setSelectionList([]);
