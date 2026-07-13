@@ -305,7 +305,7 @@ export default function Home() {
     let newList = [...selectionList];
     for (const sv of selectedVariants) {
       const v = selectedProduct.variants.find(x => x.name === sv.name);
-      const price = v?.price || selectedProduct.price;
+      const price = (v?.price !== undefined && v?.price !== null) ? v.price : selectedProduct.price;
       const idx = newList.findIndex(i => i.productId === selectedProduct.id && i.variant === sv.name);
       if (idx >= 0) {
         newList[idx] = { ...newList[idx], quantity: newList[idx].quantity + sv.quantity, price };
@@ -668,6 +668,7 @@ export default function Home() {
                     {formVariants.map((v, i) => (
                       <div key={i} className="flex gap-2 items-center bg-black/30 rounded-xl p-2">
                         <input type="text" placeholder="Название" value={v.name} onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }} className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none" />
+                        <input type="number" placeholder="Цена" value={v.price || ''} onChange={e => { const val = e.target.value === '' ? undefined : Number(e.target.value); const nv = [...formVariants]; nv[i].price = val; setFormVariants(nv); }} className="w-20 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
                         <input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="Кол-во" value={v.stock} onChange={e => { const val = e.target.value === '' ? 0 : parseInt(e.target.value) || 0; const nv = [...formVariants]; nv[i].stock = val; setFormVariants(nv); }} onKeyDown={(e) => { if (e.key === 'Backspace' && v.stock === 0) { const nv = [...formVariants]; nv[i].stock = 0; setFormVariants(nv); } }} className="w-20 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
                         <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-9 h-9 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 flex items-center justify-center"><X className="w-4 h-4" /></button>
                       </div>
@@ -1005,7 +1006,11 @@ export default function Home() {
                               />
                               <div>
                                 <span className={`text-xs font-medium ${!isAvailable ? 'text-gray-500 line-through' : ''}`}>{v.name}</span>
-                                <span className="text-[10px] text-gray-400 ml-2">{v.price || selectedProduct.price} BYN</span>
+                                <span className="text-[10px] text-gray-400 ml-2">
+                                  {v.price 
+                                    ? `${v.price} BYN` 
+                                    : `${Math.min(...selectedProduct.variants.map(x => x.price || selectedProduct.price))}-${Math.max(...selectedProduct.variants.map(x => x.price || selectedProduct.price))} BYN`}
+                                </span>
                               </div>
                             </div>
                             <span className={`text-[10px] font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
