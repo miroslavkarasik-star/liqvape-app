@@ -535,7 +535,7 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Это список заказов, которые нужно собрать. После физической сборки нажмите ️ чтобы удалить заявку.</div>
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Наличие убирать вручную через редактирование товара. При удалении заказ считается обработанным. ️ чтобы удалить заявку.</div>
               <div className="space-y-3">
                 {allRequests.map(r => (
                   <div key={r.id} className="glass-card p-3">
