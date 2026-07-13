@@ -243,30 +243,16 @@ export default function Home() {
 
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
+      // 1. Сначала ВСЕ товары В НАЛИЧИИ (сортируются по категории и буквам)
       const aAvail = a.variants.reduce((s, v) => s + v.stock, 0);
       const bAvail = b.variants.reduce((s, v) => s + v.stock, 0);
-      if (selectedCategory === 'Все') {
-        const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
-        const bCatOrder = CATEGORY_PRIORITY[b.category] || 99;
-        if (aCatOrder !== bCatOrder) return aCatOrder - bCatOrder;
-        const aLetter = getLetterPriority(a.name, a.category);
-        const bLetter = getLetterPriority(b.name, b.category);
-        if (aLetter !== bLetter) return aLetter - bLetter;
-      } else {
-        const aLetter = getLetterPriority(a.name, a.category);
-        const bLetter = getLetterPriority(b.name, b.category);
-        if (aLetter !== bLetter) return aLetter - bLetter;
-      }
-      // 1. Сначала все товары В НАЛИЧИИ (сортируются по категории и буквам)
-      // 2. Потом ПРЕДЗАКАЗ (без дополнительной сортировки)
-      // 3. В конце НЕТ В НАЛИЧИИ (без дополнительной сортировки)
       const aIsAvailable = aAvail > 0;
       const bIsAvailable = bAvail > 0;
       
       if (aIsAvailable && !bIsAvailable) return -1;
       if (!aIsAvailable && bIsAvailable) return 1;
       
-      // Если оба доступны — применяем полную сортировку по категории и буквам
+      // 2. Если ОБА доступны — применяем полную сортировку по категории и буквам
       if (aIsAvailable && bIsAvailable) {
         if (selectedCategory === 'Все') {
           const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
@@ -282,12 +268,9 @@ export default function Home() {
         }
       }
       
-      // Для недоступных товаров сохраняем порядок из БД (created_at desc)
-      // Т.к. мы уже отфильтровали доступные выше, сюда попадают только предзаказ/нет в наличии
+      // 3. Предзаказ и Нет в наличии — без сортировки (как в БД)
       return 0;
-      return a.name.localeCompare(b.name);
-    });
-  }, [filteredProducts, selectedCategory]);
+}, [filteredProducts, selectedCategory]);
 
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
