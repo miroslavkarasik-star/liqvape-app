@@ -541,7 +541,7 @@ export default function Home() {
                   <div key={r.id} className="glass-card p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-bold text-sm flex items-center gap-2">Заказ #{allRequests.indexOf(r) + 1}{r.items.some((i: any) => i.isPreorder) && <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500 text-white font-bold">ЕСТЬ ПРЕДЗАКАЗ</span>}</h3>
+                        <h3 className="font-bold text-sm flex items-center gap-2">Заказ #{allRequests.length - allRequests.indexOf(r)}{r.items.some((i: any) => i.isPreorder) && <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500 text-white font-bold">ЕСТЬ ПРЕДЗАКАЗ</span>}</h3>
                         <p className="text-[10px] text-gray-400">Создано: {new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
                       <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-400">В работе</span>
