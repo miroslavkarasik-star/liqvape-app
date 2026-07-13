@@ -957,7 +957,16 @@ export default function Home() {
                     </div>
                     <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
                     <div className="flex items-center justify-between mb-2 flex-shrink-0">
-                      <span className="text-base font-bold gradient-text">{p.price} BYN</span>
+                      <span className="text-base font-bold gradient-text">
+                        {(() => {
+                          const prices = p.variants.map(v => 
+                            (v.price !== undefined && v.price !== null) ? v.price : p.price
+                          );
+                          const minP = Math.min(...prices);
+                          const maxP = Math.max(...prices);
+                          return minP === maxP ? `${minP} BYN` : `${minP}-${maxP} BYN`;
+                        })()}
+                      </span>
                       <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
                     </div>
                     {inList > 0 ? (
@@ -1007,22 +1016,7 @@ export default function Home() {
                               <div>
                                 <span className={`text-xs font-medium ${!isAvailable ? 'text-gray-500 line-through' : ''}`}>{v.name}</span>
                                 <span className="text-[10px] text-gray-400 ml-2">
-                                  {(() => {
-                                    if (v.price) return `${v.price} BYN`;
-                                    
-                                    // Собираем все цены (свои или базовые)
-                                    const prices = selectedProduct.variants.map(x => 
-                                      (x.price !== undefined && x.price !== null) ? x.price : selectedProduct.price
-                                    );
-                                    const minPrice = Math.min(...prices);
-                                    const maxPrice = Math.max(...prices);
-                                    
-                                    // Если цены одинаковые — показываем одну
-                                    if (minPrice === maxPrice) return `${minPrice} BYN`;
-                                    
-                                    // Иначе показываем диапазон
-                                    return `${minPrice}-${maxPrice} BYN`;
-                                  })()}
+                                  {(v.price !== undefined && v.price !== null) ? v.price : selectedProduct.price} BYN
                                 </span>
                               </div>
                             </div>
