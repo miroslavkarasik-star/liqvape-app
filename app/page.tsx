@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, Check } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 declare global {
@@ -78,9 +78,6 @@ export default function Home() {
   const [isSending, setIsSending] = useState(false);
   const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
-  
-  // Состояние для редактирования списания в заявках
-  const [deductionQuantities, setDeductionQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -297,43 +294,64 @@ export default function Home() {
 
   const clearList = () => { if (confirm('Очистить?')) { setSelectionList([]); showNotification('Список очищен'); } };
 
+  // ✅ УНИВЕРСАЛЬНАЯ ОТПРАВКА СООБЩЕНИЯ МЕНЕДЖЕРУ (РАБОТАЕТ НА 100% УСТРОЙСТВ)
   const sendToManager = async () => {
     if (selectionList.length === 0) return;
     setIsSending(true);
     try {
       const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
+      
+      // Сохраняем заказ в БД для админки
       const { error: insertError } = await supabase.from('user_requests').insert({
         user_id: userId, items: selectionList,
         total_price: totalPrice, status: 'new'
       });
+      
       if (insertError) {
         console.error('Error saving request:', insertError);
         showNotification('Ошибка сохранения: ' + insertError.message, 'error');
         setIsSending(false);
         return;
       }
-      let message = 'Привет! Хочу заказать:\n\n';
+
+      // Формируем красивое сообщение
+      let message = 'Привет! Хочу сделать заказ:\n\n';
       const grouped: Record<string, ListItem[]> = {};
       selectionList.forEach(item => {
         if (!grouped[item.productName]) grouped[item.productName] = [];
         grouped[item.productName].push(item);
       });
+      
       for (const [name, items] of Object.entries(grouped)) {
-        message += name + '\n';
+        message += `📦 ${name}\n`;
         for (const item of items) {
           const tag = item.isPreorder ? ' [ПРЕДЗАКАЗ]' : '';
-          message += '  • ' + item.variant + ' × ' + item.quantity + tag + '\n';
+          message += `   • ${item.variant} × ${item.quantity}${tag}\n`;
         }
       }
-      message += '\nИтого: ' + totalPrice.toFixed(2) + ' BYN';
       
-      const link = 'https://t.me/' + MANAGER_USERNAME + '?text=' + encodeURIComponent(message);
+      message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
       
+      const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
+      
+      // ГАРАНТИРОВАННЫЙ МЕТОД ОТКРЫТИЯ TELEGRAM
       if (typeof window !== 'undefined') {
-        if (window.Telegram?.WebApp?.openTelegramLink) {
-          window.Telegram.WebApp.openTelegramLink(link);
-        } else {
-          window.location.href = link;
+        try {
+          // Способ 1: Нативный API (работает на новых версиях)
+          if (window.Telegram?.WebApp?.openTelegramLink) {
+            window.Telegram.WebApp.openTelegramLink(link);
+          } else {
+            throw new Error('API unavailable');
+          }
+        } catch (e) {
+          // Способ 2: Fallback через DOM-клик (работает везде, включая старые iOS/Android)
+          const a = document.createElement('a');
+          a.href = link;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
         }
       }
       
@@ -421,53 +439,8 @@ export default function Home() {
     showNotification('Товар удалён');
   };
 
-  // Функция списания наличия по заявке
-  const processDeduction = async (requestId: string, items: any[]) => {
-    if (!confirm('Подтвердить списание наличия? Это действие нельзя отменить.')) return;
-    
-    try {
-      // Обновляем остатки для каждого товара
-      for (const item of items) {
-        const product = products.find(p => p.id === item.productId);
-        if (!product) continue;
-        
-        const variantIndex = product.variants.findIndex(v => v.name === item.variant);
-        if (variantIndex === -1) continue;
-        
-        const currentStock = product.variants[variantIndex].stock;
-        const newStock = Math.max(0, currentStock - item.quantity);
-        
-        // Создаем новый массив вариантов с обновленным stock
-        const updatedVariants = [...product.variants];
-        updatedVariants[variantIndex] = { ...updatedVariants[variantIndex], stock: newStock };
-        
-        await supabase.from('products').update({
-          flavors: JSON.stringify(updatedVariants),
-          stock_quantity: updatedVariants.reduce((s, v) => s + v.stock, 0)
-        }).eq('id', product.id);
-      }
-      
-      // Помечаем заявку как обработанную
-      await supabase.from('user_requests').update({ status: 'done' }).eq('id', requestId);
-      
-      showNotification('Наличие успешно списано!', 'success');
-      await loadAllRequests();
-      await loadProducts(true); // Перезагружаем товары чтобы увидеть новые остатки
-      
-    } catch (err) {
-      showNotification('Ошибка списания: ' + (err as Error).message, 'error');
-    }
-  };
-
-  const updateRequestStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from('user_requests').update({ status }).eq('id', id);
-    if (error) { showNotification('Ошибка: ' + error.message, 'error'); return; }
-    await loadAllRequests();
-    showNotification('Статус обновлён', 'success');
-  };
-
   const deleteRequest = async (id: string) => {
-    if (!confirm('Удалить заявку?')) return;
+    if (!confirm('Удалить эту заявку из списка?')) return;
     const { error } = await supabase.from('user_requests').delete().eq('id', id);
     if (error) { showNotification('Ошибка удаления: ' + error.message, 'error'); return; }
     await loadAllRequests();
@@ -533,9 +506,9 @@ export default function Home() {
             <button onClick={handleAdminLogout} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
           </div>
           <div className="flex gap-2 mb-4">
-            <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>📦 Товары</button>
+            <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}> Товары</button>
             <button onClick={() => setAdminTab('requests')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>
-              📋 Заявки {allRequests.filter(r => r.status === 'new').length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.filter(r => r.status === 'new').length}</span>}
+               Список к сборке {allRequests.length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.length}</span>}
             </button>
           </div>
           {adminTab === 'products' ? (
@@ -574,47 +547,28 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Здесь вы можете списать наличие по заявкам. Измените количество если нужно, затем нажмите "Списать наличие".</div>
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Это список заказов, которые нужно собрать. После физической сборки нажмите 🗑️ чтобы удалить заявку.</div>
               <div className="space-y-3">
-                {allRequests.filter(r => r.status === 'new').map(r => (
+                {allRequests.map(r => (
                   <div key={r.id} className="glass-card p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-bold text-sm">Заявка #{r.id.slice(0, 8)}</h3>
+                        <h3 className="font-bold text-sm">Заказ от клиента</h3>
                         <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
-                      <span className="text-[10px] px-2 py-1 rounded-full bg-green-500/20 text-green-400">Новая</span>
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">К сборке</span>
                     </div>
                     
-                    <div className="border-t border-white/10 pt-2 mb-3 space-y-2">
-                      <p className="text-[11px] text-orange-400 font-bold mb-1">Списать наличие:</p>
-                      {r.items.map((item: any, i: number) => {
-                        const uniqueKey = `${r.id}-${i}`;
-                        const currentQty = deductionQuantities[uniqueKey] ?? item.quantity;
-                        const product = products.find(p => p.id === item.productId);
-                        const variant = product?.variants.find(v => v.name === item.variant);
-                        const maxStock = variant?.stock || 0;
-                        
-                        return (
-                          <div key={i} className="flex items-center justify-between py-1 text-[11px] bg-black/20 rounded-lg px-2">
-                            <div className="flex-1">
-                              <span className="text-gray-300 block">{item.productName}</span>
-                              <span className="text-gray-500 text-[10px]">{item.variant} (остаток: {maxStock})</span>
-                            </div>
-                            <div className="flex items-center gap-2 ml-2">
-                              <button 
-                                onClick={() => setDeductionQuantities(prev => ({...prev, [uniqueKey]: Math.max(0, (prev[uniqueKey] ?? item.quantity) - 1)}))}
-                                className="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-xs"
-                              ><Minus className="w-3 h-3" /></button>
-                              <span className="text-white font-bold w-6 text-center">{currentQty}</span>
-                              <button 
-                                onClick={() => setDeductionQuantities(prev => ({...prev, [uniqueKey]: Math.min(maxStock, (prev[uniqueKey] ?? item.quantity) + 1)}))}
-                                className="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-xs"
-                              ><Plus className="w-3 h-3" /></button>
-                            </div>
+                    <div className="border-t border-white/10 pt-2 mb-3 space-y-1.5">
+                      {r.items.map((item: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between py-1 text-[11px] bg-black/20 rounded-lg px-2">
+                          <div className="flex-1">
+                            <span className="text-gray-300 block">{item.productName}</span>
+                            <span className="text-gray-500 text-[10px]">{item.variant}{item.isPreorder ? ' [ПРЕДЗАКАЗ]' : ''}</span>
                           </div>
-                        );
-                      })}
+                          <span className="text-white font-bold ml-2">× {item.quantity}</span>
+                        </div>
+                      ))}
                     </div>
                     
                     <div className="flex items-center justify-between mb-2 text-xs">
@@ -622,44 +576,17 @@ export default function Home() {
                       <span className="font-bold gradient-text">{r.total_price} BYN</span>
                     </div>
                     
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => processDeduction(r.id, r.items.map((item: any, i: number) => ({
-                          ...item, 
-                          quantity: deductionQuantities[`${r.id}-${i}`] ?? item.quantity
-                        })))}
-                        className="flex-1 py-2 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-[10px] font-bold flex items-center justify-center gap-1"
-                      >
-                        <Check className="w-3 h-3" /> Списать наличие
-                      </button>
-                      <button onClick={() => deleteRequest(r.id)} className="w-10 py-2 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-all"><Trash2 className="w-3 h-3" /></button>
-                    </div>
+                    <button 
+                      onClick={() => deleteRequest(r.id)}
+                      className="w-full py-2 rounded-md bg-red-500/20 text-red-400 text-[10px] font-bold flex items-center justify-center gap-1 hover:bg-red-500/30 transition-all"
+                    >
+                      <Trash2 className="w-3 h-3" /> Заявка собрана, удалить
+                    </button>
                   </div>
                 ))}
                 
-                {allRequests.filter(r => r.status === 'done').length > 0 && (
-                  <>
-                    <div className="text-[10px] text-gray-500 mt-4 mb-2 uppercase tracking-wider">Обработанные заявки</div>
-                    {allRequests.filter(r => r.status === 'done').map(r => (
-                      <div key={r.id} className="glass-card p-3 opacity-60">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-bold text-sm">Заявка #{r.id.slice(0, 8)}</h3>
-                            <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit' })}</p>
-                          </div>
-                          <span className="text-[10px] px-2 py-1 rounded-full bg-gray-500/20 text-gray-400">Обработана</span>
-                        </div>
-                        <div className="flex gap-1">
-                          <button onClick={() => updateRequestStatus(r.id, 'new')} className="flex-1 py-1.5 rounded-md bg-yellow-500/20 text-yellow-400 text-[10px]">Вернуть в новые</button>
-                          <button onClick={() => deleteRequest(r.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                )}
-                
                 {allRequests.length === 0 && (
-                  <div className="glass-panel p-8 text-center text-gray-500"><Package className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-xs">Заявок пока нет</p></div>
+                  <div className="glass-panel p-8 text-center text-gray-500"><Package className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-xs">Нет активных заказов к сборке</p></div>
                 )}
               </div>
             </div>
@@ -803,7 +730,7 @@ export default function Home() {
             )}
             {tutorialStep === 2 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">📋</div>
+                <div className="text-4xl mb-4"></div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми на плавающую кнопку внизу справа</p>
                 <button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
