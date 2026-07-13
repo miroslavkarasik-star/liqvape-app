@@ -153,9 +153,15 @@ export default function Home() {
       setUsernameMessage('Добро пожаловать!');
       setShowUsernamePrompt(false);
       
-      // Запускаем цепочку приветствия: Подписка -> Туториал
-      setTimeout(() => setShowSubscribePrompt(true), 500);
-      setTimeout(() => setShowFirstTimeTutorial(true), 4000);
+      // Сбрасываем localStorage флаги, чтобы модалки точно открылись
+      localStorage.removeItem('liqvape_seen_subscribe');
+      localStorage.removeItem('liqvape_first_time');
+      
+      // Принудительно запускаем цепочку приветствия
+      setTimeout(() => {
+        setShowSubscribePrompt(true);
+        setShowFirstTimeTutorial(true);
+      }, 600);
     } else {
       setUsernameMessage('Username успешно изменён!');
       setTimeout(() => setUsernameMessage(''), 3000);
@@ -251,10 +257,10 @@ export default function Home() {
         const bLetter = getLetterPriority(b.name, b.category);
         if (aLetter !== bLetter) return aLetter - bLetter;
       }
-      if (aAvail > 0 && bAvail === 0 && !b.is_preorder) return -1;
-      if (aAvail === 0 && !a.is_preorder && bAvail > 0) return 1;
-      if (a.is_preorder && !b.is_preorder && bAvail > 0) return 1;
-      if (!a.is_preorder && b.is_preorder && aAvail > 0) return -1;
+      // Строгая сортировка: 1.В наличии -> 2.Предзаказ -> 3.Нет в наличии
+      const aStatus = aAvail > 0 ? 1 : (a.is_preorder ? 2 : 3);
+      const bStatus = bAvail > 0 ? 1 : (b.is_preorder ? 2 : 3);
+      if (aStatus !== bStatus) return aStatus - bStatus;
       return a.name.localeCompare(b.name);
     });
   }, [filteredProducts, selectedCategory]);
