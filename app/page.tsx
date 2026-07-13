@@ -9,7 +9,6 @@ declare global {
       WebApp: {
         ready: () => void; expand: () => void; close: () => void;
         openTelegramLink: (url: string) => void;
-        openLink: (url: string, options?: { try_instant_view?: boolean }) => void;
         HapticFeedback: { impactOccurred: (s: string) => void; notificationOccurred: (t: string) => void; };
         initDataUnsafe?: { user?: { id: number; username?: string; first_name?: string; last_name?: string; } };
       };
@@ -295,14 +294,14 @@ export default function Home() {
 
   const clearList = () => { if (confirm('Очистить?')) { setSelectionList([]); showNotification('Список очищен'); } };
 
-  // ✅ УНИВЕРСАЛЬНАЯ ОТПРАВКА СООБЩЕНИЯ МЕНЕДЖЕРУ (РАБОТАЕТ НА 100% УСТРОЙСТВ)
+  // ✅ РАБОЧАЯ ОТПРАВКА БЕЗ USERNAME
   const sendToManager = async () => {
     if (selectionList.length === 0) return;
     setIsSending(true);
     try {
       const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
       
-      // Сохраняем заказ в БД для админки
+      // Сохраняем в БД для админки
       const { error: insertError } = await supabase.from('user_requests').insert({
         user_id: userId, items: selectionList,
         total_price: totalPrice, status: 'new'
@@ -315,7 +314,7 @@ export default function Home() {
         return;
       }
 
-      // Формируем красивое сообщение
+      // Формируем сообщение
       let message = 'Привет! Хочу сделать заказ:\n\n';
       const grouped: Record<string, ListItem[]> = {};
       selectionList.forEach(item => {
@@ -324,20 +323,24 @@ export default function Home() {
       });
       
       for (const [name, items] of Object.entries(grouped)) {
-        message += `📦 ${name}\n`;
+        message += ` ${name}\n`;
         for (const item of items) {
           const tag = item.isPreorder ? ' [ПРЕДЗАКАЗ]' : '';
           message += `   • ${item.variant} × ${item.quantity}${tag}\n`;
         }
       }
       
-      message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
+      message += `\n Итого: ${totalPrice.toFixed(2)} BYN`;
       
       const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
       
-      // ГАРАНТИРОВАННЫЙ МЕТОД: window.open (работает на ВСЕХ устройствах)
+      // ПРОВЕРЕННЫЙ МЕТОД ОТКРЫТИЯ
       if (typeof window !== 'undefined') {
-        window.open(link, '_blank');
+        if (window.Telegram?.WebApp?.openTelegramLink) {
+          window.Telegram.WebApp.openTelegramLink(link);
+        } else {
+          window.open(link, '_blank');
+        }
       }
       
       setSelectionList([]);
@@ -472,7 +475,7 @@ export default function Home() {
     });
   }, [products, adminSearch, adminCategory]);
 
-  // ============ АДМИН ПАНЕЛЬ (РАННИЙ RETURN) ============
+  // ============ АДМИН ПАНЕЛЬ ============
   if (showAdminPanel) {
     return (
       <div className="min-h-screen bg-black text-white p-3 relative">
@@ -532,7 +535,7 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Это список заказов, которые нужно собрать. После физической сборки нажмите 🗑️ чтобы удалить заявку.</div>
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Это список заказов, которые нужно собрать. После физической сборки нажмите ️ чтобы удалить заявку.</div>
               <div className="space-y-3">
                 {allRequests.map(r => (
                   <div key={r.id} className="glass-card p-3">
@@ -715,7 +718,7 @@ export default function Home() {
             )}
             {tutorialStep === 2 && (
               <div className="text-center">
-                <div className="text-4xl mb-4"></div>
+                <div className="text-4xl mb-4">📋</div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми на плавающую кнопку внизу справа</p>
                 <button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
@@ -723,7 +726,7 @@ export default function Home() {
             )}
             {tutorialStep === 3 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">📤</div>
+                <div className="text-4xl mb-4"></div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй менеджеру</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми "Отправить" и тебя перекинет в Telegram</p>
                 <button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button>
