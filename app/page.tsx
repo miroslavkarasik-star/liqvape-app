@@ -334,24 +334,19 @@ export default function Home() {
       
       const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
       
-      // ГАРАНТИРОВАННЫЙ МЕТОД ОТКРЫТИЯ TELEGRAM
+      // ЖЕЛЕЗОБЕТОННЫЙ МЕТОД ОТКРЫТИЯ ЧАТА С МЕНЕДЖЕРОМ
       if (typeof window !== 'undefined') {
-        try {
-          // Способ 1: Нативный API (работает на новых версиях)
-          if (window.Telegram?.WebApp?.openTelegramLink) {
-            window.Telegram.WebApp.openTelegramLink(link);
-          } else {
-            throw new Error('API unavailable');
-          }
-        } catch (e) {
-          // Способ 2: Fallback через DOM-клик (работает везде, включая старые iOS/Android)
-          const a = document.createElement('a');
-          a.href = link;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+        // Используем openLink вместо openTelegramLink для лучшей совместимости
+        if (window.Telegram?.WebApp?.openLink) {
+          window.Telegram.WebApp.openLink(link, { try_instant_view: false });
+        } 
+        // Fallback для очень старых версий
+        else if (window.Telegram?.WebApp?.openTelegramLink) {
+          window.Telegram.WebApp.openTelegramLink(link);
+        } 
+        // Крайний случай: прямое перенаправление
+        else {
+          window.location.href = link;
         }
       }
       
