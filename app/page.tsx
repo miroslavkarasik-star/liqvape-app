@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, User } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 declare global {
@@ -57,10 +57,6 @@ export default function Home() {
   const [selectionList, setSelectionList] = useState<ListItem[]>([]);
   const [showList, setShowList] = useState(false);
   const [userId, setUserId] = useState('');
-  const [username, setUsername] = useState('');
-  const [showUsernamePrompt, setShowUsernamePrompt] = useState(false);
-  const [usernameInput, setUsernameInput] = useState('');
-  const [usernameMessage, setUsernameMessage] = useState('');
   const [notification, setNotification] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
   const [notificationVisible, setNotificationVisible] = useState(false);
   const [showSubscribePrompt, setShowSubscribePrompt] = useState(false);
@@ -82,6 +78,9 @@ export default function Home() {
   const [isSending, setIsSending] = useState(false);
   const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
+  
+  // Состояние для редактирования списания в заявках
+  const [deductionQuantities, setDeductionQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -130,41 +129,6 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
-  useEffect(() => {
-    if (!userId) return;
-    const load = async () => {
-      const { data } = await supabase.from('user_profiles').select('username').eq('user_id', userId).single();
-      if (data?.username) { setUsername(data.username); }
-      else { setShowUsernamePrompt(true); }
-    };
-    load();
-  }, [userId]);
-
-  const saveUsername = async (name: string) => {
-    if (!name.trim()) return;
-    await supabase.from('user_profiles').upsert({ user_id: userId, username: name.trim() }, { onConflict: 'user_id' });
-    setUsername(name.trim());
-    setUsernameInput('');
-    
-    const isFirstTime = !username; 
-    
-    if (isFirstTime) {
-      setUsernameMessage('Добро пожаловать!');
-      setShowUsernamePrompt(false);
-      
-      localStorage.removeItem('liqvape_seen_subscribe');
-      localStorage.removeItem('liqvape_first_time');
-      
-      setTimeout(() => {
-        setShowSubscribePrompt(true);
-        setShowFirstTimeTutorial(true);
-      }, 600);
-    } else {
-      setUsernameMessage('Username успешно изменён!');
-      setTimeout(() => setUsernameMessage(''), 3000);
-    }
-  };
-
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     let query = supabase.from('products').select('*').order('created_at', { ascending: false });
     if (!includeHidden) query = query.eq('is_hidden', false);
@@ -185,8 +149,6 @@ export default function Home() {
           }
         }
       } catch (e) { console.error('Parse error:', e); }
-      const totalStock = variants.reduce((s, v) => s + v.stock, 0);
-      console.log('Loaded:', p.name, 'Variants:', variants.length, 'Stock:', totalStock);
       return {
         id: String(p.id), name: p.name, category: p.category || 'Другое',
         price: Number(p.price), image: p.image_url || null, variants,
@@ -262,7 +224,6 @@ export default function Home() {
           if (aLetter !== bLetter) return aLetter - bLetter;
         }
       }
-      
       return 0;
     });
   }, [filteredProducts, selectedCategory]);
@@ -337,12 +298,12 @@ export default function Home() {
   const clearList = () => { if (confirm('Очистить?')) { setSelectionList([]); showNotification('Список очищен'); } };
 
   const sendToManager = async () => {
-    if (selectionList.length === 0 || !username) return;
+    if (selectionList.length === 0) return;
     setIsSending(true);
     try {
       const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
       const { error: insertError } = await supabase.from('user_requests').insert({
-        user_id: userId, username: username, items: selectionList,
+        user_id: userId, items: selectionList,
         total_price: totalPrice, status: 'new'
       });
       if (insertError) {
@@ -365,7 +326,6 @@ export default function Home() {
         }
       }
       message += '\nИтого: ' + totalPrice.toFixed(2) + ' BYN';
-      message += '\n' + username;
       
       const link = 'https://t.me/' + MANAGER_USERNAME + '?text=' + encodeURIComponent(message);
       
@@ -461,6 +421,44 @@ export default function Home() {
     showNotification('Товар удалён');
   };
 
+  // Функция списания наличия по заявке
+  const processDeduction = async (requestId: string, items: any[]) => {
+    if (!confirm('Подтвердить списание наличия? Это действие нельзя отменить.')) return;
+    
+    try {
+      // Обновляем остатки для каждого товара
+      for (const item of items) {
+        const product = products.find(p => p.id === item.productId);
+        if (!product) continue;
+        
+        const variantIndex = product.variants.findIndex(v => v.name === item.variant);
+        if (variantIndex === -1) continue;
+        
+        const currentStock = product.variants[variantIndex].stock;
+        const newStock = Math.max(0, currentStock - item.quantity);
+        
+        // Создаем новый массив вариантов с обновленным stock
+        const updatedVariants = [...product.variants];
+        updatedVariants[variantIndex] = { ...updatedVariants[variantIndex], stock: newStock };
+        
+        await supabase.from('products').update({
+          flavors: JSON.stringify(updatedVariants),
+          stock_quantity: updatedVariants.reduce((s, v) => s + v.stock, 0)
+        }).eq('id', product.id);
+      }
+      
+      // Помечаем заявку как обработанную
+      await supabase.from('user_requests').update({ status: 'done' }).eq('id', requestId);
+      
+      showNotification('Наличие успешно списано!', 'success');
+      await loadAllRequests();
+      await loadProducts(true); // Перезагружаем товары чтобы увидеть новые остатки
+      
+    } catch (err) {
+      showNotification('Ошибка списания: ' + (err as Error).message, 'error');
+    }
+  };
+
   const updateRequestStatus = async (id: string, status: string) => {
     const { error } = await supabase.from('user_requests').update({ status }).eq('id', id);
     if (error) { showNotification('Ошибка: ' + error.message, 'error'); return; }
@@ -535,7 +533,7 @@ export default function Home() {
             <button onClick={handleAdminLogout} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"><X className="w-4 h-4" /></button>
           </div>
           <div className="flex gap-2 mb-4">
-            <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}> Товары</button>
+            <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>📦 Товары</button>
             <button onClick={() => setAdminTab('requests')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>
               📋 Заявки {allRequests.filter(r => r.status === 'new').length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.filter(r => r.status === 'new').length}</span>}
             </button>
@@ -576,36 +574,90 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">️ Наличие списывается вручную через редактирование товара</div>
-              <div className="space-y-2">
-                {allRequests.map(r => (
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Здесь вы можете списать наличие по заявкам. Измените количество если нужно, затем нажмите "Списать наличие".</div>
+              <div className="space-y-3">
+                {allRequests.filter(r => r.status === 'new').map(r => (
                   <div key={r.id} className="glass-card p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-bold text-sm">Заявка от @{r.username}</h3>
-                        <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                        <h3 className="font-bold text-sm">Заявка #{r.id.slice(0, 8)}</h3>
+                        <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
-                      <span className={'text-[10px] px-2 py-1 rounded-full ' + (r.status === 'new' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400')}>{r.status === 'new' ? 'Новая' : 'Обработана'}</span>
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-green-500/20 text-green-400">Новая</span>
                     </div>
-                    <div className="border-t border-white/10 pt-2 mb-2">
-                      <p className="text-[11px] text-orange-400 font-bold mb-1">Что нужно списать:</p>
-                      {r.items.map((item: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between py-1 text-[11px]">
-                          <span className="text-gray-300">• {item.productName} ({item.variant})</span>
-                          <span className="text-white font-bold">× {item.quantity}</span>
-                        </div>
-                      ))}
+                    
+                    <div className="border-t border-white/10 pt-2 mb-3 space-y-2">
+                      <p className="text-[11px] text-orange-400 font-bold mb-1">Списать наличие:</p>
+                      {r.items.map((item: any, i: number) => {
+                        const uniqueKey = `${r.id}-${i}`;
+                        const currentQty = deductionQuantities[uniqueKey] ?? item.quantity;
+                        const product = products.find(p => p.id === item.productId);
+                        const variant = product?.variants.find(v => v.name === item.variant);
+                        const maxStock = variant?.stock || 0;
+                        
+                        return (
+                          <div key={i} className="flex items-center justify-between py-1 text-[11px] bg-black/20 rounded-lg px-2">
+                            <div className="flex-1">
+                              <span className="text-gray-300 block">{item.productName}</span>
+                              <span className="text-gray-500 text-[10px]">{item.variant} (остаток: {maxStock})</span>
+                            </div>
+                            <div className="flex items-center gap-2 ml-2">
+                              <button 
+                                onClick={() => setDeductionQuantities(prev => ({...prev, [uniqueKey]: Math.max(0, (prev[uniqueKey] ?? item.quantity) - 1)}))}
+                                className="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-xs"
+                              ><Minus className="w-3 h-3" /></button>
+                              <span className="text-white font-bold w-6 text-center">{currentQty}</span>
+                              <button 
+                                onClick={() => setDeductionQuantities(prev => ({...prev, [uniqueKey]: Math.min(maxStock, (prev[uniqueKey] ?? item.quantity) + 1)}))}
+                                className="w-6 h-6 rounded bg-white/10 flex items-center justify-center text-xs"
+                              ><Plus className="w-3 h-3" /></button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
+                    
                     <div className="flex items-center justify-between mb-2 text-xs">
                       <span className="text-gray-400">Итого:</span>
                       <span className="font-bold gradient-text">{r.total_price} BYN</span>
                     </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => updateRequestStatus(r.id, r.status === 'done' ? 'new' : 'done')} className={'flex-1 py-1.5 rounded-md text-[10px] font-medium ' + (r.status === 'done' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400')}>{r.status === 'done' ? 'Вернуть в новые' : '✓ Обработана'}</button>
-                      <button onClick={() => deleteRequest(r.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-all"><Trash2 className="w-3 h-3" /></button>
+                    
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => processDeduction(r.id, r.items.map((item: any, i: number) => ({
+                          ...item, 
+                          quantity: deductionQuantities[`${r.id}-${i}`] ?? item.quantity
+                        })))}
+                        className="flex-1 py-2 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-[10px] font-bold flex items-center justify-center gap-1"
+                      >
+                        <Check className="w-3 h-3" /> Списать наличие
+                      </button>
+                      <button onClick={() => deleteRequest(r.id)} className="w-10 py-2 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500/30 transition-all"><Trash2 className="w-3 h-3" /></button>
                     </div>
                   </div>
                 ))}
+                
+                {allRequests.filter(r => r.status === 'done').length > 0 && (
+                  <>
+                    <div className="text-[10px] text-gray-500 mt-4 mb-2 uppercase tracking-wider">Обработанные заявки</div>
+                    {allRequests.filter(r => r.status === 'done').map(r => (
+                      <div key={r.id} className="glass-card p-3 opacity-60">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="font-bold text-sm">Заявка #{r.id.slice(0, 8)}</h3>
+                            <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit' })}</p>
+                          </div>
+                          <span className="text-[10px] px-2 py-1 rounded-full bg-gray-500/20 text-gray-400">Обработана</span>
+                        </div>
+                        <div className="flex gap-1">
+                          <button onClick={() => updateRequestStatus(r.id, 'new')} className="flex-1 py-1.5 rounded-md bg-yellow-500/20 text-yellow-400 text-[10px]">Вернуть в новые</button>
+                          <button onClick={() => deleteRequest(r.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+                
                 {allRequests.length === 0 && (
                   <div className="glass-panel p-8 text-center text-gray-500"><Package className="w-8 h-8 mx-auto mb-2 opacity-50" /><p className="text-xs">Заявок пока нет</p></div>
                 )}
@@ -743,7 +795,7 @@ export default function Home() {
             )}
             {tutorialStep === 1 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">️</div>
+                <div className="text-4xl mb-4">🛍️</div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми на карточку товара чтобы выбрать вкус и количество</p>
                 <button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
@@ -777,30 +829,6 @@ export default function Home() {
             <h2 className="text-xl font-bold text-white mb-2">Подпишись на канал</h2>
             <button onClick={handleSubscribe} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white mb-2">Подписаться</button>
             <button onClick={() => setShowSubscribePrompt(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">Продолжить</button>
-          </div>
-        </div>
-      )}
-
-      {showUsernamePrompt && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
-          <div className="glass-panel w-full max-w-sm p-6 relative z-10">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold gradient-text">{!username ? 'Введи username' : 'Сменить username'}</h2>
-              {username && (
-                <button onClick={() => { setShowUsernamePrompt(false); setUsernameInput(''); setUsernameMessage(''); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30">
-                  <Cloud className="w-5 h-5 text-white" />
-                </button>
-              )}
-            </div>
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center pulse-glow"><User className="w-8 h-8 text-white" /></div>
-            <p className="text-gray-400 text-xs mb-4 text-center">{!username ? 'Придумай никнейм для заказов (без @)' : 'Введи новый Telegram username (без @)'}</p>
-            <input type="text" placeholder="username" value={usernameInput} onChange={e => { setUsernameInput(e.target.value); setUsernameMessage(''); }} onKeyDown={e => e.key === 'Enter' && saveUsername(usernameInput)} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-2 text-sm text-white outline-none focus:border-orange-500/50 transition-all" />
-            {usernameMessage && (
-              <div className="mb-3 p-2.5 rounded-xl bg-green-500/20 border border-green-500/40 text-center">
-                <p className="text-xs font-medium text-green-300">✓ {usernameMessage}</p>
-              </div>
-            )}
-            <button onClick={() => saveUsername(usernameInput)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white hover:from-orange-600 hover:to-pink-600 transition-all">Сохранить</button>
           </div>
         </div>
       )}
@@ -876,11 +904,6 @@ export default function Home() {
               </button>
             </div>
             <div className="space-y-2.5">
-              <button onClick={() => { setShowSettings(false); setShowUsernamePrompt(true); setUsernameInput(username); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><User className="w-5 h-5 text-orange-400" /></div>
-                <div className="flex-1"><p className="text-sm font-bold text-white">Сменить username</p><p className="text-[11px] text-gray-400">Текущий: @{username || 'не задан'}</p></div>
-                <svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </button>
               <button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><HelpCircle className="w-5 h-5 text-orange-400" /></div>
                 <div className="flex-1"><p className="text-sm font-bold text-white">Инструкция</p><p className="text-[11px] text-gray-400">Как пользоваться приложением</p></div>
@@ -1044,7 +1067,7 @@ export default function Home() {
               )}
               {selectedVariants.length > 0 ? (
                 <button onClick={addSelectedToList} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-                   В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); const price = v?.price || selectedProduct.price; return s + price * sv.quantity; }, 0)} BYN
+                   В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); const price = (v?.price !== undefined && v?.price !== null) ? v.price : selectedProduct.price; return s + price * sv.quantity; }, 0)} BYN
                 </button>
               ) : (<div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-gray-400 text-sm">Выберите хотя бы один вкус</div>)}
             </div>
