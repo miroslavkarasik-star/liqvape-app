@@ -535,7 +535,7 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ ️ Наличие списывать вручную в карточке товара. Нажмите 🗑️, когда заказ собран. ️ чтобы удалить заявку.</div>
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Наличие списывать вручную в товарах. Нажмите 🗑️ после сборки.</div>
               <div className="space-y-3">
                 {allRequests.map(r => (
                   <div key={r.id} className="glass-card p-3">
