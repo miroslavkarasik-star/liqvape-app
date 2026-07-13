@@ -1007,9 +1007,22 @@ export default function Home() {
                               <div>
                                 <span className={`text-xs font-medium ${!isAvailable ? 'text-gray-500 line-through' : ''}`}>{v.name}</span>
                                 <span className="text-[10px] text-gray-400 ml-2">
-                                  {v.price 
-                                    ? `${v.price} BYN` 
-                                    : `${Math.min(...selectedProduct.variants.map(x => x.price || selectedProduct.price))}-${Math.max(...selectedProduct.variants.map(x => x.price || selectedProduct.price))} BYN`}
+                                  {(() => {
+                                    if (v.price) return `${v.price} BYN`;
+                                    
+                                    // Собираем все цены (свои или базовые)
+                                    const prices = selectedProduct.variants.map(x => 
+                                      (x.price !== undefined && x.price !== null) ? x.price : selectedProduct.price
+                                    );
+                                    const minPrice = Math.min(...prices);
+                                    const maxPrice = Math.max(...prices);
+                                    
+                                    // Если цены одинаковые — показываем одну
+                                    if (minPrice === maxPrice) return `${minPrice} BYN`;
+                                    
+                                    // Иначе показываем диапазон
+                                    return `${minPrice}-${maxPrice} BYN`;
+                                  })()}
                                 </span>
                               </div>
                             </div>
