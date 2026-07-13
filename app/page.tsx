@@ -496,7 +496,7 @@ export default function Home() {
           <div className="flex gap-2 mb-4">
             <button onClick={() => setAdminTab('products')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}> Товары</button>
             <button onClick={() => setAdminTab('requests')} className={'flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ' + (adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-400')}>
-               Список к сборке {allRequests.length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.length}</span>}
+               Складские задания {allRequests.length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.length}</span>}
             </button>
           </div>
           {adminTab === 'products' ? (
@@ -541,18 +541,18 @@ export default function Home() {
                   <div key={r.id} className="glass-card p-3">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-bold text-sm">Заказ от клиента</h3>
-                        <p className="text-[10px] text-gray-400">{new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
+                        <h3 className="font-bold text-sm flex items-center gap-2">Задание #{r.id.slice(0, 6)}{r.items.some((i: any) => i.isPreorder) && <span className="text-[9px] px-1.5 py-0.5 rounded bg-orange-500 text-white font-bold">ЕСТЬ ПРЕДЗАКАЗ</span>}</h3>
+                        <p className="text-[10px] text-gray-400">Создано: {new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
-                      <span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">К сборке</span>
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-400">В работе</span>
                     </div>
                     
                     <div className="border-t border-white/10 pt-2 mb-3 space-y-1.5">
                       {r.items.map((item: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between py-1 text-[11px] bg-black/20 rounded-lg px-2">
+                        <div key={i} className={`flex items-center justify-between py-1 text-[11px] rounded-lg px-2 ${item.isPreorder ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-black/20'}`}>
                           <div className="flex-1">
                             <span className="text-gray-300 block">{item.productName}</span>
-                            <span className="text-gray-500 text-[10px]">{item.variant}{item.isPreorder ? ' [ПРЕДЗАКАЗ]' : ''}</span>
+                            <span className="text-gray-500 text-[10px]">{item.variant}{item.isPreorder ? ' ⚠️ ПРЕДЗАКАЗ' : ''}</span>
                           </div>
                           <span className="text-white font-bold ml-2">× {item.quantity}</span>
                         </div>
