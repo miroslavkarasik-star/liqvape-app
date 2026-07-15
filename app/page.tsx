@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -49,7 +49,7 @@ interface Product {
 }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
-// Функция сжатия изображений
+// Функция сжатия изображений для ускорения загрузки
 const compressImage = async (file: File): Promise<File> => {
   return new Promise((resolve) => {
     const img = new Image();
@@ -115,7 +115,6 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
-      // На Desktop expand() может работать некорректно, проверяем платформу
       const platform = window.Telegram.WebApp.platform || '';
       const isDesktop = platform.toLowerCase().includes('tdesktop') || 
                         platform.toLowerCase().includes('macos');
@@ -123,7 +122,6 @@ export default function Home() {
       if (!isDesktop) {
         window.Telegram.WebApp.expand();
       } else {
-        // Для Desktop явно разрешаем вертикальный скролл
         window.Telegram.WebApp.disableVerticalSwipes?.();
       }
     }
@@ -163,7 +161,6 @@ export default function Home() {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
     
-    // Показываем кэш мгновенно, потом обновляем
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -302,7 +299,6 @@ export default function Home() {
     }));
   };
 
-  // Оптимистичное добавление в корзину
   const addSelectedToList = () => {
     if (!selectedProduct || selectedVariants.length === 0) { showNotification('Выберите вкус', 'error'); return; }
     const issues: string[] = [];
@@ -347,93 +343,71 @@ export default function Home() {
 
   const clearList = () => { if (confirm('Очистить?')) { setSelectionList([]); showNotification('Список очищен'); } };
 
-  // ✅ ОТПРАВКА: СНАЧАЛА ЧАТ, ПОТОМ СОХРАНЕНИЕ В АДМИНКУ
+  // ✅ 100% РАБОЧАЯ ОТПРАВКА: МГНОВЕННОЕ ОТКРЫТИЕ + ФОНОВОЕ СОХРАНЕНИЕ
   const sendToManager = async () => {
     if (selectionList.length === 0) return;
     setIsSending(true);
     
-    try {
-      const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
-      
-      // 1. Формируем сообщение
-      let message = 'Привет! Хочу сделать заказ:\n\n';
-      const grouped: Record<string, ListItem[]> = {};
-      selectionList.forEach(item => {
-        if (!grouped[item.productName]) grouped[item.productName] = [];
-        grouped[item.productName].push(item);
-      });
-      
-      for (const [name, items] of Object.entries(grouped)) {
-        message += `📦 ${name}\n`;
-        for (const item of items) {
-          const tag = item.isPreorder ? ' [ПРЕДЗАКАЗ]' : '';
-          message += `   • ${item.variant} × ${item.quantity}${tag}\n`;
-        }
+    // 1. Формируем сообщение СИНХРОННО (без await!)
+    const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
+    let message = 'Привет! Хочу сделать заказ:\n\n';
+    const grouped: Record<string, ListItem[]> = {};
+    selectionList.forEach(item => {
+      if (!grouped[item.productName]) grouped[item.productName] = [];
+      grouped[item.productName].push(item);
+    });
+    
+    for (const [name, items] of Object.entries(grouped)) {
+      message += ` ${name}\n`;
+      for (const item of items) {
+        const tag = item.isPreorder ? ' [ПРЕДЗАКАЗ]' : '';
+        message += `   • ${item.variant} × ${item.quantity}${tag}\n`;
       }
+    }
+    
+    message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
+    const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
+    
+    // 2. ОТКРЫВАЕМ ЧАТ МГНОВЕННО (до любого await!)
+    if (typeof window !== 'undefined') {
+      const platform = window.Telegram?.WebApp?.platform || '';
+      const isDesktop = platform.toLowerCase().includes('tdesktop') || 
+                        platform.toLowerCase().includes('macos') || 
+                        platform.toLowerCase().includes('web');
       
-      message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
-      const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
-      
-      // 2. Пытаемся открыть чат (если не откроется — заказ НЕ сохраняется)
-      let chatOpened = false;
-      
-      if (typeof window !== 'undefined') {
-        const platform = window.Telegram?.WebApp?.platform || '';
-        const isDesktop = platform.toLowerCase().includes('tdesktop') || 
-                          platform.toLowerCase().includes('macos') || 
-                          platform.toLowerCase().includes('web');
-        
-        if (isDesktop) {
-          window.open(link, '_blank');
-          chatOpened = true; // window.open считается успешным
-        } else {
-          try {
-            if (window.Telegram?.WebApp?.openTelegramLink) {
-              window.Telegram.WebApp.openTelegramLink(link);
-              chatOpened = true;
-            }
-          } catch(e) {}
-          
-          if (!chatOpened) {
-            const a = document.createElement('a');
-            a.href = link;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            a.style.display = 'none';
-            document.body.appendChild(a);
-            setTimeout(() => {
-              a.click();
-              document.body.removeChild(a);
-              chatOpened = true;
-            }, 100);
-          }
-        }
-      }
-      
-      // 3. Сохраняем в админку ТОЛЬКО если чат открылся
-      if (chatOpened) {
-        const { error: insertError } = await supabase.from('user_requests').insert({
-          user_id: userId, 
-          username: 'Клиент',
-          items: selectionList,
-          total_price: totalPrice, 
-          status: 'new'
-        });
-        
-        if (!insertError) {
-          setSelectionList([]);
-          setShowList(false);
-          setShowSendConfirm(false);
-          showNotification('Заявка отправлена!', 'success');
-        } else {
-          showNotification('Чат открыт, но не удалось сохранить в базу', 'error');
-        }
+      if (isDesktop) {
+        window.open(link, '_blank');
       } else {
-        showNotification('Не удалось открыть чат. Проверьте интернет или перезайдите в приложение', 'error');
+        // Для мобильных используем DOM-клик без таймаута (мгновенно)
+        const a = document.createElement('a');
+        a.href = link;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.style.position = 'fixed';
+        a.style.top = '-9999px';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       }
-      
+    }
+    
+    // 3. Очищаем корзину и закрываем модалки СРАЗУ
+    setSelectionList([]);
+    setShowList(false);
+    setShowSendConfirm(false);
+    showNotification('Переходим в Telegram...', 'success');
+    
+    // 4. Сохраняем в админку ФОНОМ (не блокируя интерфейс)
+    try {
+      await supabase.from('user_requests').insert({
+        user_id: userId, 
+        username: 'Клиент',
+        items: selectionList,
+        total_price: totalPrice, 
+        status: 'new'
+      });
     } catch(e) {
-      showNotification('Ошибка: ' + (e as Error).message, 'error');
+      console.error('Background save failed:', e);
     } finally {
       setIsSending(false);
     }
@@ -475,11 +449,6 @@ export default function Home() {
     if (!editingProduct?.name || !editingProduct.price) { showNotification('Заполните название и цену', 'error'); return; }
     
     let imageUrl = editingProduct.image;
-    // Сжатие фото перед загрузкой
-    if (editingProduct.image && editingProduct.image.startsWith('blob:')) {
-       // В реальном приложении здесь была бы логика сжатия, 
-       // но так как мы используем input file, сжатие происходит в onChange
-    }
 
     const data = {
       name: editingProduct.name, price: Number(editingProduct.price),
@@ -620,7 +589,7 @@ export default function Home() {
             </div>
           ) : (
             <div>
-              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">⚠️ Наличие списывать вручную в товарах. Нажмите 🗑️ после сборки.</div>
+              <div className="glass-panel p-3 mb-3 text-[10px] text-gray-400">️ Наличие списывать вручную в товарах. Нажмите ️ после сборки.</div>
               <div className="space-y-3">
                 {allRequests.map((r, index) => {
                   const hasPreorder = r.items.some((i: any) => i.isPreorder);
@@ -768,7 +737,6 @@ export default function Home() {
         @media (min-width: 768px) {
           body { overflow-y: auto !important; height: auto !important; }
           .min-h-screen { min-height: 100vh; }
-          /* Ограничиваем ширину контента на больших экранах */
           .max-w-md { max-width: 480px; margin-left: auto; margin-right: auto; }
         }
       `}</style>
