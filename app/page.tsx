@@ -347,30 +347,15 @@ export default function Home() {
 
   const clearList = () => { if (confirm('Очистить?')) { setSelectionList([]); showNotification('Список очищен'); } };
 
-  // ✅ ГАРАНТИРОВАННАЯ ОТПРАВКА СООБЩЕНИЯ (100% УСТРОЙСТВ)
+  // ✅ ОТПРАВКА: СНАЧАЛА ЧАТ, ПОТОМ СОХРАНЕНИЕ В АДМИНКУ
   const sendToManager = async () => {
     if (selectionList.length === 0) return;
     setIsSending(true);
+    
     try {
       const totalPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
       
-      // 1. Сохраняем в БД (даже если интернет плохой, заказ не потеряется)
-      const { error: insertError } = await supabase.from('user_requests').insert({
-        user_id: userId, 
-        username: 'Клиент',
-        items: selectionList,
-        total_price: totalPrice, 
-        status: 'new'
-      });
-      
-      if (insertError) {
-        console.error('Error saving request:', insertError);
-        showNotification('Ошибка сохранения: ' + insertError.message, 'error');
-        setIsSending(false);
-        return;
-      }
-
-      // 2. Формируем сообщение
+      // 1. Формируем сообщение
       let message = 'Привет! Хочу сделать заказ:\n\n';
       const grouped: Record<string, ListItem[]> = {};
       selectionList.forEach(item => {
@@ -387,10 +372,11 @@ export default function Home() {
       }
       
       message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
-      
       const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
       
-      // 3. АДАПТИВНЫЙ МЕТОД ОТКРЫТИЯ (Mobile + Desktop)
+      // 2. Пытаемся открыть чат (если не откроется — заказ НЕ сохраняется)
+      let chatOpened = false;
+      
       if (typeof window !== 'undefined') {
         const platform = window.Telegram?.WebApp?.platform || '';
         const isDesktop = platform.toLowerCase().includes('tdesktop') || 
@@ -398,34 +384,54 @@ export default function Home() {
                           platform.toLowerCase().includes('web');
         
         if (isDesktop) {
-          // Для Desktop используем прямое перенаправление или window.open
           window.open(link, '_blank');
+          chatOpened = true; // window.open считается успешным
         } else {
-          // Для Mobile используем нативный API или DOM-клик
           try {
             if (window.Telegram?.WebApp?.openTelegramLink) {
               window.Telegram.WebApp.openTelegramLink(link);
-              return;
+              chatOpened = true;
             }
           } catch(e) {}
           
-          const a = document.createElement('a');
-          a.href = link;
-          a.target = '_blank';
-          a.rel = 'noopener noreferrer';
-          a.style.display = 'none';
-          document.body.appendChild(a);
-          setTimeout(() => {
-            a.click();
-            document.body.removeChild(a);
-          }, 100);
+          if (!chatOpened) {
+            const a = document.createElement('a');
+            a.href = link;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            setTimeout(() => {
+              a.click();
+              document.body.removeChild(a);
+              chatOpened = true;
+            }, 100);
+          }
         }
       }
       
-      setSelectionList([]);
-      setShowList(false);
-      setShowSendConfirm(false);
-      showNotification('Заявка отправлена!', 'success');
+      // 3. Сохраняем в админку ТОЛЬКО если чат открылся
+      if (chatOpened) {
+        const { error: insertError } = await supabase.from('user_requests').insert({
+          user_id: userId, 
+          username: 'Клиент',
+          items: selectionList,
+          total_price: totalPrice, 
+          status: 'new'
+        });
+        
+        if (!insertError) {
+          setSelectionList([]);
+          setShowList(false);
+          setShowSendConfirm(false);
+          showNotification('Заявка отправлена!', 'success');
+        } else {
+          showNotification('Чат открыт, но не удалось сохранить в базу', 'error');
+        }
+      } else {
+        showNotification('Не удалось открыть чат. Проверьте интернет или перезайдите в приложение', 'error');
+      }
+      
     } catch(e) {
       showNotification('Ошибка: ' + (e as Error).message, 'error');
     } finally {
