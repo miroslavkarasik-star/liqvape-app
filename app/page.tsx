@@ -124,7 +124,7 @@ export default function Home() {
         window.Telegram.WebApp.expand();
       } else {
         // Для Desktop явно разрешаем вертикальный скролл
-        window.Telegram.WebApp.disableVerticalSwipes();
+        window.Telegram.WebApp.disableVerticalSwipes?.();
       }
     }
   }, []);
