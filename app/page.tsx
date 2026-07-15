@@ -546,7 +546,12 @@ export default function Home() {
   if (showAdminPanel) {
     return (
       <div className="min-h-screen bg-black text-white p-3 relative">
-        <div className="lava-lamp-simple"></div>
+        <div className="lava-lamp">
+          <div className="lava-blob lava-blob-1"></div>
+          <div className="lava-blob lava-blob-2"></div>
+          <div className="lava-blob lava-blob-3"></div>
+          <div className="lava-blob lava-blob-4"></div>
+        </div>
         <div className="max-w-2xl mx-auto relative z-10">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -735,8 +740,14 @@ export default function Home() {
         .glass-card { background: rgba(40, 40, 40, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; transition: all 0.3s ease; }
         .glass-card:hover { background: rgba(50, 50, 50, 0.8); border-color: rgba(255, 94, 0, 0.4); transform: translateY(-2px); }
         .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        /* Легкий фон вместо тяжелого lava-lamp */
-        .lava-lamp-simple { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 94, 0, 0.15), transparent 70%); pointer-events: none; z-index: 0; }
+        /* Полноценная анимация лавы */
+        .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+        .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: float 25s infinite ease-in-out; }
+        .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -150px; left: -150px; }
+        .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
+        .lava-blob-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 140, 0, 0.5), transparent); top: 40%; left: 30%; animation-delay: -16s; }
+        .lava-blob-4 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 94, 0, 0.4), transparent); top: 60%; right: 20%; animation-delay: -12s; }
+        @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
         
         /* Фиксы для Telegram Desktop */
         @media (min-width: 768px) {
@@ -746,7 +757,12 @@ export default function Home() {
         }
       `}</style>
       
-      <div className="lava-lamp-simple"></div>
+      <div className="lava-lamp">
+          <div className="lava-blob lava-blob-1"></div>
+          <div className="lava-blob lava-blob-2"></div>
+          <div className="lava-blob lava-blob-3"></div>
+          <div className="lava-blob lava-blob-4"></div>
+        </div>
 
       {notification && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
