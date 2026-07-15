@@ -9,6 +9,8 @@ declare global {
       WebApp: {
         ready: () => void; expand: () => void; close: () => void;
         openTelegramLink: (url: string) => void;
+        platform?: string;
+        disableVerticalSwipes?: () => void;
         HapticFeedback: { impactOccurred: (s: string) => void; notificationOccurred: (t: string) => void; };
         initDataUnsafe?: { user?: { id: number; username?: string; first_name?: string; last_name?: string; } };
       };
