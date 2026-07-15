@@ -30,6 +30,11 @@ const LETTER_PRIORITY: Record<string, string[]> = {
   'Расходники': ['V'],
 };
 const getLetterPriority = (name: string, category: string): number => {
+  // 🔥 Закрепляем VAPORESSO первым в категории Расходники
+  if (category === 'Расходники' && name.toUpperCase().startsWith('VAPORESSO')) {
+    return -1; 
+  }
+
   const firstLetter = name.charAt(0).toUpperCase();
   const priorities = LETTER_PRIORITY[category];
   if (!priorities) return 999;
