@@ -113,7 +113,17 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.expand();
+      // На Desktop expand() может работать некорректно, проверяем платформу
+      const platform = window.Telegram.WebApp.platform || '';
+      const isDesktop = platform.toLowerCase().includes('tdesktop') || 
+                        platform.toLowerCase().includes('macos');
+      
+      if (!isDesktop) {
+        window.Telegram.WebApp.expand();
+      } else {
+        // Для Desktop явно разрешаем вертикальный скролл
+        window.Telegram.WebApp.disableVerticalSwipes();
+      }
     }
   }, []);
 
@@ -378,29 +388,36 @@ export default function Home() {
       
       const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
       
-      // 3. УНИВЕРСАЛЬНЫЙ МЕТОД ОТКРЫТИЯ ЧАТА
+      // 3. АДАПТИВНЫЙ МЕТОД ОТКРЫТИЯ (Mobile + Desktop)
       if (typeof window !== 'undefined') {
-        try {
-          // Метод A: Нативный API Telegram
-          if (window.Telegram?.WebApp?.openTelegramLink) {
-            window.Telegram.WebApp.openTelegramLink(link);
-            return;
-          }
-        } catch(e) {}
+        const platform = window.Telegram?.WebApp?.platform || '';
+        const isDesktop = platform.toLowerCase().includes('tdesktop') || 
+                          platform.toLowerCase().includes('macos') || 
+                          platform.toLowerCase().includes('web');
         
-        // Метод B: Программный клик по ссылке (работает на iOS/Android)
-        const a = document.createElement('a');
-        a.href = link;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        
-        // Таймаут критичен для iOS Safari
-        setTimeout(() => {
-          a.click();
-          document.body.removeChild(a);
-        }, 100);
+        if (isDesktop) {
+          // Для Desktop используем прямое перенаправление или window.open
+          window.open(link, '_blank');
+        } else {
+          // Для Mobile используем нативный API или DOM-клик
+          try {
+            if (window.Telegram?.WebApp?.openTelegramLink) {
+              window.Telegram.WebApp.openTelegramLink(link);
+              return;
+            }
+          } catch(e) {}
+          
+          const a = document.createElement('a');
+          a.href = link;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          setTimeout(() => {
+            a.click();
+            document.body.removeChild(a);
+          }, 100);
+        }
       }
       
       setSelectionList([]);
@@ -738,6 +755,14 @@ export default function Home() {
         .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         /* Легкий фон вместо тяжелого lava-lamp */
         .lava-lamp-simple { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 94, 0, 0.15), transparent 70%); pointer-events: none; z-index: 0; }
+        
+        /* Фиксы для Telegram Desktop */
+        @media (min-width: 768px) {
+          body { overflow-y: auto !important; height: auto !important; }
+          .min-h-screen { min-height: 100vh; }
+          /* Ограничиваем ширину контента на больших экранах */
+          .max-w-md { max-width: 480px; margin-left: auto; margin-right: auto; }
+        }
       `}</style>
       
       <div className="lava-lamp-simple"></div>
