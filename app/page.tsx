@@ -37,6 +37,30 @@ interface Product {
 }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
+// Сжатие и конвертация фото в base64
+const compressAndConvertToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 400;
+      let width = img.width;
+      let height = img.height;
+      if (width > MAX_WIDTH) {
+        height *= MAX_WIDTH / width;
+        width = MAX_WIDTH;
+      }
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const base64 = canvas.toDataURL('image/jpeg', 0.7);
+      resolve(base64);
+    };
+  });
+};
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
@@ -104,25 +128,15 @@ export default function Home() {
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
-    const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
-    const cached = localStorage.getItem(cacheKey);
-    const cachedTime = localStorage.getItem(cacheKey + '_time');
-    
-    if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < 3600000) {
-      try {
-        const parsed = JSON.parse(cached);
-        setProducts(parsed);
-        setIsLoading(false);
-        return parsed;
-      } catch(e) {}
-    }
-
     try {
+      console.log(' Loading products...');
       const q = query(collection(db, 'products'), orderBy('created_at', 'desc'));
       const snapshot = await getDocs(q);
+      console.log('📦 Products loaded:', snapshot.size);
       const parsed: Product[] = [];
       snapshot.forEach((docSnapshot) => {
         const p = docSnapshot.data();
+        console.log('📄 Product:', p.name, 'Hidden:', p.is_hidden);
         if (!includeHidden && p.is_hidden) return;
         parsed.push({
           id: docSnapshot.id, name: p.name, category: p.category || 'Другое',
@@ -132,12 +146,10 @@ export default function Home() {
         });
       });
       setProducts(parsed);
-      localStorage.setItem(cacheKey, JSON.stringify(parsed));
-      localStorage.setItem(cacheKey + '_time', Date.now().toString());
       setIsLoading(false);
       return parsed;
     } catch(e) {
-      console.error('Load error:', e);
+      console.error('❌ Load error:', e);
       return [];
     }
   }, []);
@@ -411,6 +423,21 @@ export default function Home() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    showNotification('Обработка фото...');
+    try {
+      const base64 = await compressAndConvertToBase64(file);
+      setEditingProduct(prev => prev ? {...prev, image: base64} : null);
+      showNotification('Фото готово!', 'success');
+    } catch (err) {
+      console.error('Image upload error:', err);
+      showNotification('Ошибка загрузки фото', 'error');
+    }
+  };
+
   const toggleHidden = async (p: Product) => {
     await updateDoc(doc(db, 'products', p.id), { is_hidden: !p.is_hidden });
     await loadProducts(true);
@@ -522,6 +549,12 @@ export default function Home() {
                     </div>
                   </div>
                 ))}
+                {filteredAdminProducts.length === 0 && (
+                  <div className="glass-panel p-8 text-center text-gray-500">
+                    <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>Товаров нет. Нажми "Добавить товар"</p>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -548,7 +581,7 @@ export default function Home() {
                         <div key={i} className={`flex items-center justify-between py-1 text-[11px] rounded-lg px-2 ${item.isPreorder ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-black/20'}`}>
                           <div className="flex-1">
                             <span className="text-gray-300 block">{item.productName}</span>
-                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ️ ПРЕДЗАКАЗ' : ''}</span>
+                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ⚠️ ПРЕДЗАКАЗ' : ''}</span>
                           </div>
                           <span className="text-white font-bold ml-2">× {item.quantity}</span>
                         </div>
@@ -593,11 +626,11 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="text-xs text-gray-400 mb-1.5 block">Ссылка на фото</label>
-                  <input type="text" value={editingProduct.image || ''} onChange={e => setEditingProduct({...editingProduct, image: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all mb-2" placeholder="https://example.com/image.jpg" />
+                  <label className="text-xs text-gray-400 mb-1.5 block">Фото товара (загрузка с устройства)</label>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-gradient-to-r file:from-orange-500 file:to-pink-500 file:text-white file:cursor-pointer mb-2" />
                   {editingProduct.image && (
                     <div className="mt-3 relative group">
-                      <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" />
                       <button onClick={() => setEditingProduct({...editingProduct, image: null})} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"><X className="w-4 h-4" /></button>
                     </div>
                   )}
@@ -688,7 +721,7 @@ export default function Home() {
             )}
             {tutorialStep === 1 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">🛍️</div>
+                <div className="text-4xl mb-4">️</div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p>
                 <button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
@@ -857,7 +890,7 @@ export default function Home() {
             {CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={'px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ' + (selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400')}>{c}</button>))}
           </div>
           <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров</div>
-          {isLoading && products.length === 0 ? (
+          {isLoading ? (
              <div className="glass-panel p-8 text-center"><div className="animate-pulse h-4 w-24 bg-white/10 rounded mx-auto mb-2"></div><p className="text-gray-500 text-sm">Загрузка...</p></div>
           ) : sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
