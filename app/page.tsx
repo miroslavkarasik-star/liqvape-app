@@ -1,9 +1,8 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = {
@@ -37,47 +36,6 @@ interface Product {
   variants: Variant[]; is_hidden: boolean; is_preorder: boolean;
 }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
-
-const compressImage = async (file: File): Promise<File> => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 600;
-      let width = img.width;
-      let height = img.height;
-      if (width > MAX_WIDTH) {
-        height *= MAX_WIDTH / width;
-        width = MAX_WIDTH;
-      }
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, width, height);
-      canvas.toBlob((blob) => {
-        if (blob) resolve(new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), { type: 'image/webp' }));
-        else resolve(file);
-      }, 'image/webp', 0.6);
-    };
-  });
-};
-
-const uploadImageSmart = async (file: File, productId: string): Promise<string> => {
-  try {
-    const compressed = await compressImage(file);
-    const storageRef = ref(storage, `products/${productId}_${Date.now()}.webp`);
-    await uploadBytes(storageRef, compressed);
-    return await getDownloadURL(storageRef);
-  } catch (e) {
-    console.warn("Storage недоступен, используем base64 fallback", e);
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => resolve(reader.result as string);
-    });
-  }
-};
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -412,36 +370,43 @@ export default function Home() {
   };
 
   const saveProduct = async () => {
-    if (!editingProduct?.name || !editingProduct.price) { showNotification('Заполните название и цену', 'error'); return; }
+    console.log('💾 Save started', { editingProduct, formVariants });
     
-    let imageUrl = editingProduct.image;
-    // Если изображение новое (начинается с blob:), загружаем его
-    if (editingProduct.image && editingProduct.image.startsWith('blob:')) {
-       showNotification('Загрузка фото...');
-       // Для простоты, если это blob, мы его пропустим в этом демо, 
-       // в реальном сценарии тут вызывается uploadImageSmart
+    if (!editingProduct?.name || !editingProduct.price) { 
+      showNotification('Заполните название и цену', 'error'); 
+      return; 
     }
-
+    
     const data = {
-      name: editingProduct.name, price: Number(editingProduct.price),
-      category: editingProduct.category || 'Другое', image_url: imageUrl || null,
+      name: editingProduct.name, 
+      price: Number(editingProduct.price),
+      category: editingProduct.category || 'Другое', 
+      image_url: editingProduct.image || null,
       flavors: formVariants,
       stock_quantity: formVariants.reduce((s, f) => s + f.stock, 0),
-      is_hidden: editingProduct.is_hidden || false, is_preorder: editingProduct.is_preorder || false,
+      is_hidden: editingProduct.is_hidden || false, 
+      is_preorder: editingProduct.is_preorder || false,
       created_at: editingProduct.id ? undefined : new Date().toISOString()
     };
+    
+    console.log('💾 Data to save:', data);
+    
     try {
       if (editingProduct.id) {
+        console.log('✏️ Updating product:', editingProduct.id);
         await updateDoc(doc(db, 'products', editingProduct.id), data);
-        showNotification('Товар обновлён');
+        showNotification('Товар обновлён', 'success');
       } else {
-        await addDoc(collection(db, 'products'), data);
-        showNotification('Товар добавлен');
+        console.log('➕ Creating new product');
+        const docRef = await addDoc(collection(db, 'products'), data);
+        console.log('✅ Product created with ID:', docRef.id);
+        showNotification('Товар добавлен', 'success');
       }
       setShowProductForm(false);
       setEditingProduct(null);
       await loadProducts(true);
     } catch(e) {
+      console.error('❌ Save error:', e);
       showNotification('Ошибка: ' + (e as Error).message, 'error');
     }
   };
@@ -583,7 +548,7 @@ export default function Home() {
                         <div key={i} className={`flex items-center justify-between py-1 text-[11px] rounded-lg px-2 ${item.isPreorder ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-black/20'}`}>
                           <div className="flex-1">
                             <span className="text-gray-300 block">{item.productName}</span>
-                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ⚠️ ПРЕДЗАКАЗ' : ''}</span>
+                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ️ ПРЕДЗАКАЗ' : ''}</span>
                           </div>
                           <span className="text-white font-bold ml-2">× {item.quantity}</span>
                         </div>
@@ -628,18 +593,8 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="mb-4">
-                  <label className="text-xs text-gray-400 mb-1.5 block">Ссылка на фото (или base64)</label>
-                  <input type="text" value={editingProduct.image || ''} onChange={e => setEditingProduct({...editingProduct, image: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all mb-2" placeholder="https://..." />
-                  <input type="file" accept="image/*" onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    showNotification('Обработка фото...');
-                    try {
-                      const url = await uploadImageSmart(file, editingProduct.id || 'new');
-                      setEditingProduct({...editingProduct, image: url});
-                      showNotification('Фото готово!', 'success');
-                    } catch (err) { showNotification('Ошибка фото', 'error'); }
-                  }} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:bg-gradient-to-r file:from-orange-500 file:to-pink-500 file:text-white file:cursor-pointer" />
+                  <label className="text-xs text-gray-400 mb-1.5 block">Ссылка на фото</label>
+                  <input type="text" value={editingProduct.image || ''} onChange={e => setEditingProduct({...editingProduct, image: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all mb-2" placeholder="https://example.com/image.jpg" />
                   {editingProduct.image && (
                     <div className="mt-3 relative group">
                       <img src={editingProduct.image} className="w-full h-40 object-contain rounded-xl bg-black/30" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
