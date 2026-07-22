@@ -403,8 +403,12 @@ export default function Home() {
       is_preorder: Boolean(editingProduct.is_preorder)
     };
     
+    // Для новых товаров добавляем created_at
     if (!editingProduct.id) {
       data.created_at = new Date().toISOString();
+    } else {
+      // При обновлении УДАЛЯЕМ created_at чтобы не передавать undefined
+      delete data.created_at;
     }
     
     console.log('💾 Final data to save:', JSON.stringify(data, null, 2));
