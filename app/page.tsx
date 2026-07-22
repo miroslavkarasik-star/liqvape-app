@@ -198,23 +198,40 @@ export default function Home() {
     return [...filteredProducts].sort((a, b) => {
       const aAvail = a.variants.reduce((s, v) => s + v.stock, 0);
       const bAvail = b.variants.reduce((s, v) => s + v.stock, 0);
-      const aIsAvailable = aAvail > 0;
-      const bIsAvailable = bAvail > 0;
-      if (aIsAvailable && !bIsAvailable) return -1;
-      if (!aIsAvailable && bIsAvailable) return 1;
-      if (aIsAvailable && bIsAvailable) {
-        if (selectedCategory === 'Все') {
-          const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
-          const bCatOrder = CATEGORY_PRIORITY[b.category] || 99;
-          if (aCatOrder !== bCatOrder) return aCatOrder - bCatOrder;
-          const aLetter = getLetterPriority(a.name, a.category);
-          const bLetter = getLetterPriority(b.name, b.category);
-          if (aLetter !== bLetter) return aLetter - bLetter;
-        } else {
-          const aLetter = getLetterPriority(a.name, a.category);
-          const bLetter = getLetterPriority(b.name, b.category);
-          if (aLetter !== bLetter) return aLetter - bLetter;
-        }
+      
+      // Три уровня доступности:
+      // 1. В наличии (stock > 0)
+      // 2. Предзаказ (is_preorder = true)
+      // 3. Нет в наличии (stock = 0 и не предзаказ)
+      const aInStock = aAvail > 0;
+      const bInStock = bAvail > 0;
+      const aPreorder = a.is_preorder;
+      const bPreorder = b.is_preorder;
+      
+      // Определяем приоритет доступности (меньше = выше приоритет)
+      const getAvailabilityPriority = (inStock: boolean, isPreorder: boolean) => {
+        if (inStock) return 1;        // В наличии
+        if (isPreorder) return 2;     // Предзаказ
+        return 3;                      // Нет в наличии
+      };
+      
+      const aPriority = getAvailabilityPriority(aInStock, aPreorder);
+      const bPriority = getAvailabilityPriority(bInStock, bPreorder);
+      
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      
+      // Если одинаковая доступность, сортируем дальше
+      if (selectedCategory === 'Все') {
+        const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
+        const bCatOrder = CATEGORY_PRIORITY[b.category] || 99;
+        if (aCatOrder !== bCatOrder) return aCatOrder - bCatOrder;
+        const aLetter = getLetterPriority(a.name, a.category);
+        const bLetter = getLetterPriority(b.name, b.category);
+        if (aLetter !== bLetter) return aLetter - bLetter;
+      } else {
+        const aLetter = getLetterPriority(a.name, a.category);
+        const bLetter = getLetterPriority(b.name, b.category);
+        if (aLetter !== bLetter) return aLetter - bLetter;
       }
       return 0;
     });
