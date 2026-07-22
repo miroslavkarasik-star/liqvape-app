@@ -382,41 +382,52 @@ export default function Home() {
   };
 
   const saveProduct = async () => {
-    console.log('💾 Save started', { editingProduct, formVariants });
+    console.log('💾 Save started');
+    console.log('📝 editingProduct:', editingProduct);
+    console.log('📦 formVariants:', formVariants);
     
     if (!editingProduct?.name || !editingProduct.price) { 
+      console.log('❌ Validation failed: name or price missing');
       showNotification('Заполните название и цену', 'error'); 
       return; 
     }
     
-    const data = {
+    const data: any = {
       name: editingProduct.name, 
       price: Number(editingProduct.price),
       category: editingProduct.category || 'Другое', 
       image_url: editingProduct.image || null,
       flavors: formVariants,
-      stock_quantity: formVariants.reduce((s, f) => s + f.stock, 0),
-      is_hidden: editingProduct.is_hidden || false, 
-      is_preorder: editingProduct.is_preorder || false,
-      created_at: editingProduct.id ? undefined : new Date().toISOString()
+      stock_quantity: formVariants.reduce((s, f) => s + (f.stock || 0), 0),
+      is_hidden: Boolean(editingProduct.is_hidden), 
+      is_preorder: Boolean(editingProduct.is_preorder)
     };
     
-    console.log('💾 Data to save:', data);
+    if (!editingProduct.id) {
+      data.created_at = new Date().toISOString();
+    }
+    
+    console.log('💾 Final data to save:', JSON.stringify(data, null, 2));
     
     try {
       if (editingProduct.id) {
-        console.log('✏️ Updating product:', editingProduct.id);
-        await updateDoc(doc(db, 'products', editingProduct.id), data);
+        console.log('✏️ Updating existing product ID:', editingProduct.id);
+        const docRef = doc(db, 'products', editingProduct.id);
+        await updateDoc(docRef, data);
+        console.log('✅ Update successful');
         showNotification('Товар обновлён', 'success');
       } else {
         console.log('➕ Creating new product');
         const docRef = await addDoc(collection(db, 'products'), data);
-        console.log('✅ Product created with ID:', docRef.id);
+        console.log('✅ New product created with ID:', docRef.id);
         showNotification('Товар добавлен', 'success');
       }
+      
       setShowProductForm(false);
       setEditingProduct(null);
+      setFormVariants([]);
       await loadProducts(true);
+      
     } catch(e) {
       console.error('❌ Save error:', e);
       showNotification('Ошибка: ' + (e as Error).message, 'error');
