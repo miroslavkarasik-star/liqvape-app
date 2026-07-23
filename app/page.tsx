@@ -131,7 +131,7 @@ export default function Home() {
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     try {
       console.log(' Loading products...');
-      const q = query(collection(db, 'products'), orderBy('created_at', 'desc'));
+      const q = query(collection(db, 'products'));
       const snapshot = await getDocs(q);
       console.log('📦 Products loaded:', snapshot.size);
       const parsed: Product[] = [];
@@ -160,14 +160,27 @@ export default function Home() {
       setIsLoading(false);
       return parsed;
     } catch(e) {
-      console.error('❌ Load error:', e);
+      console.error(' Load error:', e);
+      // Fallback: если ошибка, пробуем загрузить из кэша
+      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          setProducts(parsed);
+          setIsLoading(false);
+          console.log('⚠️ Loaded from cache (fallback)');
+          return parsed;
+        } catch(err) {}
+      }
+      setIsLoading(false);
       return [];
     }
   }, []);
 
   const loadAllRequests = useCallback(async () => {
     try {
-      const q = query(collection(db, 'user_requests'), orderBy('created_at', 'desc'));
+      const q = query(collection(db, 'user_requests'));
       const snapshot = await getDocs(q);
       const requests: any[] = [];
       snapshot.forEach((docSnapshot) => {
