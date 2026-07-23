@@ -92,6 +92,9 @@ export default function Home() {
   const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
+  const [loadedCount, setLoadedCount] = useState(20);
+  const [isLoadMore, setIsLoadMore] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
@@ -191,6 +194,8 @@ export default function Home() {
       
       setProducts(parsed);
       setIsLoading(false);
+      setVisibleProducts(parsed.slice(0, 20)); // Показываем первые 20
+      setLoadedCount(20);
       
       console.log('✅ Products loaded in', Date.now() - startTime, 'ms');
       return parsed;
@@ -254,6 +259,38 @@ export default function Home() {
     return matchSearch && matchCategory;
   });
 
+  // Загружаем ещё товары при прокрутке
+  const loadMoreProducts = useCallback(() => {
+    if (isLoadMore || loadedCount >= filteredProducts.length) return;
+    
+    setIsLoadMore(true);
+    const nextCount = Math.min(loadedCount + 20, filteredProducts.length);
+    
+    // Имитируем задержку для плавности
+    setTimeout(() => {
+      setVisibleProducts(filteredProducts.slice(0, nextCount));
+      setLoadedCount(nextCount);
+      setIsLoadMore(false);
+    }, 100);
+  }, [loadedCount, filteredProducts, isLoadMore]);
+
+  // Intersection Observer для автматической подгрузки
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadMore) {
+          loadMoreProducts();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const sentinel = document.getElementById('load-more-sentinel');
+    if (sentinel) observer.observe(sentinel);
+
+    return () => observer.disconnect();
+  }, [loadMoreProducts, isLoadMore]);
+
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
       const aAvail = a.variants.reduce((s, v) => s + v.stock, 0);
@@ -290,6 +327,12 @@ export default function Home() {
       return 0;
     });
   }, [filteredProducts, selectedCategory]);
+
+  // Сбрасываем видимые товары при изменении фильтров
+  useEffect(() => {
+    setVisibleProducts(sortedProducts.slice(0, 20));
+    setLoadedCount(20);
+  }, [search, selectedCategory, sortedProducts]);
 
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
@@ -744,6 +787,14 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            {/* Sentinel для автматической подгрузки */}
+            <div id="load-more-sentinel" className="h-20 flex items-center justify-center">
+              {isLoadMore && (
+                <div className="glass-panel px-4 py-2">
+                  <div className="animate-pulse text-xs text-gray-400">Загрузка...</div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -979,7 +1030,7 @@ export default function Home() {
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
           ) : (
             <div className="grid grid-cols-2 gap-3 pb-8 auto-rows-fr">
-              {sortedProducts.map((p) => {
+              {visibleProducts.map((p) => {
                 const totalStock = p.variants.reduce((s, v) => s + v.stock, 0);
                 const isAvailable = totalStock > 0 || p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
@@ -1014,6 +1065,14 @@ export default function Home() {
                   </div>
                 );
               })}
+            </div>
+            {/* Sentinel для автматической подгрузки */}
+            <div id="load-more-sentinel" className="h-20 flex items-center justify-center">
+              {isLoadMore && (
+                <div className="glass-panel px-4 py-2">
+                  <div className="animate-pulse text-xs text-gray-400">Загрузка...</div>
+                </div>
+              )}
             </div>
           )}
         </div>
