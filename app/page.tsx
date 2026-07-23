@@ -146,7 +146,6 @@ export default function Home() {
         const parsed = JSON.parse(cached);
         setProducts(parsed);
         setIsLoading(false);
-        setHasLoadedFromCache(true);
         console.log('⚡ Loaded from cache:', parsed.length, 'products');
         
         // 2. ФОНОВОЕ обновление (не блокирует UI)
