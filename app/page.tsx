@@ -143,29 +143,11 @@ export default function Home() {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
-
-    // Пробуем загрузить из IndexedDB
-    try {
-    // Загружаем из LocalStorage
+    
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
         const cachedProducts = JSON.parse(cached);
         console.log('⚡ Load from cache:', cachedProducts.length, 'products');
-        console.log('🖼️ First product has image:', !!cachedProducts[0]?.image);
-        setProducts(cachedProducts);
-        setIsLoading(false);
-        setDisplayCount(BATCH_SIZE);
-        setLoadingProgress(0);
-        loadProductsFromDB(includeHidden, true).catch(console.error);
-        return cachedProducts;
-      } catch(e) {
-        console.error('Cache parse error:', e);
-      }
-    }
-    if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
-      try {
-        const cachedProducts = JSON.parse(cached);
-        console.log('⚡ Load from LocalStorage cache:', cachedProducts.length, 'products');
         setProducts(cachedProducts);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
@@ -181,16 +163,6 @@ export default function Home() {
 
   const loadProductsFromDB = useCallback(async (includeHidden = false, silent = false): Promise<Product[]> => {
     try {
-      // Если silent и кэш свежий - не делаем запрос
-      if (silent) {
-        const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
-        const cachedTime = localStorage.getItem(cacheKey + '_time');
-        if (cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
-          console.log('️ Skipping background update, cache is fresh');
-          return [];
-        }
-      }
-      
       if (!silent) {
         setLoadingProgress(10);
         setLoadingMessage('Подключение к базе данных...');
@@ -201,13 +173,17 @@ export default function Home() {
       const startTime = Date.now();
       const q = query(collection(db, 'products'));
       
-      if (!silent) setLoadingProgress(30);
-      setLoadingMessage('Загрузка товаров...');
+      if (!silent) {
+        setLoadingProgress(30);
+        setLoadingMessage('Загрузка товаров...');
+      }
       
       const snapshot = await getDocs(q);
       
-      if (!silent) setLoadingProgress(60);
-      setLoadingMessage('Обработка данных...');
+      if (!silent) {
+        setLoadingProgress(60);
+        setLoadingMessage('Обработка данных...');
+      }
       
       const parsed: Product[] = [];
       snapshot.forEach((docSnapshot) => {
@@ -239,52 +215,46 @@ export default function Home() {
         });
       });
       
-      if (!silent) setLoadingProgress(80);
-      setLoadingMessage('Сортировка товаров...');
+      if (!silent) {
+        setLoadingProgress(80);
+        setLoadingMessage('Сортировка товаров...');
+      }
       
       parsed.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       
-      if (!silent) setLoadingProgress(90);
-      setLoadingMessage('Сохранение в кэш...');
+      if (!silent) {
+        setLoadingProgress(90);
+        setLoadingMessage('Сохранение в кэш...');
+      }
       
       setProducts(parsed);
       setIsLoading(false);
       setDisplayCount(BATCH_SIZE);
       
-      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
-      
-      // Сохраняем в IndexedDB (с картинками)
+      const cacheKeySave = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       try {
         const imageCount = parsed.filter(p => p.image).length;
-      // Сохраняем в LocalStorage С картинками
-      try {
-        const imageCount = parsed.filter(p => p.image).length;
-        console.log(' Saving to LocalStorage:', parsed.length, 'products,', imageCount, 'with images');
+        console.log('💾 Saving to LocalStorage:', parsed.length, 'products,', imageCount, 'with images');
         if (parsed[0]?.image) {
           console.log('🖼️ First product image size:', `${(parsed[0].image.length / 1024).toFixed(1)} KB`);
         }
-        localStorage.setItem(cacheKey, JSON.stringify(parsed));
-        localStorage.setItem(cacheKey + '_time', Date.now().toString());
+        localStorage.setItem(cacheKeySave, JSON.stringify(parsed));
+        localStorage.setItem(cacheKeySave + '_time', Date.now().toString());
         console.log('✅ Cache saved successfully');
       } catch(e) {
         console.error('❌ Cache save error:', e);
         const cacheWithoutImages = parsed.map(p => ({ ...p, image: null }));
-        localStorage.setItem(cacheKey, JSON.stringify(cacheWithoutImages));
-        localStorage.setItem(cacheKey + '_time', Date.now().toString());
+        localStorage.setItem(cacheKeySave, JSON.stringify(cacheWithoutImages));
+        localStorage.setItem(cacheKeySave + '_time', Date.now().toString());
         console.log('⚠️ Saved without images due to quota');
       }
-      try {
-        const cacheWithoutImages = parsed.map(p => ({ ...p, image: null }));
-        localStorage.setItem(cacheKey, JSON.stringify(cacheWithoutImages));
-        localStorage.setItem(cacheKey + '_time', Date.now().toString());
-      } catch(e) {
-        console.error('LocalStorage save error:', e);
-      }
       
-      if (!silent) setLoadingProgress(100);
-      setLoadingMessage('Готово!');
+      if (!silent) {
+        setLoadingProgress(100);
+        setLoadingMessage('Готово!');
+        setTimeout(() => setLoadingProgress(0), 500);
+      }
       console.log('✅ Firebase load complete in', Date.now() - startTime, 'ms');
-      if (!silent) setTimeout(() => setLoadingProgress(0), 500);
       
       return parsed;
     } catch(e) {
