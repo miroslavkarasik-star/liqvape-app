@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
@@ -60,6 +60,8 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
   });
 };
 
+const BATCH_SIZE = 20;
+
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
@@ -92,9 +94,8 @@ export default function Home() {
   const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
-  const [loadedCount, setLoadedCount] = useState(20);
-  const [isLoadMore, setIsLoadMore] = useState(false);
+  const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
@@ -131,13 +132,9 @@ export default function Home() {
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     try {
-      console.log('🔄 Loading products from Firebase...');
       const startTime = Date.now();
-      
       const q = query(collection(db, 'products'));
       const snapshot = await getDocs(q);
-      
-      console.log('📦 Loaded', snapshot.size, 'products in', Date.now() - startTime, 'ms');
       
       const parsed: Product[] = [];
       snapshot.forEach((docSnapshot) => {
@@ -187,37 +184,19 @@ export default function Home() {
         return bTime - aTime;
       });
       
-      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
-      const lightCache = parsed.map(p => ({ ...p, image: null }));
-      localStorage.setItem(cacheKey, JSON.stringify(lightCache));
-      localStorage.setItem(cacheKey + '_time', Date.now().toString());
-      
       setProducts(parsed);
       setIsLoading(false);
-      setVisibleProducts(parsed.slice(0, 20)); // Показываем первые 20
-      setLoadedCount(20);
+      setDisplayCount(BATCH_SIZE);
       
-      console.log('✅ Products loaded in', Date.now() - startTime, 'ms');
+      console.log('✅ Loaded', parsed.length, 'products in', Date.now() - startTime, 'ms');
       return parsed;
       
     } catch(e) {
-      console.error('❌ Load error:', e);
-      
-      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
-      const cached = localStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          setProducts(parsed);
-          console.log('⚠️ Loaded from cache');
-          return parsed;
-        } catch(err) {}
-      }
-      
+      console.error(' Load error:', e);
       setIsLoading(false);
       return [];
     }
-  }, [isAdmin]);
+  }, []);
 
   const loadAllRequests = useCallback(async () => {
     try {
@@ -259,38 +238,6 @@ export default function Home() {
     return matchSearch && matchCategory;
   });
 
-  // Загружаем ещё товары при прокрутке
-  const loadMoreProducts = useCallback(() => {
-    if (isLoadMore || loadedCount >= filteredProducts.length) return;
-    
-    setIsLoadMore(true);
-    const nextCount = Math.min(loadedCount + 20, filteredProducts.length);
-    
-    // Имитируем задержку для плавности
-    setTimeout(() => {
-      setVisibleProducts(filteredProducts.slice(0, nextCount));
-      setLoadedCount(nextCount);
-      setIsLoadMore(false);
-    }, 100);
-  }, [loadedCount, filteredProducts, isLoadMore]);
-
-  // Intersection Observer для автматической подгрузки
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isLoadMore) {
-          loadMoreProducts();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const sentinel = document.getElementById('load-more-sentinel');
-    if (sentinel) observer.observe(sentinel);
-
-    return () => observer.disconnect();
-  }, [loadMoreProducts, isLoadMore]);
-
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
       const aAvail = a.variants.reduce((s, v) => s + v.stock, 0);
@@ -328,11 +275,28 @@ export default function Home() {
     });
   }, [filteredProducts, selectedCategory]);
 
-  // Сбрасываем видимые товары при изменении фильтров
+  // Ленивая загрузка: показываем только displayCount товаров
+  const visibleProducts = sortedProducts.slice(0, displayCount);
+  const hasMore = displayCount < sortedProducts.length;
+
+  // Intersection Observer для автоподгрузки
   useEffect(() => {
-    setVisibleProducts(sortedProducts.slice(0, 20));
-    setLoadedCount(20);
-  }, [search, selectedCategory, sortedProducts]);
+    if (!sentinelRef.current) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore && !isLoading) {
+        setDisplayCount(prev => Math.min(prev + BATCH_SIZE, sortedProducts.length));
+      }
+    }, { threshold: 0.1 });
+    
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, sortedProducts.length]);
+
+  // Сброс при изменении фильтров
+  useEffect(() => {
+    setDisplayCount(BATCH_SIZE);
+  }, [search, selectedCategory]);
 
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
@@ -495,12 +459,7 @@ export default function Home() {
   };
 
   const saveProduct = async () => {
-    console.log('💾 Save started');
-    console.log('📝 editingProduct:', editingProduct);
-    console.log('📦 formVariants:', formVariants);
-    
     if (!editingProduct?.name || !editingProduct.price) { 
-      console.log('❌ Validation failed: name or price missing');
       showNotification('Заполните название и цену', 'error'); 
       return; 
     }
@@ -522,19 +481,13 @@ export default function Home() {
       delete data.created_at;
     }
     
-    console.log('💾 Final data to save:', JSON.stringify(data, null, 2));
-    
     try {
       if (editingProduct.id) {
-        console.log('✏️ Updating existing product ID:', editingProduct.id);
         const docRef = doc(db, 'products', editingProduct.id);
         await updateDoc(docRef, data);
-        console.log('✅ Update successful');
         showNotification('Товар обновлён', 'success');
       } else {
-        console.log('➕ Creating new product');
         const docRef = await addDoc(collection(db, 'products'), data);
-        console.log('✅ New product created with ID:', docRef.id);
         showNotification('Товар добавлен', 'success');
       }
       
@@ -544,7 +497,6 @@ export default function Home() {
       await loadProducts(true);
       
     } catch(e) {
-      console.error('❌ Save error:', e);
       showNotification('Ошибка: ' + (e as Error).message, 'error');
     }
   };
@@ -559,7 +511,6 @@ export default function Home() {
       setEditingProduct(prev => prev ? {...prev, image: base64} : null);
       showNotification('Фото готово!', 'success');
     } catch (err) {
-      console.error('Image upload error:', err);
       showNotification('Ошибка загрузки фото', 'error');
     }
   };
@@ -707,7 +658,7 @@ export default function Home() {
                         <div key={i} className={`flex items-center justify-between py-1 text-[11px] rounded-lg px-2 ${item.isPreorder ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-black/20'}`}>
                           <div className="flex-1">
                             <span className="text-gray-300 block">{item.productName}</span>
-                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ️ ПРЕДЗАКАЗ' : ''}</span>
+                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ⚠️ ПРЕДЗАКАЗ' : ''}</span>
                           </div>
                           <span className="text-white font-bold ml-2">× {item.quantity}</span>
                         </div>
@@ -787,14 +738,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            {/* Sentinel для автматической подгрузки */}
-            <div id="load-more-sentinel" className="h-20 flex items-center justify-center">
-              {isLoadMore && (
-                <div className="glass-panel px-4 py-2">
-                  <div className="animate-pulse text-xs text-gray-400">Загрузка...</div>
-                </div>
-              )}
-            </div>
           )}
         </div>
       </div>
@@ -863,7 +806,7 @@ export default function Home() {
             )}
             {tutorialStep === 2 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">📋</div>
+                <div className="text-4xl mb-4"></div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2>
                 <p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p>
                 <button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
@@ -1023,57 +966,59 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
             {CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={'px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ' + (selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400')}>{c}</button>))}
           </div>
-          <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров</div>
+          <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров{hasMore ? ` • Показано: ${displayCount}` : ''}</div>
           {isLoading ? (
              <div className="glass-panel p-8 text-center"><div className="animate-pulse h-4 w-24 bg-white/10 rounded mx-auto mb-2"></div><p className="text-gray-500 text-sm">Загрузка...</p></div>
           ) : sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 pb-8 auto-rows-fr">
-              {visibleProducts.map((p) => {
-                const totalStock = p.variants.reduce((s, v) => s + v.stock, 0);
-                const isAvailable = totalStock > 0 || p.is_preorder;
-                const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
-                return (
-                  <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={'glass-card p-3 transition-all flex flex-col h-full ' + (isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed')}>
-                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
-                      {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" loading="lazy" />) : (<Package className="w-12 h-12 text-neutral-600" />)}
-                      {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
-                    </div>
-                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
-                    <div className="flex items-center justify-between mb-2 flex-shrink-0">
-                      <span className="text-base font-bold gradient-text">
-                        {(() => {
-                          const prices = p.variants.map(v => {
-                            const vPrice = (v.price !== undefined && v.price !== null && v.price > 0) ? v.price : p.price;
-                            return vPrice;
-                          });
-                          const minP = Math.min(...prices);
-                          const maxP = Math.max(...prices);
-                          return minP === maxP ? `${minP} BYN` : `${minP}-${maxP} BYN`;
-                        })()}
-                      </span>
-                      <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
-                    </div>
-                    {inList > 0 ? (
-                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
-                    ) : (
-                      <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
-                        {isAvailable ? (p.is_preorder ? ' Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
+            <>
+              <div className="grid grid-cols-2 gap-3 pb-4 auto-rows-fr">
+                {visibleProducts.map((p) => {
+                  const totalStock = p.variants.reduce((s, v) => s + v.stock, 0);
+                  const isAvailable = totalStock > 0 || p.is_preorder;
+                  const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
+                  return (
+                    <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={'glass-card p-3 transition-all flex flex-col h-full ' + (isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed')}>
+                      <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
+                        {p.image ? (<img src={p.image} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" loading="lazy" />) : (<Package className="w-12 h-12 text-neutral-600" />)}
+                        {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
                       </div>
-                    )}
+                      <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
+                      <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                        <span className="text-base font-bold gradient-text">
+                          {(() => {
+                            const prices = p.variants.map(v => {
+                              const vPrice = (v.price !== undefined && v.price !== null && v.price > 0) ? v.price : p.price;
+                              return vPrice;
+                            });
+                            const minP = Math.min(...prices);
+                            const maxP = Math.max(...prices);
+                            return minP === maxP ? `${minP} BYN` : `${minP}-${maxP} BYN`;
+                          })()}
+                        </span>
+                        <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
+                      </div>
+                      {inList > 0 ? (
+                        <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0"> в списке: {inList}</div>
+                      ) : (
+                        <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
+                          {isAvailable ? (p.is_preorder ? ' Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Индикатор подгрузки */}
+              <div ref={sentinelRef} className="h-20 flex items-center justify-center">
+                {hasMore && (
+                  <div className="glass-panel px-4 py-2">
+                    <div className="animate-pulse text-xs text-gray-400">Загрузка ещё товаров...</div>
                   </div>
-                );
-              })}
-            </div>
-            {/* Sentinel для автматической подгрузки */}
-            <div id="load-more-sentinel" className="h-20 flex items-center justify-center">
-              {isLoadMore && (
-                <div className="glass-panel px-4 py-2">
-                  <div className="animate-pulse text-xs text-gray-400">Загрузка...</div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </div>
