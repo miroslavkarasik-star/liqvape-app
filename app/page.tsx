@@ -61,6 +61,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
 };
 
 const BATCH_SIZE = 12;
+const CACHE_DURATION = 30 * 60 * 1000; // 30 минут
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -138,7 +139,6 @@ export default function Home() {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
-    const CACHE_DURATION = 30 * 60 * 1000; // 30 минут
 
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
