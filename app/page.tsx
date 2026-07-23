@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = {
@@ -33,18 +33,17 @@ const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 interface Variant { name: string; stock: number; price?: number; }
 interface Product {
   id: string; name: string; category: string; price: number; image: string | null;
-  variants: Variant[]; is_hidden: boolean; is_preorder: boolean;
+  variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string;
 }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
-// Сжатие и конвертация фото в base64
 const compressAndConvertToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve) => {
     const img = new Image();
     img.src = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 300; // Уменьшили с 400 до 300 для скорости
+      const MAX_WIDTH = 300;
       let width = img.width;
       let height = img.height;
       if (width > MAX_WIDTH) {
@@ -55,7 +54,6 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-      // WebP с качеством 0.6 (меньше размер)
       const base64 = canvas.toDataURL('image/webp', 0.6);
       resolve(base64);
     };
@@ -130,17 +128,19 @@ export default function Home() {
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     try {
-      console.log(' Loading products...');
+      console.log('🔄 Loading products from Firebase...');
+      const startTime = Date.now();
+      
       const q = query(collection(db, 'products'));
       const snapshot = await getDocs(q);
-      console.log('📦 Products loaded:', snapshot.size);
+      
+      console.log('📦 Loaded', snapshot.size, 'products in', Date.now() - startTime, 'ms');
+      
       const parsed: Product[] = [];
       snapshot.forEach((docSnapshot) => {
         const p = docSnapshot.data();
-        console.log(' Product:', p.name, 'Price:', p.price);
         if (!includeHidden && p.is_hidden) return;
         
-        // Исправляем чтение цены (Firebase doubleValue)
         const pAny = p as any;
         let priceValue = 0;
         if (pAny.price && typeof pAny.price === 'object') {
@@ -149,34 +149,70 @@ export default function Home() {
           priceValue = Number(pAny.price) || 0;
         }
         
+        const variants = (pAny.flavors || []).map((v: any) => {
+          let variantPrice = priceValue;
+          if (v.price !== undefined && v.price !== null) {
+            if (typeof v.price === 'object' && v.price !== null) {
+              variantPrice = Number(v.price.doubleValue ?? v.price.integerValue ?? priceValue);
+            } else {
+              variantPrice = Number(v.price) || priceValue;
+            }
+          }
+          return {
+            name: String(v.name || ''),
+            stock: Number(v.stock) || 0,
+            price: variantPrice
+          };
+        });
+        
         parsed.push({
-          id: docSnapshot.id, name: p.name, category: p.category || 'Другое',
-          price: priceValue, image: p.image_url || null,
-          variants: p.flavors || [],
-          is_hidden: Boolean(p.is_hidden), is_preorder: Boolean(p.is_preorder),
+          id: docSnapshot.id, 
+          name: p.name, 
+          category: p.category || 'Другое',
+          price: priceValue, 
+          image: p.image_url || null,
+          variants: variants,
+          is_hidden: Boolean(p.is_hidden), 
+          is_preorder: Boolean(p.is_preorder),
+          created_at: pAny.created_at || new Date().toISOString()
         });
       });
+      
+      parsed.sort((a, b) => {
+        const aTime = new Date(a.created_at || 0).getTime();
+        const bTime = new Date(b.created_at || 0).getTime();
+        return bTime - aTime;
+      });
+      
+      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+      const lightCache = parsed.map(p => ({ ...p, image: null }));
+      localStorage.setItem(cacheKey, JSON.stringify(lightCache));
+      localStorage.setItem(cacheKey + '_time', Date.now().toString());
+      
       setProducts(parsed);
       setIsLoading(false);
+      
+      console.log('✅ Products loaded in', Date.now() - startTime, 'ms');
       return parsed;
+      
     } catch(e) {
-      console.error(' Load error:', e);
-      // Fallback: если ошибка, пробуем загрузить из кэша
+      console.error('❌ Load error:', e);
+      
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
           setProducts(parsed);
-          setIsLoading(false);
-          console.log('⚠️ Loaded from cache (fallback)');
+          console.log('⚠️ Loaded from cache');
           return parsed;
         } catch(err) {}
       }
+      
       setIsLoading(false);
       return [];
     }
-  }, []);
+  }, [isAdmin]);
 
   const loadAllRequests = useCallback(async () => {
     try {
@@ -186,6 +222,7 @@ export default function Home() {
       snapshot.forEach((docSnapshot) => {
         requests.push({ id: docSnapshot.id, ...docSnapshot.data() });
       });
+      requests.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       setAllRequests(requests);
     } catch(e) {
       console.error('Load requests error:', e);
@@ -222,20 +259,15 @@ export default function Home() {
       const aAvail = a.variants.reduce((s, v) => s + v.stock, 0);
       const bAvail = b.variants.reduce((s, v) => s + v.stock, 0);
       
-      // Три уровня доступности:
-      // 1. В наличии (stock > 0)
-      // 2. Предзаказ (is_preorder = true)
-      // 3. Нет в наличии (stock = 0 и не предзаказ)
       const aInStock = aAvail > 0;
       const bInStock = bAvail > 0;
       const aPreorder = a.is_preorder;
       const bPreorder = b.is_preorder;
       
-      // Определяем приоритет доступности (меньше = выше приоритет)
       const getAvailabilityPriority = (inStock: boolean, isPreorder: boolean) => {
-        if (inStock) return 1;        // В наличии
-        if (isPreorder) return 2;     // Предзаказ
-        return 3;                      // Нет в наличии
+        if (inStock) return 1;
+        if (isPreorder) return 2;
+        return 3;
       };
       
       const aPriority = getAvailabilityPriority(aInStock, aPreorder);
@@ -243,7 +275,6 @@ export default function Home() {
       
       if (aPriority !== bPriority) return aPriority - bPriority;
       
-      // Если одинаковая доступность, сортируем дальше
       if (selectedCategory === 'Все') {
         const aCatOrder = CATEGORY_PRIORITY[a.category] || 99;
         const bCatOrder = CATEGORY_PRIORITY[b.category] || 99;
@@ -298,17 +329,7 @@ export default function Home() {
     let newList = [...selectionList];
     for (const sv of selectedVariants) {
       const v = selectedProduct.variants.find(x => x.name === sv.name);
-      // Исправляем чтение цены варианта
-let variantPrice = selectedProduct.price;
-if (v?.price !== undefined && v?.price !== null) {
-  const vAny = v.price as any;
-  if (typeof vAny === 'object' && vAny !== null) {
-    variantPrice = Number(vAny.doubleValue ?? vAny.integerValue ?? selectedProduct.price);
-  } else {
-    variantPrice = Number(vAny) || selectedProduct.price;
-  }
-}
-const price = variantPrice;
+      const price = (v?.price !== undefined && v?.price !== null && v.price > 0) ? v.price : selectedProduct.price;
       const idx = newList.findIndex(i => i.productId === selectedProduct.id && i.variant === sv.name);
       if (idx >= 0) {
         newList[idx] = { ...newList[idx], quantity: newList[idx].quantity + sv.quantity, price };
@@ -361,9 +382,7 @@ const price = variantPrice;
     
     if (typeof window !== 'undefined') {
       const platform = (window as any).Telegram?.WebApp?.platform || '';
-      const isDesktop = platform.toLowerCase().includes('tdesktop') || 
-                        platform.toLowerCase().includes('macos') || 
-                        platform.toLowerCase().includes('web');
+      const isDesktop = platform.toLowerCase().includes('tdesktop') || platform.toLowerCase().includes('macos') || platform.toLowerCase().includes('web');
       if (isDesktop) {
         window.open(link, '_blank');
       } else {
@@ -454,11 +473,9 @@ const price = variantPrice;
       is_preorder: Boolean(editingProduct.is_preorder)
     };
     
-    // Для новых товаров добавляем created_at
     if (!editingProduct.id) {
       data.created_at = new Date().toISOString();
     } else {
-      // При обновлении УДАЛЯЕМ created_at чтобы не передавать undefined
       delete data.created_at;
     }
     
@@ -647,7 +664,7 @@ const price = variantPrice;
                         <div key={i} className={`flex items-center justify-between py-1 text-[11px] rounded-lg px-2 ${item.isPreorder ? 'bg-orange-500/10 border border-orange-500/20' : 'bg-black/20'}`}>
                           <div className="flex-1">
                             <span className="text-gray-300 block">{item.productName}</span>
-                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ⚠️ ПРЕДЗАКАЗ' : ''}</span>
+                            <span className={`text-[10px] ${item.isPreorder ? 'text-orange-400 font-medium' : 'text-gray-500'}`}>{item.variant}{item.isPreorder ? ' ️ ПРЕДЗАКАЗ' : ''}</span>
                           </div>
                           <span className="text-white font-bold ml-2">× {item.quantity}</span>
                         </div>
@@ -787,7 +804,7 @@ const price = variantPrice;
             )}
             {tutorialStep === 1 && (
               <div className="text-center">
-                <div className="text-4xl mb-4">️</div>
+                <div className="text-4xl mb-4">🛍️</div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2>
                 <p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p>
                 <button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
@@ -991,7 +1008,7 @@ const price = variantPrice;
                       <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
                     ) : (
                       <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
-                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
+                        {isAvailable ? (p.is_preorder ? ' Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
                       </div>
                     )}
                   </div>
@@ -1052,17 +1069,7 @@ const price = variantPrice;
               )}
               {selectedVariants.length > 0 ? (
                 <button onClick={addSelectedToList} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-                   В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); // Исправляем чтение цены варианта
-let variantPrice = selectedProduct.price;
-if (v?.price !== undefined && v?.price !== null) {
-  const vAny = v.price as any;
-  if (typeof vAny === 'object' && vAny !== null) {
-    variantPrice = Number(vAny.doubleValue ?? vAny.integerValue ?? selectedProduct.price);
-  } else {
-    variantPrice = Number(vAny) || selectedProduct.price;
-  }
-}
-const price = variantPrice; return s + price * sv.quantity; }, 0)} BYN
+                   В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); const price = (v?.price !== undefined && v?.price !== null && v.price > 0) ? v.price : selectedProduct.price; return s + price * sv.quantity; }, 0)} BYN
                 </button>
               ) : (<div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-gray-400 text-sm">Выберите хотя бы один вкус</div>)}
             </div>
