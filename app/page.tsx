@@ -60,7 +60,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
   });
 };
 
-const BATCH_SIZE = 20;
+const BATCH_SIZE = 12; // Меньше товаров за раз = быстрее рендер
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -96,6 +96,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [hasLoadedFromCache, setHasLoadedFromCache] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
@@ -130,9 +131,39 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
+  //  ОПТИМИЗИРОВАННАЯ ЗАГРУЗКА С КЭШЕМ
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
+    const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+    const cached = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheKey + '_time');
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
+    
+    // 1. МГНОВЕННО показываем из кэша
+    if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+      try {
+        const parsed = JSON.parse(cached);
+        setProducts(parsed);
+        setIsLoading(false);
+        setHasLoadedFromCache(true);
+        console.log('⚡ Loaded from cache:', parsed.length, 'products');
+        
+        // 2. ФОНОВОЕ обновление (не блокирует UI)
+        loadProductsFromDB(includeHidden).catch(console.error);
+        return parsed;
+      } catch(e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+    
+    // 3. Если кэша нет — грузим из БД
+    return await loadProductsFromDB(includeHidden);
+  }, []);
+
+  const loadProductsFromDB = useCallback(async (includeHidden = false): Promise<Product[]> => {
     try {
+      console.log('🔄 Loading from Firebase...');
       const startTime = Date.now();
+      
       const q = query(collection(db, 'products'));
       const snapshot = await getDocs(q);
       
@@ -178,6 +209,7 @@ export default function Home() {
         });
       });
       
+      // Сортировка
       parsed.sort((a, b) => {
         const aTime = new Date(a.created_at || 0).getTime();
         const bTime = new Date(b.created_at || 0).getTime();
@@ -188,12 +220,31 @@ export default function Home() {
       setIsLoading(false);
       setDisplayCount(BATCH_SIZE);
       
+      // КЭШИРОВАНИЕ (без картинок для экономии места)
+      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+      const lightCache = parsed.map(p => ({ ...p, image: null }));
+      localStorage.setItem(cacheKey, JSON.stringify(lightCache));
+      localStorage.setItem(cacheKey + '_time', Date.now().toString());
+      
       console.log('✅ Loaded', parsed.length, 'products in', Date.now() - startTime, 'ms');
       return parsed;
       
     } catch(e) {
-      console.error(' Load error:', e);
+      console.error('❌ Load error:', e);
       setIsLoading(false);
+      
+      // Fallback на кэш при ошибке
+      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          setProducts(parsed);
+          console.log('⚠️ Loaded from cache (fallback)');
+          return parsed;
+        } catch(err) {}
+      }
+      
       return [];
     }
   }, []);
@@ -275,11 +326,10 @@ export default function Home() {
     });
   }, [filteredProducts, selectedCategory]);
 
-  // Ленивая загрузка: показываем только displayCount товаров
+  // Ленивая загрузка
   const visibleProducts = sortedProducts.slice(0, displayCount);
   const hasMore = displayCount < sortedProducts.length;
 
-  // Intersection Observer для автоподгрузки
   useEffect(() => {
     if (!sentinelRef.current) return;
     
@@ -287,13 +337,13 @@ export default function Home() {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
         setDisplayCount(prev => Math.min(prev + BATCH_SIZE, sortedProducts.length));
       }
-    }, { threshold: 0.1 });
+    }, { threshold: 0.1, rootMargin: '100px' });
     
     observer.observe(sentinelRef.current);
     return () => observer.disconnect();
   }, [hasMore, isLoading, sortedProducts.length]);
 
-  // Сброс при изменении фильтров
+  // Сброс при фильтрации
   useEffect(() => {
     setDisplayCount(BATCH_SIZE);
   }, [search, selectedCategory]);
@@ -378,7 +428,7 @@ export default function Home() {
       grouped[item.productName].push(item);
     });
     for (const [name, items] of Object.entries(grouped)) {
-      message += `📦 ${name}\n`;
+      message += ` ${name}\n`;
       for (const item of items) {
         const tag = item.isPreorder ? ' [ПРЕДЗАКАЗ]' : '';
         message += `   • ${item.variant} × ${item.quantity}${tag}\n`;
@@ -806,7 +856,7 @@ export default function Home() {
             )}
             {tutorialStep === 2 && (
               <div className="text-center">
-                <div className="text-4xl mb-4"></div>
+                <div className="text-4xl mb-4">📋</div>
                 <h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2>
                 <p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p>
                 <button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button>
@@ -966,11 +1016,23 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4">
             {CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={'px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ' + (selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400')}>{c}</button>))}
           </div>
-          <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров{hasMore ? ` • Показано: ${displayCount}` : ''}</div>
-          {isLoading ? (
-             <div className="glass-panel p-8 text-center"><div className="animate-pulse h-4 w-24 bg-white/10 rounded mx-auto mb-2"></div><p className="text-gray-500 text-sm">Загрузка...</p></div>
+          <div className="mb-4 text-xs text-gray-500">
+            Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров
+            {hasMore && <span className="text-gray-600"> • Показано: {displayCount}</span>}
+          </div>
+          
+          {isLoading && !hasLoadedFromCache ? (
+             <div className="glass-panel p-8 text-center">
+               <div className="animate-pulse space-y-4">
+                 <div className="h-4 w-24 bg-white/10 rounded mx-auto"></div>
+                 <p className="text-gray-500 text-sm">Загрузка...</p>
+               </div>
+             </div>
           ) : sortedProducts.length === 0 ? (
-            <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
+            <div className="glass-panel p-8 text-center">
+              <Package className="w-12 h-12 mx-auto mb-3 text-gray-700" />
+              <p className="text-gray-500 text-sm">Товары не найдены</p>
+            </div>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-3 pb-4 auto-rows-fr">
@@ -1000,7 +1062,7 @@ export default function Home() {
                         <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
                       </div>
                       {inList > 0 ? (
-                        <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0"> в списке: {inList}</div>
+                        <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
                       ) : (
                         <div className={'w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ' + (isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500')}>
                           {isAvailable ? (p.is_preorder ? ' Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
