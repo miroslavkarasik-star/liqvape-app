@@ -141,12 +141,12 @@ export default function Home() {
         if (!includeHidden && p.is_hidden) return;
         
         // Исправляем чтение цены (Firebase doubleValue)
+        const pAny = p as any;
         let priceValue = 0;
-        if (p.price && typeof p.price === 'object') {
-          // Если price это объект {doubleValue: X}
-          priceValue = p.price.doubleValue || p.price.integerValue || 0;
+        if (pAny.price && typeof pAny.price === 'object') {
+          priceValue = Number(pAny.price.doubleValue ?? pAny.price.integerValue ?? 0);
         } else {
-          priceValue = Number(p.price) || 0;
+          priceValue = Number(pAny.price) || 0;
         }
         
         parsed.push({
@@ -287,11 +287,12 @@ export default function Home() {
       const v = selectedProduct.variants.find(x => x.name === sv.name);
       // Исправляем чтение цены варианта
 let variantPrice = selectedProduct.price;
-if (v?.price) {
-  if (typeof v.price === 'object') {
-    variantPrice = v.price.doubleValue || v.price.integerValue || selectedProduct.price;
+if (v?.price !== undefined && v?.price !== null) {
+  const vAny = v.price as any;
+  if (typeof vAny === 'object' && vAny !== null) {
+    variantPrice = Number(vAny.doubleValue ?? vAny.integerValue ?? selectedProduct.price);
   } else {
-    variantPrice = Number(v.price) || selectedProduct.price;
+    variantPrice = Number(vAny) || selectedProduct.price;
   }
 }
 const price = variantPrice;
@@ -1037,11 +1038,12 @@ const price = variantPrice;
                 <button onClick={addSelectedToList} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">
                    В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); // Исправляем чтение цены варианта
 let variantPrice = selectedProduct.price;
-if (v?.price) {
-  if (typeof v.price === 'object') {
-    variantPrice = v.price.doubleValue || v.price.integerValue || selectedProduct.price;
+if (v?.price !== undefined && v?.price !== null) {
+  const vAny = v.price as any;
+  if (typeof vAny === 'object' && vAny !== null) {
+    variantPrice = Number(vAny.doubleValue ?? vAny.integerValue ?? selectedProduct.price);
   } else {
-    variantPrice = Number(v.price) || selectedProduct.price;
+    variantPrice = Number(vAny) || selectedProduct.price;
   }
 }
 const price = variantPrice; return s + price * sv.quantity; }, 0)} BYN
