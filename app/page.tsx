@@ -963,7 +963,10 @@ const price = variantPrice;
                     <div className="flex items-center justify-between mb-2 flex-shrink-0">
                       <span className="text-base font-bold gradient-text">
                         {(() => {
-                          const prices = p.variants.map(v => (v.price !== undefined && v.price !== null) ? v.price : p.price);
+                          const prices = p.variants.map(v => {
+                            const vPrice = (v.price !== undefined && v.price !== null && v.price > 0) ? v.price : p.price;
+                            return vPrice;
+                          });
                           const minP = Math.min(...prices);
                           const maxP = Math.max(...prices);
                           return minP === maxP ? `${minP} BYN` : `${minP}-${maxP} BYN`;
@@ -1011,7 +1014,7 @@ const price = variantPrice;
                               <input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" disabled={!isAvailable} />
                               <div>
                                 <span className={`text-xs font-medium ${!isAvailable ? 'text-gray-500 line-through' : ''}`}>{v.name}</span>
-                                <span className="text-[10px] text-gray-400 ml-2">{(v.price !== undefined && v.price !== null) ? v.price : selectedProduct.price} BYN</span>
+                                <span className="text-[10px] text-gray-400 ml-2">{(v.price !== undefined && v.price !== null && v.price > 0) ? v.price : selectedProduct.price} BYN</span>
                               </div>
                             </div>
                             <span className={`text-[10px] font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>{isAvailable ? avail + ' шт.' : 'Нет в наличии'}</span>
