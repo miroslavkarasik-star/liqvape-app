@@ -146,27 +146,22 @@ export default function Home() {
 
     // Пробуем загрузить из IndexedDB
     try {
-      console.log('🔍 Checking IndexedDB cache...', cacheKey);
-      const idbData = await idbGet(cacheKey);
-      console.log(' IndexedDB result:', idbData ? 'FOUND' : 'NOT FOUND', '- Products:', idbData?.products?.length);
-      
-      if (idbData && idbData.time && (Date.now() - idbData.time) < CACHE_DURATION) {
-        console.log('⚡ Loading from IndexedDB:', idbData.products?.length, 'products with images');
-        console.log('🖼️ First product has image:', !!idbData.products?.[0]?.image);
-        setProducts(idbData.products || []);
+    // Загружаем из LocalStorage
+    if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+      try {
+        const cachedProducts = JSON.parse(cached);
+        console.log('⚡ Load from cache:', cachedProducts.length, 'products');
+        console.log('🖼️ First product has image:', !!cachedProducts[0]?.image);
+        setProducts(cachedProducts);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
         setLoadingProgress(0);
         loadProductsFromDB(includeHidden, true).catch(console.error);
-        return idbData.products || [];
-      } else {
-        console.log(' Cache expired or empty');
+        return cachedProducts;
+      } catch(e) {
+        console.error('Cache parse error:', e);
       }
-    } catch(e) {
-      console.error('❌ IndexedDB load error:', e);
     }
-    
-    // Fallback на LocalStorage (без картинок)
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
         const cachedProducts = JSON.parse(cached);
@@ -261,15 +256,23 @@ export default function Home() {
       // Сохраняем в IndexedDB (с картинками)
       try {
         const imageCount = parsed.filter(p => p.image).length;
-        console.log('💾 Saving to IndexedDB:', parsed.length, 'products,', imageCount, 'with images');
-        console.log(' First product image size:', parsed[0]?.image ? `${(parsed[0].image.length / 1024).toFixed(1)} KB` : 'no image');
-        await idbSet(cacheKey, { products: parsed, time: Date.now() });
-        console.log('✅ IndexedDB save successful');
+      // Сохраняем в LocalStorage С картинками
+      try {
+        const imageCount = parsed.filter(p => p.image).length;
+        console.log(' Saving to LocalStorage:', parsed.length, 'products,', imageCount, 'with images');
+        if (parsed[0]?.image) {
+          console.log('🖼️ First product image size:', `${(parsed[0].image.length / 1024).toFixed(1)} KB`);
+        }
+        localStorage.setItem(cacheKey, JSON.stringify(parsed));
+        localStorage.setItem(cacheKey + '_time', Date.now().toString());
+        console.log('✅ Cache saved successfully');
       } catch(e) {
-        console.error('❌ IndexedDB save error:', e);
+        console.error('❌ Cache save error:', e);
+        const cacheWithoutImages = parsed.map(p => ({ ...p, image: null }));
+        localStorage.setItem(cacheKey, JSON.stringify(cacheWithoutImages));
+        localStorage.setItem(cacheKey + '_time', Date.now().toString());
+        console.log('⚠️ Saved without images due to quota');
       }
-      
-      // Также сохраняем в LocalStorage БЕЗ картинок (быстрый fallback)
       try {
         const cacheWithoutImages = parsed.map(p => ({ ...p, image: null }));
         localStorage.setItem(cacheKey, JSON.stringify(cacheWithoutImages));
