@@ -142,15 +142,14 @@ export default function Home() {
 
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
-        setLoadingProgress(100);
-        setLoadingMessage('Загрузка из кэша...');
         const parsed = JSON.parse(cached);
         setProducts(parsed);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
+        setLoadingProgress(0); // Скрываем прогресс-бар
         console.log('⚡ Instant load from cache:', parsed.length, 'products');
-        setTimeout(() => setLoadingProgress(0), 500);
-        loadProductsFromDB(includeHidden).catch(console.error);
+        // Фоновое обновление без прогресс-бара
+        loadProductsFromDB(includeHidden, true).catch(console.error);
         return parsed;
       } catch(e) {
         console.error('Cache parse error:', e);
@@ -159,20 +158,22 @@ export default function Home() {
     return await loadProductsFromDB(includeHidden);
   }, []);
 
-  const loadProductsFromDB = useCallback(async (includeHidden = false): Promise<Product[]> => {
+  const loadProductsFromDB = useCallback(async (includeHidden = false, silent = false): Promise<Product[]> => {
     try {
-      setLoadingProgress(10);
-      setLoadingMessage('Подключение к базе данных...');
+      if (!silent) {
+        setLoadingProgress(10);
+        setLoadingMessage('Подключение к базе данных...');
+      }
       
       const startTime = Date.now();
       const q = query(collection(db, 'products'));
       
-      setLoadingProgress(30);
+      if (!silent) setLoadingProgress(30);
       setLoadingMessage('Загрузка товаров...');
       
       const snapshot = await getDocs(q);
       
-      setLoadingProgress(60);
+      if (!silent) setLoadingProgress(60);
       setLoadingMessage('Обработка данных...');
       
       const parsed: Product[] = [];
@@ -205,12 +206,12 @@ export default function Home() {
         });
       });
       
-      setLoadingProgress(80);
+      if (!silent) setLoadingProgress(80);
       setLoadingMessage('Сортировка товаров...');
       
       parsed.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       
-      setLoadingProgress(90);
+      if (!silent) setLoadingProgress(90);
       setLoadingMessage('Сохранение в кэш...');
       
       setProducts(parsed);
@@ -229,10 +230,10 @@ export default function Home() {
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
       }
       
-      setLoadingProgress(100);
+      if (!silent) setLoadingProgress(100);
       setLoadingMessage('Готово!');
       console.log('✅ Firebase load complete in', Date.now() - startTime, 'ms');
-      setTimeout(() => setLoadingProgress(0), 1000);
+      if (!silent) setTimeout(() => setLoadingProgress(0), 500);
       
       return parsed;
     } catch(e) {
@@ -595,9 +596,7 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4">{CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ${selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{c}</button>))}</div>
           <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров{hasMore && <span className="text-gray-600"> • Показано: {displayCount}</span>}</div>
           
-          {isLoading && loadingProgress === 0 ? (
-             <div className="glass-panel p-8 text-center"><div className="animate-pulse space-y-4"><div className="h-4 w-24 bg-white/10 rounded mx-auto"></div><p className="text-gray-500 text-sm">Загрузка...</p></div></div>
-          ) : sortedProducts.length === 0 ? (
+          {sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
           ) : (
             <>
