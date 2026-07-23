@@ -43,7 +43,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
     img.src = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 200;
+      const MAX_WIDTH = 150; // Ещё меньше для мгновенной загрузки
       let width = img.width;
       let height = img.height;
       if (width > MAX_WIDTH) {
@@ -54,7 +54,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-      const base64 = canvas.toDataURL('image/webp', 0.4);
+      const base64 = canvas.toDataURL('image/webp', 0.3); // Минимальное качество
       resolve(base64);
     };
   });
@@ -94,6 +94,8 @@ export default function Home() {
   const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
   const [isTelegram, setIsTelegram] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -132,7 +134,6 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
-  // Cache-first загрузка
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
@@ -141,11 +142,14 @@ export default function Home() {
 
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
+        setLoadingProgress(100);
+        setLoadingMessage('Загрузка из кэша...');
         const parsed = JSON.parse(cached);
         setProducts(parsed);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
-        console.log(' Instant load from cache:', parsed.length, 'products');
+        console.log('⚡ Instant load from cache:', parsed.length, 'products');
+        setTimeout(() => setLoadingProgress(0), 500);
         loadProductsFromDB(includeHidden).catch(console.error);
         return parsed;
       } catch(e) {
@@ -157,10 +161,20 @@ export default function Home() {
 
   const loadProductsFromDB = useCallback(async (includeHidden = false): Promise<Product[]> => {
     try {
-      console.log('🔄 Background loading from Firebase...');
+      setLoadingProgress(10);
+      setLoadingMessage('Подключение к базе данных...');
+      
       const startTime = Date.now();
       const q = query(collection(db, 'products'));
+      
+      setLoadingProgress(30);
+      setLoadingMessage('Загрузка товаров...');
+      
       const snapshot = await getDocs(q);
+      
+      setLoadingProgress(60);
+      setLoadingMessage('Обработка данных...');
+      
       const parsed: Product[] = [];
       snapshot.forEach((docSnapshot) => {
         const p = docSnapshot.data();
@@ -190,10 +204,19 @@ export default function Home() {
           created_at: pAny.created_at || new Date().toISOString()
         });
       });
+      
+      setLoadingProgress(80);
+      setLoadingMessage('Сортировка товаров...');
+      
       parsed.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+      
+      setLoadingProgress(90);
+      setLoadingMessage('Сохранение в кэш...');
+      
       setProducts(parsed);
       setIsLoading(false);
       setDisplayCount(BATCH_SIZE);
+      
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       try {
         localStorage.setItem(cacheKey, JSON.stringify(parsed));
@@ -205,11 +228,17 @@ export default function Home() {
         localStorage.setItem(cacheKey, JSON.stringify(lightCache));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
       }
+      
+      setLoadingProgress(100);
+      setLoadingMessage('Готово!');
       console.log('✅ Firebase load complete in', Date.now() - startTime, 'ms');
+      setTimeout(() => setLoadingProgress(0), 1000);
+      
       return parsed;
     } catch(e) {
       console.error('❌ Load error:', e);
       setIsLoading(false);
+      setLoadingProgress(0);
       return [];
     }
   }, []);
@@ -509,6 +538,7 @@ export default function Home() {
         .lava-blob-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 140, 0, 0.5), transparent); top: 40%; left: 30%; animation-delay: -16s; }
         .lava-blob-4 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 94, 0, 0.4), transparent); top: 60%; right: 20%; animation-delay: -12s; }
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(255, 94, 0, 0.5); } 50% { box-shadow: 0 0 40px rgba(255, 94, 0, 0.8); } }
         @media (min-width: 768px) { body { overflow-y: auto !important; height: auto !important; } .min-h-screen { min-height: 100vh; } .max-w-md { max-width: 480px; margin-left: auto; margin-right: auto; } }
       `}</style>
       <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div><div className="lava-blob lava-blob-3"></div><div className="lava-blob lava-blob-4"></div></div>
@@ -529,6 +559,25 @@ export default function Home() {
 
       {showAdminLogin && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-4"><h2 className="text-lg font-bold gradient-text">Вход для админа</h2><button onClick={() => setShowAdminLogin(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div><input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" /><button onClick={handleAdminLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold hover:from-orange-600 hover:to-pink-600 transition-all">Войти</button></div></div>)}
 
+      {loadingProgress > 0 && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-8 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse">
+              <Cloud className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">LiqVape</h2>
+            <p className="text-sm text-gray-400 mb-6">{loadingMessage}</p>
+            <div className="w-full bg-white/10 rounded-full h-3 mb-3 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${loadingProgress}%` }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-500">{loadingProgress}%</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-md mx-auto px-3 relative z-10 pb-24">
         <div className="sticky top-0 z-40 -mx-3 px-3 py-2 bg-black/80 backdrop-blur-xl border-b border-white/5">
           <div className="flex items-center gap-2">
@@ -546,7 +595,7 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4">{CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ${selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{c}</button>))}</div>
           <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров{hasMore && <span className="text-gray-600"> • Показано: {displayCount}</span>}</div>
           
-          {isLoading ? (
+          {isLoading && loadingProgress === 0 ? (
              <div className="glass-panel p-8 text-center"><div className="animate-pulse space-y-4"><div className="h-4 w-24 bg-white/10 rounded mx-auto"></div><p className="text-gray-500 text-sm">Загрузка...</p></div></div>
           ) : sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
