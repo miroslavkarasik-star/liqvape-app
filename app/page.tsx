@@ -175,11 +175,7 @@ export default function Home() {
         setLoadingMessage('Загрузка товаров...');
       }
       
-      // Добавляем таймаут 10 секунд
-      const snapshot = await Promise.race([
-        getDocs(q),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 10000))
-      ]) as any;
+      const snapshot = await getDocs(q);
       
       if (!silent) {
         setLoadingProgress(60);
