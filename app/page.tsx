@@ -37,13 +37,15 @@ interface Product {
 }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
-const compressAndConvertToBase64 = (file: File): Promise<string> => {
+const compressAndConvertToBase64 = (file: File, forCache = false): Promise<string> => {
   return new Promise((resolve) => {
     const img = new Image();
     img.src = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 300;
+      // Для кэша ещё меньше размер
+      const MAX_WIDTH = forCache ? 200 : 300;
+      const quality = forCache ? 0.5 : 0.6;
       let width = img.width;
       let height = img.height;
       if (width > MAX_WIDTH) {
@@ -54,7 +56,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-      const base64 = canvas.toDataURL('image/webp', 0.6);
+      const base64 = canvas.toDataURL('image/webp', quality);
       resolve(base64);
     };
   });
@@ -96,7 +98,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const [hasLoadedFromCache, setHasLoadedFromCache] = useState(false);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
@@ -220,11 +222,16 @@ export default function Home() {
       setIsLoading(false);
       setDisplayCount(BATCH_SIZE);
       
-      // КЭШИРОВАНИЕ (без картинок для экономии места)
+      // КЭШИРОВАНИЕ (с очень сжатыми картинками)
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
-      const lightCache = parsed.map(p => ({ ...p, image: null }));
-      localStorage.setItem(cacheKey, JSON.stringify(lightCache));
+      // Для кэша сжимаем картинки ещё сильнее
+      const cacheProducts = parsed.map(p => ({
+        ...p,
+        // Оставляем картинки, они уже сжаты до 200px
+      }));
+      localStorage.setItem(cacheKey, JSON.stringify(cacheProducts));
       localStorage.setItem(cacheKey + '_time', Date.now().toString());
+      console.log('💾 Cached', cacheProducts.length, 'products with images');
       
       console.log('✅ Loaded', parsed.length, 'products in', Date.now() - startTime, 'ms');
       return parsed;
@@ -1021,7 +1028,7 @@ export default function Home() {
             {hasMore && <span className="text-gray-600"> • Показано: {displayCount}</span>}
           </div>
           
-          {isLoading && !hasLoadedFromCache ? (
+          {isLoading ? (
              <div className="glass-panel p-8 text-center">
                <div className="animate-pulse space-y-4">
                  <div className="h-4 w-24 bg-white/10 rounded mx-auto"></div>
