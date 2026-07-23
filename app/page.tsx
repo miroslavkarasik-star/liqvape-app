@@ -242,14 +242,37 @@ export default function Home() {
       
       const cacheKeySave = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       try {
-        const cacheData = JSON.stringify(parsed);
+        // Очищаем старые данные перед сохранением
+        localStorage.removeItem(cacheKeySave);
+        localStorage.removeItem(cacheKeySave + '_time');
+        
+        // Сохраняем БЕЗ картинок (только если это base64)
+        const cacheWithoutImages = parsed.map(p => {
+          // Если картинка это URL (не base64) - оставляем
+          // Если base64 - убираем
+          const hasBase64Image = p.image && p.image.startsWith('data:');
+          return {
+            ...p,
+            image: hasBase64Image ? null : p.image
+          };
+        });
+        
+        const cacheData = JSON.stringify(cacheWithoutImages);
         console.log('💾 Saving to cache:', cacheKeySave, 'Size:', (cacheData.length / 1024).toFixed(1), 'KB');
         localStorage.setItem(cacheKeySave, cacheData);
         localStorage.setItem(cacheKeySave + '_time', Date.now().toString());
         console.log('✅ Cache saved successfully');
       } catch(e) {
         console.error('❌ Cache save error:', e);
-        console.error('LocalStorage quota:', localStorage.length, 'items');
+        // Если всё равно переполнение - сохраняем вообще без картинок
+        try {
+          const minimalCache = parsed.map(p => ({ ...p, image: null }));
+          localStorage.setItem(cacheKeySave, JSON.stringify(minimalCache));
+          localStorage.setItem(cacheKeySave + '_time', Date.now().toString());
+          console.log('⚠️ Saved minimal cache without images');
+        } catch(e2) {
+          console.error('❌ Even minimal cache failed:', e2);
+        }
       }
       
       if (!silent) {
