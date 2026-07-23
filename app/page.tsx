@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { db } from '@/lib/firebase';
+import { idbGet, idbSet } from '@/lib/idb-cache';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
@@ -140,18 +141,31 @@ export default function Home() {
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
 
+    // Пробуем загрузить из IndexedDB (там картинки хранятся нормально)
+    try {
+      const idbData = await idbGet(cacheKey);
+      if (idbData && idbData.time && (Date.now() - idbData.time) < CACHE_DURATION) {
+        console.log('⚡ Instant load from IndexedDB:', idbData.products?.length, 'products');
+        setProducts(idbData.products || []);
+        setIsLoading(false);
+        setDisplayCount(BATCH_SIZE);
+        setLoadingProgress(0);
+        loadProductsFromDB(includeHidden, true).catch(console.error);
+        return idbData.products || [];
+      }
+    } catch(e) {
+      console.error('IndexedDB load error:', e);
+    }
+    
+    // Fallback на LocalStorage (без картинок)
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
         const cachedProducts = JSON.parse(cached);
-        console.log(' Loading from cache:', cachedProducts.length, 'products');
-        
-        // Показываем товары из кэша СРАЗУ
+        console.log('⚡ Load from LocalStorage cache:', cachedProducts.length, 'products');
         setProducts(cachedProducts);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
         setLoadingProgress(0);
-        
-        // Фоновое обновление для получения актуальных данных и картинок
         loadProductsFromDB(includeHidden, true).catch(console.error);
         return cachedProducts;
       } catch(e) {
@@ -234,14 +248,22 @@ export default function Home() {
       setDisplayCount(BATCH_SIZE);
       
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+      
+      // Сохраняем в IndexedDB (с картинками, лимит 50+ МБ)
       try {
-        // Сохраняем БЕЗ картинок чтобы не переполнять LocalStorage
+        await idbSet(cacheKey, { products: parsed, time: Date.now() });
+        console.log('💾 Saved to IndexedDB:', parsed.length, 'products (with images)');
+      } catch(e) {
+        console.error('IndexedDB save error:', e);
+      }
+      
+      // Также сохраняем в LocalStorage БЕЗ картинок (быстрый fallback)
+      try {
         const cacheWithoutImages = parsed.map(p => ({ ...p, image: null }));
         localStorage.setItem(cacheKey, JSON.stringify(cacheWithoutImages));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
-        console.log('💾 Cached', parsed.length, 'products (without images)');
       } catch(e) {
-        console.error('Cache save error:', e);
+        console.error('LocalStorage save error:', e);
       }
       
       if (!silent) setLoadingProgress(100);
