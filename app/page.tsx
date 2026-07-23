@@ -133,8 +133,35 @@ export default function Home() {
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
+    const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+    const cached = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(cacheKey + '_time');
+    const CACHE_DURATION = 5 * 60 * 1000; // 5 минут
+    
+    // 1. МГНОВЕННО показываем из кэша (если есть и не устарел)
+    if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+      try {
+        const parsed = JSON.parse(cached);
+        setProducts(parsed);
+        setIsLoading(false);
+        setDisplayCount(BATCH_SIZE);
+        console.log('⚡ Instant load from cache:', parsed.length, 'products');
+        
+        // 2. ФОНОВОЕ обновление (не блокирует UI, раз в 5 минут)
+        loadProductsFromDB(includeHidden).catch(console.error);
+        return parsed;
+      } catch(e) {
+        console.error('Cache parse error:', e);
+      }
+    }
+    
+    // 3. Если кэша нет или устарел — грузим из БД
+    return await loadProductsFromDB(includeHidden);
+  }, [isTelegram]);
+
+  const loadProductsFromDB = useCallback(async (includeHidden = false): Promise<Product[]> => {
     try {
-      console.log('🔄 Loading products...');
+      console.log('🔄 Loading from Firebase...');
       const startTime = Date.now();
       
       const q = query(collection(db, 'products'));
@@ -192,7 +219,7 @@ export default function Home() {
       setIsLoading(false);
       setDisplayCount(BATCH_SIZE);
       
-      // КЭШИРОВАНИЕ: в Telegram без картинок, в браузере с картинками
+      // КЭШИРОВАНИЕ
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       const cacheData = isTelegram 
         ? parsed.map(p => ({ ...p, image: null }))
@@ -200,16 +227,30 @@ export default function Home() {
       try {
         localStorage.setItem(cacheKey, JSON.stringify(cacheData));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
-        console.log('💾 Cached', cacheData.length, 'products' + (isTelegram ? ' (no images)' : ' (with images)'));
+        console.log('💾 Cached', cacheData.length, 'products');
       } catch(e) {
         console.warn('LocalStorage error:', e);
       }
       
-      console.log('✅ Loaded', parsed.length, 'products in', Date.now() - startTime, 'ms');
+      console.log('✅ Loaded from Firebase:', parsed.length, 'products in', Date.now() - startTime, 'ms');
       return parsed;
       
     } catch(e) {
       console.error('❌ Load error:', e);
+      
+      // Fallback на кэш при ошибке
+      const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          setProducts(parsed);
+          setIsLoading(false);
+          console.log('⚠️ Loaded from cache (fallback)');
+          return parsed;
+        } catch(err) {}
+      }
+      
       setIsLoading(false);
       return [];
     }
