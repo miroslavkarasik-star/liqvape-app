@@ -44,7 +44,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
     img.src = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 400;
+      const MAX_WIDTH = 300; // Уменьшили с 400 до 300 для скорости
       let width = img.width;
       let height = img.height;
       if (width > MAX_WIDTH) {
@@ -55,8 +55,8 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-      // Сохраняем как WebP с прозрачностью (сохраняем прозрачность!)
-      const base64 = canvas.toDataURL('image/webp', 0.7);
+      // WebP с качеством 0.6 (меньше размер)
+      const base64 = canvas.toDataURL('image/webp', 0.6);
       resolve(base64);
     };
   });
@@ -137,11 +137,21 @@ export default function Home() {
       const parsed: Product[] = [];
       snapshot.forEach((docSnapshot) => {
         const p = docSnapshot.data();
-        console.log('📄 Product:', p.name, 'Hidden:', p.is_hidden);
+        console.log(' Product:', p.name, 'Price:', p.price);
         if (!includeHidden && p.is_hidden) return;
+        
+        // Исправляем чтение цены (Firebase doubleValue)
+        let priceValue = 0;
+        if (p.price && typeof p.price === 'object') {
+          // Если price это объект {doubleValue: X}
+          priceValue = p.price.doubleValue || p.price.integerValue || 0;
+        } else {
+          priceValue = Number(p.price) || 0;
+        }
+        
         parsed.push({
           id: docSnapshot.id, name: p.name, category: p.category || 'Другое',
-          price: Number(p.price), image: p.image_url || null,
+          price: priceValue, image: p.image_url || null,
           variants: p.flavors || [],
           is_hidden: Boolean(p.is_hidden), is_preorder: Boolean(p.is_preorder),
         });
@@ -275,7 +285,16 @@ export default function Home() {
     let newList = [...selectionList];
     for (const sv of selectedVariants) {
       const v = selectedProduct.variants.find(x => x.name === sv.name);
-      const price = (v?.price !== undefined && v?.price !== null) ? v.price : selectedProduct.price;
+      // Исправляем чтение цены варианта
+let variantPrice = selectedProduct.price;
+if (v?.price) {
+  if (typeof v.price === 'object') {
+    variantPrice = v.price.doubleValue || v.price.integerValue || selectedProduct.price;
+  } else {
+    variantPrice = Number(v.price) || selectedProduct.price;
+  }
+}
+const price = variantPrice;
       const idx = newList.findIndex(i => i.productId === selectedProduct.id && i.variant === sv.name);
       if (idx >= 0) {
         newList[idx] = { ...newList[idx], quantity: newList[idx].quantity + sv.quantity, price };
@@ -1016,7 +1035,16 @@ export default function Home() {
               )}
               {selectedVariants.length > 0 ? (
                 <button onClick={addSelectedToList} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">
-                   В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); const price = (v?.price !== undefined && v?.price !== null) ? v.price : selectedProduct.price; return s + price * sv.quantity; }, 0)} BYN
+                   В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); // Исправляем чтение цены варианта
+let variantPrice = selectedProduct.price;
+if (v?.price) {
+  if (typeof v.price === 'object') {
+    variantPrice = v.price.doubleValue || v.price.integerValue || selectedProduct.price;
+  } else {
+    variantPrice = Number(v.price) || selectedProduct.price;
+  }
+}
+const price = variantPrice; return s + price * sv.quantity; }, 0)} BYN
                 </button>
               ) : (<div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-gray-400 text-sm">Выберите хотя бы один вкус</div>)}
             </div>
