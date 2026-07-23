@@ -138,19 +138,22 @@ export default function Home() {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
-    const CACHE_DURATION = 5 * 60 * 1000;
+    const CACHE_DURATION = 30 * 60 * 1000; // 30 минут
 
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
-        const parsed = JSON.parse(cached);
-        setProducts(parsed);
+        const cachedProducts = JSON.parse(cached);
+        console.log(' Loading from cache:', cachedProducts.length, 'products');
+        
+        // Показываем товары из кэша СРАЗУ
+        setProducts(cachedProducts);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
-        setLoadingProgress(0); // Скрываем прогресс-бар
-        console.log('⚡ Instant load from cache:', parsed.length, 'products');
-        // Фоновое обновление без прогресс-бара
+        setLoadingProgress(0);
+        
+        // Фоновое обновление для получения актуальных данных и картинок
         loadProductsFromDB(includeHidden, true).catch(console.error);
-        return parsed;
+        return cachedProducts;
       } catch(e) {
         console.error('Cache parse error:', e);
       }
@@ -160,9 +163,21 @@ export default function Home() {
 
   const loadProductsFromDB = useCallback(async (includeHidden = false, silent = false): Promise<Product[]> => {
     try {
+      // Если silent и кэш свежий - не делаем запрос
+      if (silent) {
+        const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
+        const cachedTime = localStorage.getItem(cacheKey + '_time');
+        if (cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
+          console.log('️ Skipping background update, cache is fresh');
+          return [];
+        }
+      }
+      
       if (!silent) {
         setLoadingProgress(10);
         setLoadingMessage('Подключение к базе данных...');
+      } else {
+        console.log('🔄 Background update started...');
       }
       
       const startTime = Date.now();
@@ -220,14 +235,13 @@ export default function Home() {
       
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       try {
-        localStorage.setItem(cacheKey, JSON.stringify(parsed));
+        // Сохраняем БЕЗ картинок чтобы не переполнять LocalStorage
+        const cacheWithoutImages = parsed.map(p => ({ ...p, image: null }));
+        localStorage.setItem(cacheKey, JSON.stringify(cacheWithoutImages));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
-        console.log('💾 Cached', parsed.length, 'products');
+        console.log('💾 Cached', parsed.length, 'products (without images)');
       } catch(e) {
-        console.warn('LocalStorage quota exceeded');
-        const lightCache = parsed.map(p => ({ ...p, image: null }));
-        localStorage.setItem(cacheKey, JSON.stringify(lightCache));
-        localStorage.setItem(cacheKey + '_time', Date.now().toString());
+        console.error('Cache save error:', e);
       }
       
       if (!silent) setLoadingProgress(100);
