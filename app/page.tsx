@@ -2,7 +2,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { db } from '@/lib/firebase';
-import { idbGet, idbSet } from '@/lib/idb-cache';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
@@ -44,10 +43,9 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
     img.src = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      // Для Telegram ещё меньше размер
-      const isTelegram = typeof window !== 'undefined' && (window as any).Telegram?.WebApp;
-      const MAX_WIDTH = isTelegram ? 100 : 150;
-      const quality = isTelegram ? 0.2 : 0.3;
+      // Минимальный размер для Telegram
+      const MAX_WIDTH = 80;
+      const quality = 0.15;
       
       let width = img.width;
       let height = img.height;
@@ -59,8 +57,8 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-      const base64 = canvas.toDataURL('image/webp', quality);
-      console.log(' Image compressed:', `${(base64.length / 1024).toFixed(1)} KB`, `(Telegram: ${isTelegram})`);
+      const base64 = canvas.toDataURL('image/jpeg', quality); // JPEG вместо WebP для совместимости
+      console.log('️ Image compressed:', `${(base64.length / 1024).toFixed(1)} KB`);
       resolve(base64);
     };
   });
