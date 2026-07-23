@@ -143,19 +143,28 @@ export default function Home() {
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
     
+    console.log('🔍 Checking cache...');
+    console.log('  Cached data:', cached ? `${(cached.length / 1024).toFixed(1)} KB` : 'NOT FOUND');
+    console.log('  Cached time:', cachedTime ? `${Math.round((Date.now() - parseInt(cachedTime)) / 1000)}s ago` : 'NOT SET');
+    console.log('  Cache valid:', cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION);
+    
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
         const cachedProducts = JSON.parse(cached);
-        console.log(' Load from cache:', cachedProducts.length, 'products');
+        console.log(' Loading from cache:', cachedProducts.length, 'products');
         setProducts(cachedProducts);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
-        setLoadingProgress(0);
+        setLoadingProgress(0); // Скрываем прогресс-бар
+        console.log('✅ Cache loaded, progress bar hidden');
+        // Фоновое обновление БЕЗ прогресс-бара
         loadProductsFromDB(includeHidden, true).catch(console.error);
         return cachedProducts;
       } catch(e) {
-        console.error('Cache parse error:', e);
+        console.error('❌ Cache parse error:', e);
       }
+    } else {
+      console.log('⏰ Cache expired or empty, loading from Firebase');
     }
     return await loadProductsFromDB(includeHidden);
   }, []);
@@ -163,8 +172,11 @@ export default function Home() {
   const loadProductsFromDB = useCallback(async (includeHidden = false, silent = false): Promise<Product[]> => {
     try {
       if (!silent) {
+        console.log(' Loading from Firebase with progress bar...');
         setLoadingProgress(10);
         setLoadingMessage('Подключение к базе данных...');
+      } else {
+        console.log('🔄 Background update (no progress bar)...');
       }
       
       const startTime = Date.now();
@@ -230,11 +242,14 @@ export default function Home() {
       
       const cacheKeySave = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       try {
-        localStorage.setItem(cacheKeySave, JSON.stringify(parsed));
+        const cacheData = JSON.stringify(parsed);
+        console.log('💾 Saving to cache:', cacheKeySave, 'Size:', (cacheData.length / 1024).toFixed(1), 'KB');
+        localStorage.setItem(cacheKeySave, cacheData);
         localStorage.setItem(cacheKeySave + '_time', Date.now().toString());
-        console.log('💾 Cached', parsed.length, 'products (URLs only)');
+        console.log('✅ Cache saved successfully');
       } catch(e) {
-        console.error('Cache save error:', e);
+        console.error('❌ Cache save error:', e);
+        console.error('LocalStorage quota:', localStorage.length, 'items');
       }
       
       if (!silent) {
