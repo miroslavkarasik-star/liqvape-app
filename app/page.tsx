@@ -44,7 +44,11 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
     img.src = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 150; // Ещё меньше для мгновенной загрузки
+      // Для Telegram ещё меньше размер
+      const isTelegram = typeof window !== 'undefined' && (window as any).Telegram?.WebApp;
+      const MAX_WIDTH = isTelegram ? 100 : 150;
+      const quality = isTelegram ? 0.2 : 0.3;
+      
       let width = img.width;
       let height = img.height;
       if (width > MAX_WIDTH) {
@@ -55,7 +59,8 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-      const base64 = canvas.toDataURL('image/webp', 0.3); // Минимальное качество
+      const base64 = canvas.toDataURL('image/webp', quality);
+      console.log(' Image compressed:', `${(base64.length / 1024).toFixed(1)} KB`, `(Telegram: ${isTelegram})`);
       resolve(base64);
     };
   });
@@ -141,20 +146,26 @@ export default function Home() {
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
 
-    // Пробуем загрузить из IndexedDB (там картинки хранятся нормально)
+    // Пробуем загрузить из IndexedDB
     try {
+      console.log('🔍 Checking IndexedDB cache...', cacheKey);
       const idbData = await idbGet(cacheKey);
+      console.log(' IndexedDB result:', idbData ? 'FOUND' : 'NOT FOUND', '- Products:', idbData?.products?.length);
+      
       if (idbData && idbData.time && (Date.now() - idbData.time) < CACHE_DURATION) {
-        console.log('⚡ Instant load from IndexedDB:', idbData.products?.length, 'products');
+        console.log('⚡ Loading from IndexedDB:', idbData.products?.length, 'products with images');
+        console.log('🖼️ First product has image:', !!idbData.products?.[0]?.image);
         setProducts(idbData.products || []);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
         setLoadingProgress(0);
         loadProductsFromDB(includeHidden, true).catch(console.error);
         return idbData.products || [];
+      } else {
+        console.log(' Cache expired or empty');
       }
     } catch(e) {
-      console.error('IndexedDB load error:', e);
+      console.error('❌ IndexedDB load error:', e);
     }
     
     // Fallback на LocalStorage (без картинок)
@@ -249,12 +260,15 @@ export default function Home() {
       
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       
-      // Сохраняем в IndexedDB (с картинками, лимит 50+ МБ)
+      // Сохраняем в IndexedDB (с картинками)
       try {
+        const imageCount = parsed.filter(p => p.image).length;
+        console.log('💾 Saving to IndexedDB:', parsed.length, 'products,', imageCount, 'with images');
+        console.log(' First product image size:', parsed[0]?.image ? `${(parsed[0].image.length / 1024).toFixed(1)} KB` : 'no image');
         await idbSet(cacheKey, { products: parsed, time: Date.now() });
-        console.log('💾 Saved to IndexedDB:', parsed.length, 'products (with images)');
+        console.log('✅ IndexedDB save successful');
       } catch(e) {
-        console.error('IndexedDB save error:', e);
+        console.error('❌ IndexedDB save error:', e);
       }
       
       // Также сохраняем в LocalStorage БЕЗ картинок (быстрый fallback)
