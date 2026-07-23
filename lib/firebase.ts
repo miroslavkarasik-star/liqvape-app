@@ -6,9 +6,9 @@ const firebaseConfig = {
   apiKey: "AIzaSyCw20afz6hEA2O7-Ix7tCuwuX_9JKpybA0",
   authDomain: "liqvape-shop.firebaseapp.com",
   projectId: "liqvape-shop",
-  storageBucket: "liqvape-shop.firebasestorage.app",
-  messagingSenderId: "311670552537",
-  appId: "1:311670552537:web:4cbbec3994704adb64cbc8"
+  storageBucket: "liqvape-shop.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123"
 };
 
 const app = initializeApp(firebaseConfig);
