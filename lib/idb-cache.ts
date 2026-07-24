@@ -1,6 +1,6 @@
-// Простая обёртка над IndexedDB для кэширования товаров с картинками
+// IndexedDB для хранения картинок (лимит 50+ МБ)
 const DB_NAME = 'liqvape_cache';
-const STORE_NAME = 'products';
+const STORE_NAME = 'product_images';
 const DB_VERSION = 1;
 
 function openDB(): Promise<IDBDatabase> {
@@ -17,14 +17,14 @@ function openDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function idbGet(key: string): Promise<any> {
+export async function idbGet(key: string): Promise<string | null> {
   try {
     const db = await openDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readonly');
       const store = tx.objectStore(STORE_NAME);
       const request = store.get(key);
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
   } catch (e) {
@@ -33,7 +33,7 @@ export async function idbGet(key: string): Promise<any> {
   }
 }
 
-export async function idbSet(key: string, value: any): Promise<void> {
+export async function idbSet(key: string, value: string): Promise<void> {
   try {
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -48,17 +48,17 @@ export async function idbSet(key: string, value: any): Promise<void> {
   }
 }
 
-export async function idbDelete(key: string): Promise<void> {
+export async function idbClear(): Promise<void> {
   try {
     const db = await openDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(STORE_NAME, 'readwrite');
       const store = tx.objectStore(STORE_NAME);
-      const request = store.delete(key);
+      const request = store.clear();
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
   } catch (e) {
-    console.warn('IndexedDB delete error:', e);
+    console.warn('IndexedDB clear error:', e);
   }
 }

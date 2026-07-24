@@ -451,15 +451,26 @@ export default function Home() {
       // Сжимаем картинку
       const compressedBlob = await compressImage(file);
       
-      // Загружаем в Firebase Storage
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substring(7);
-      const storageRef = ref(storage, `products/${timestamp}_${randomId}.webp`);
-      await uploadBytes(storageRef, compressedBlob);
+      // Конвертируем в base64 для Imgur
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(compressedBlob);
+      });
       
-      // Получаем URL
-      const imageUrl = await getDownloadURL(storageRef);
-      console.log('✅ Image uploaded:', imageUrl);
+      // Загружаем на Imgur (бесплатно, быстро)
+      const response = await fetch('https://api.imgur.com/3/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Client-ID YOUR_CLIENT_ID', // Зарегистрируйся на https://api.imgur.com/
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: base64 })
+      });
+      
+      const data = await response.json();
+      const imageUrl = data.data.link;
+      console.log('✅ Image uploaded to Imgur:', imageUrl);
       
       setEditingProduct({ ...editingProduct, image: imageUrl });
       showNotification('Фото загружено!', 'success');
