@@ -1,20 +1,12 @@
 'use client';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query } from 'firebase/firestore';
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
-const CATEGORY_PRIORITY: Record<string, number> = {
-  'Жидкости': 1, 'Снюс': 2, 'Расходники': 3,
-  'POD-системы': 4, 'Одноразки': 5, 'Табак-угли': 6, 'Другое': 7,
-};
-const LETTER_PRIORITY: Record<string, string[]> = {
-  'Жидкости': ['R','D','C','A','B','E','P','G','S','F','H'],
-  'Снюс': ['D','E','G','F'],
-  'Одноразки': ['P','K','E'],
-  'Расходники': ['V'],
-};
+const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Снюс': 2, 'Расходники': 3, 'POD-системы': 4, 'Одноразки': 5, 'Табак-угли': 6, 'Другое': 7 };
+const LETTER_PRIORITY: Record<string, string[]> = { 'Жидкости': ['R','D','C','A','B','E','P','G','S','F','H'], 'Снюс': ['D','E','G','F'], 'Одноразки': ['P','K','E'], 'Расходники': ['V'] };
 
 const getLetterPriority = (name: string, category: string): number => {
   if (category === 'Расходники' && name.toUpperCase().startsWith('VAPORESSO')) return -1;
@@ -31,10 +23,7 @@ const CHANNEL_USERNAME = 'zslvape';
 const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 
 interface Variant { name: string; stock: number; price?: number; }
-interface Product {
-  id: string; name: string; category: string; price: number; image: string | null;
-  variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string;
-}
+interface Product { id: string; name: string; category: string; price: number; image: string | null; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
 const compressAndConvertToBase64 = (file: File): Promise<string> => {
@@ -46,10 +35,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       const MAX_WIDTH = 100;
       let width = img.width;
       let height = img.height;
-      if (width > MAX_WIDTH) {
-        height *= MAX_WIDTH / width;
-        width = MAX_WIDTH;
-      }
+      if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
       canvas.width = width;
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
@@ -61,7 +47,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
 };
 
 const BATCH_SIZE = 12;
-const CACHE_DURATION = 30 * 60 * 1000; // 30 минут
+const CACHE_DURATION = 60 * 60 * 1000; // 1 час
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -98,14 +84,10 @@ export default function Home() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
-  const [isTelegram, setIsTelegram] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const progressIntervalRef = useRef<any>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
       (window as any).Telegram.WebApp.ready();
-      setIsTelegram(true);
       const platform = (window as any).Telegram.WebApp.platform || '';
       const isDesktop = platform.toLowerCase().includes('tdesktop') || platform.toLowerCase().includes('macos');
       if (!isDesktop) (window as any).Telegram.WebApp.expand();
@@ -136,55 +118,24 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
-  // Плавная анимация прогресс-бара
-  const startSmoothProgress = useCallback(() => {
-    let current = 5;
-    setLoadingProgress(5);
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    progressIntervalRef.current = setInterval(() => {
-      current += Math.random() * 8 + 2;
-      if (current >= 90) {
-        current = 90;
-        if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-      }
-      setLoadingProgress(Math.min(current, 90));
-    }, 200);
-  }, []);
-
-  const completeProgress = useCallback(() => {
-    if (progressIntervalRef.current) clearInterval(progressIntervalRef.current);
-    setLoadingProgress(100);
-    setTimeout(() => {
-      setLoadingProgress(0);
-      setLoadingMessage('');
-    }, 800);
-  }, []);
-
-  // Загрузка товаров
   const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
     
-    // Если есть свежий кэш (меньше 30 минут) - загружаем МГНОВЕННО
     if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
       try {
         const parsed = JSON.parse(cached);
-        console.log('⚡ Мгновенная загрузка из кэша:', parsed.length, 'товаров');
         setProducts(parsed);
         setIsLoading(false);
         setDisplayCount(BATCH_SIZE);
         setLoadingProgress(0);
         setLoadingMessage('');
-        // Тихое фоновое обновление
         loadProductsFromDB(includeHidden, true).catch(() => {});
         return parsed;
-      } catch(e) {
-        console.error('Ошибка парсинга кэша:', e);
-      }
+      } catch(e) { console.error('Cache error:', e); }
     }
     
-    // Первый вход - показываем прогресс-бар
     return await loadProductsFromDB(includeHidden, false);
   }, []);
 
@@ -192,17 +143,17 @@ export default function Home() {
     try {
       if (!silent) {
         setLoadingMessage('Подождите пожалуйста, идёт загрузка товаров...');
-        startSmoothProgress();
+        setLoadingProgress(10);
       }
       
       const startTime = Date.now();
       const q = query(collection(db, 'products'));
       
-      if (!silent) setLoadingMessage('Получаем данные из базы...');
+      if (!silent) setLoadingProgress(40);
       
       const snapshot = await getDocs(q);
       
-      if (!silent) setLoadingMessage('Обрабатываем товары...');
+      if (!silent) setLoadingProgress(70);
       
       const parsed: Product[] = [];
       snapshot.forEach((docSnapshot) => {
@@ -234,7 +185,7 @@ export default function Home() {
         });
       });
       
-      if (!silent) setLoadingMessage('Сортируем и сохраняем...');
+      if (!silent) setLoadingProgress(90);
       
       parsed.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       
@@ -242,39 +193,30 @@ export default function Home() {
       setIsLoading(false);
       setDisplayCount(BATCH_SIZE);
       
-      // Сохраняем в кэш
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       try {
         localStorage.setItem(cacheKey, JSON.stringify(parsed));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
-        console.log('💾 Сохранено в кэш:', parsed.length, 'товаров');
       } catch(e) {
-        console.error('Ошибка сохранения кэша:', e);
         const withoutImages = parsed.map(p => ({ ...p, image: null }));
         localStorage.setItem(cacheKey, JSON.stringify(withoutImages));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
       }
       
       if (!silent) {
+        setLoadingProgress(100);
         setLoadingMessage('Готово! Все товары загружены.');
-        completeProgress();
+        setTimeout(() => { setLoadingProgress(0); setLoadingMessage(''); }, 1000);
       }
-      console.log('✅ Загрузка завершена за', Date.now() - startTime, 'мс');
       
       return parsed;
     } catch(e) {
-      console.error('❌ Ошибка загрузки:', e);
-      if (!silent) {
-        setLoadingMessage('Ошибка загрузки. Пробуем из кэша...');
-        setTimeout(() => {
-          setLoadingProgress(0);
-          setLoadingMessage('');
-        }, 1500);
-      }
+      console.error('Load error:', e);
       setIsLoading(false);
+      if (!silent) { setLoadingProgress(0); setLoadingMessage(''); }
       return [];
     }
-  }, [startSmoothProgress, completeProgress]);
+  }, []);
 
   const loadAllRequests = useCallback(async () => {
     try {
@@ -284,7 +226,7 @@ export default function Home() {
       snapshot.forEach((docSnapshot) => requests.push({ id: docSnapshot.id, ...docSnapshot.data() }));
       requests.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
       setAllRequests(requests);
-    } catch(e) { console.error('Ошибка загрузки заказов:', e); }
+    } catch(e) { console.error('Load requests error:', e); }
   }, []);
 
   useEffect(() => {
@@ -337,13 +279,14 @@ export default function Home() {
   const hasMore = displayCount < sortedProducts.length;
 
   useEffect(() => {
-    if (!sentinelRef.current) return;
+    if (!hasMore || isLoading) return;
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore && !isLoading) {
+      if (entries[0].isIntersecting) {
         setDisplayCount(prev => Math.min(prev + BATCH_SIZE, sortedProducts.length));
       }
-    }, { threshold: 0.1, rootMargin: '100px' });
-    observer.observe(sentinelRef.current);
+    }, { threshold: 0.1 });
+    const sentinel = document.getElementById('load-more-sentinel');
+    if (sentinel) observer.observe(sentinel);
     return () => observer.disconnect();
   }, [hasMore, isLoading, sortedProducts.length]);
 
@@ -402,7 +345,7 @@ export default function Home() {
       message += `📦 ${name}\n`;
       for (const item of items) message += `   • ${item.variant} × ${item.quantity}${item.isPreorder ? ' [ПРЕДЗАКАЗ]' : ''}\n`;
     }
-    message += `\n Итого: ${totalPrice.toFixed(2)} BYN`;
+    message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
     const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
     if (typeof window !== 'undefined') {
       const isDesktop = ((window as any).Telegram?.WebApp?.platform || '').toLowerCase().includes('tdesktop') || ((window as any).Telegram?.WebApp?.platform || '').toLowerCase().includes('macos');
@@ -577,7 +520,7 @@ export default function Home() {
 
       {notification && (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"><div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}><div className="flex flex-col items-center text-center"><div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>{notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}</div><p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p></div></div></div>)}
 
-      {showFirstTimeTutorial && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 relative z-10">{tutorialStep === 0 && (<div className="text-center"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-3">Добро пожаловать!</h2><p className="text-gray-400 text-xs mb-4">Быстрый гайд по заказу</p><button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать</button></div>)}{tutorialStep === 1 && (<div className="text-center"><div className="text-4xl mb-4">🛍️</div><h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2><p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p><button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 2 && (<div className="text-center"><div className="text-4xl mb-4">📋</div><h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2><p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p><button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 3 && (<div className="text-center"><div className="text-4xl mb-4">📤</div><h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй</h2><p className="text-gray-400 text-xs mb-4">Нажми "Отправить" для перехода в Telegram</p><button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button></div>)}</div></div>)}
+      {showFirstTimeTutorial && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 relative z-10">{tutorialStep === 0 && (<div className="text-center"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-3">Добро пожаловать!</h2><p className="text-gray-400 text-xs mb-4">Быстрый гайд по заказу</p><button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать</button></div>)}{tutorialStep === 1 && (<div className="text-center"><div className="text-4xl mb-4">️</div><h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2><p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p><button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 2 && (<div className="text-center"><div className="text-4xl mb-4">📋</div><h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2><p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p><button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 3 && (<div className="text-center"><div className="text-4xl mb-4">📤</div><h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй</h2><p className="text-gray-400 text-xs mb-4">Нажми "Отправить" для перехода в Telegram</p><button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button></div>)}</div></div>)}
 
       {showSubscribePrompt && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><button onClick={() => setShowSubscribePrompt(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4 text-gray-400" /></button><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Подпишись на канал</h2><button onClick={() => { if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.openTelegramLink) (window as any).Telegram.WebApp.openTelegramLink(CHANNEL_LINK); else window.open(CHANNEL_LINK, '_blank'); setTimeout(() => setShowSubscribePrompt(false), 1000); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white mb-2">Подписаться</button><button onClick={() => setShowSubscribePrompt(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">Продолжить</button></div></div>)}
 
@@ -600,10 +543,7 @@ export default function Home() {
             <h2 className="text-xl font-bold text-white mb-2">LiqVape</h2>
             <p className="text-sm text-gray-400 mb-6">{loadingMessage}</p>
             <div className="w-full bg-white/10 rounded-full h-3 mb-3 overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${loadingProgress}%` }}
-              ></div>
+              <div className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${loadingProgress}%` }}></div>
             </div>
             <p className="text-xs text-gray-500">{Math.round(loadingProgress)}%</p>
           </div>
@@ -666,7 +606,7 @@ export default function Home() {
                   );
                 })}
               </div>
-              <div ref={sentinelRef} className="h-20 flex items-center justify-center">
+              <div id="load-more-sentinel" className="h-20 flex items-center justify-center">
                 {hasMore && (<div className="glass-panel px-4 py-2"><div className="animate-pulse text-xs text-gray-400">Загрузка ещё товаров...</div></div>)}
               </div>
             </>
