@@ -63,7 +63,7 @@ const compressImage = (file: File): Promise<Blob> => {
   });
 };
 
-const CACHE_DURATION = 30 * 60 * 1000; // 30 минут
+const CACHE_DURATION = 15 * 60 * 1000; // 15 минут
 const BATCH_SIZE = 12;
 
 export default function Home() {
