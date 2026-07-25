@@ -32,7 +32,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
     img.src = URL.createObjectURL(file);
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 100;
+      const MAX_WIDTH = 400; // Увеличил с 100 до 400
       let width = img.width;
       let height = img.height;
       if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
@@ -40,7 +40,7 @@ const compressAndConvertToBase64 = (file: File): Promise<string> => {
       canvas.height = height;
       const ctx = canvas.getContext('2d')!;
       ctx.drawImage(img, 0, 0, width, height);
-      const base64 = canvas.toDataURL('image/webp', 0.4);
+      const base64 = canvas.toDataURL('image/webp', 0.8); // Увеличил качество с 0.4 до 0.8
       resolve(base64);
     };
   });
