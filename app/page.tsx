@@ -124,12 +124,23 @@ export default function Home() {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Raw data from Supabase:', productsData);
+      
+      // Проверяем что данные это массив
+      if (!productsData || !Array.isArray(productsData)) {
+        console.error('Invalid data format:', productsData);
+        throw new Error('Invalid data format from Supabase');
+      }
       
       if (!silent) setLoadingProgress(70);
       
       const parsed: Product[] = [];
-      (productsData || []).forEach((p: any) => {
+      productsData.forEach((p: any) => {
         if (!includeHidden && p.is_hidden) return;
         const variants = (p.flavors || []).map((v: any) => ({
           name: String(v.name || ''),
