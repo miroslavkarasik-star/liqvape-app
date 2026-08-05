@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.1",
     "@twa-dev/sdk": "^8.0.2",
     "date-fns": "^4.4.0",
     "firebase": "^12.16.0",
