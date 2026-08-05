@@ -126,15 +126,19 @@ export default function Home() {
       
       if (error) {
         console.error('Supabase error:', error);
-        throw error;
+        throw new Error('Failed to load products: ' + error.message);
       }
       
-      console.log('Raw data from Supabase:', productsData);
+      console.log('Supabase response:', productsData);
       
-      // Проверяем что данные это массив
       if (!productsData || !Array.isArray(productsData)) {
-        console.error('Invalid data format:', productsData);
-        throw new Error('Invalid data format from Supabase');
+        console.warn('No data or invalid format:', productsData);
+        if (!silent) {
+          setLoadingProgress(100);
+          setLoadingMessage('Товары не найдены');
+          setTimeout(() => { setLoadingProgress(0); setLoadingMessage(''); }, 2000);
+        }
+        return [];
       }
       
       if (!silent) setLoadingProgress(70);
@@ -142,14 +146,33 @@ export default function Home() {
       const parsed: Product[] = [];
       productsData.forEach((p: any) => {
         if (!includeHidden && p.is_hidden) return;
-        const variants = (p.flavors || []).map((v: any) => ({
-          name: String(v.name || ''),
-          stock: Number(v.stock) || 0,
-          price: v.price !== undefined ? Number(v.price) : p.price
-        }));
+        
+        let variants = [];
+        try {
+          if (p.flavors) {
+            if (typeof p.flavors === 'string') {
+              const parsedFlavors = JSON.parse(p.flavors);
+              variants = Array.isArray(parsedFlavors) ? parsedFlavors.map((v: any) => ({
+                name: String(v.name || ''),
+                stock: Number(v.stock) || 0,
+                price: v.price !== undefined ? Number(v.price) : p.price
+              })) : [];
+            } else if (Array.isArray(p.flavors)) {
+              variants = p.flavors.map((v: any) => ({
+                name: String(v.name || ''),
+                stock: Number(v.stock) || 0,
+                price: v.price !== undefined ? Number(v.price) : p.price
+              }));
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing flavors:', e, p);
+          variants = [];
+        }
+        
         parsed.push({
-          id: p.id,
-          name: p.name,
+          id: p.id || '',
+          name: p.name || 'Без названия',
           category: p.category || 'Другое',
           price: Number(p.price) || 0,
           image: p.image_url || null,
