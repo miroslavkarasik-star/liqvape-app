@@ -505,7 +505,7 @@ export default function Home() {
           )}
           {showProductForm && editingProduct && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
-              <div className="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
+              <div className="bg-black border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
                 <div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold text-orange-400">{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2><button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center"><X className="w-5 h-5" /></button></div>
                 <div className="mb-4"><label className="text-xs text-gray-400 mb-1.5 block">Название товара</label><input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
