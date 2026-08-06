@@ -16,7 +16,7 @@ interface Product { id: string; name: string; category: string; price: number; i
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
 const BATCH_SIZE = 12;
-const CACHE_DURATION = 60 * 60 * 1000;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 часа кэш
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -191,12 +191,35 @@ export default function Home() {
       
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       try {
-        localStorage.setItem(cacheKey, JSON.stringify(parsed));
+        // Оптимизированный кэш - убираем лишние данные
+        const optimizedCache = parsed.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          category: p.category,
+          image: p.image,
+          variants: p.variants,
+          is_preorder: p.is_preorder,
+          // Не сохраняем is_hidden и created_at в кэше для экономии места
+        }));
+        localStorage.setItem(cacheKey, JSON.stringify(optimizedCache));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
+        console.log('💾 Optimized cache saved:', optimizedCache.length, 'products');
       } catch(e) {
-        const withoutImages = parsed.map(p => ({ ...p, image: null }));
-        localStorage.setItem(cacheKey, JSON.stringify(withoutImages));
+        console.error('Cache save error:', e);
+        // Если переполнение - сохраняем совсем минимум
+        const minimalCache = parsed.map(p => ({
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          category: p.category,
+          image: null, // Без картинок
+          variants: p.variants.slice(0, 3), // Только первые 3 варианта
+          is_preorder: p.is_preorder,
+        }));
+        localStorage.setItem(cacheKey, JSON.stringify(minimalCache));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
+        console.warn('⚠️ Saved minimal cache due to quota');
       }
       
       if (!silent) {
@@ -217,7 +240,25 @@ export default function Home() {
 
   const loadAllRequests = useCallback(async () => {
     try {
-      const { data: requestsData, error } = await supabase.from('user_requests').select('*').order('created_at', { ascending: false });
+      // Очищаем старые заказы (старше 30 дней)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      const { error: deleteError } = await supabase
+        .from('user_requests')
+        .delete()
+        .lt('created_at', thirtyDaysAgo.toISOString());
+      
+      if (deleteError) console.error('Error cleaning old requests:', deleteError);
+      else console.log('✅ Cleaned old orders (>30 days)');
+      
+      // Загружаем актуальные заказы
+      const { data: requestsData, error } = await supabase
+        .from('user_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100); // Максимум 100 последних заказов
+      
       if (error) throw error;
       setAllRequests(requestsData || []);
     } catch(e) { console.error('Load requests error:', e); }
@@ -226,6 +267,22 @@ export default function Home() {
   useEffect(() => {
     loadProducts(isAdmin);
     if (isAdmin) loadAllRequests();
+    
+    // Очищаем старый кэш раз в час
+    const cleanupInterval = setInterval(() => {
+      const now = Date.now();
+      const cacheKeys = ['liqvape_products', 'liqvape_products_admin'];
+      cacheKeys.forEach(key => {
+        const cachedTime = localStorage.getItem(key + '_time');
+        if (cachedTime && (now - parseInt(cachedTime)) > CACHE_DURATION) {
+          localStorage.removeItem(key);
+          localStorage.removeItem(key + '_time');
+          console.log('🗑️ Cleaned expired cache:', key);
+        }
+      });
+    }, 60 * 60 * 1000); // Каждый час
+    
+    return () => clearInterval(cleanupInterval);
   }, [isAdmin, loadProducts, loadAllRequests]);
 
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
