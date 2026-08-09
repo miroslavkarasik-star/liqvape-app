@@ -6,6 +6,13 @@ import { supabase } from '@/lib/supabase';
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Снюс': 2, 'Расходники': 3, 'POD-системы': 4, 'Одноразки': 5, 'Табак-угли': 6, 'Другое': 7 };
 
+// Приоритет брендов для расходников
+const CONSUMABLE_BRAND_PRIORITY: Record<string, number> = {
+  'VAPORESSO XROS': 1,
+  'Voopoo VMATE': 2,
+  'GEEKVAPE Boost Hero': 3,
+};
+
 const ADMIN_PASSWORD = 'K7m2Q9';
 const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'zslvape';
@@ -310,10 +317,30 @@ export default function Home() {
       const aP = getPriority(aAvail > 0, a.is_preorder);
       const bP = getPriority(bAvail > 0, b.is_preorder);
       if (aP !== bP) return aP - bP;
-      const aCat = CATEGORY_PRIORITY[a.category] || 99;
-      const bCat = CATEGORY_PRIORITY[b.category] || 99;
-      if (aCat !== bCat) return aCat - bCat;
-      return 0;
+      
+      // Специальная сортировка для расходников по брендам
+      if (selectedCategory === 'Расходники') {
+        const aBrand = Object.keys(CONSUMABLE_BRAND_PRIORITY).find(brand => 
+          a.name.toUpperCase().includes(brand.toUpperCase())
+        );
+        const bBrand = Object.keys(CONSUMABLE_BRAND_PRIORITY).find(brand => 
+          b.name.toUpperCase().includes(brand.toUpperCase())
+        );
+        
+        const aPriority = aBrand ? CONSUMABLE_BRAND_PRIORITY[aBrand] : 999;
+        const bPriority = bBrand ? CONSUMABLE_BRAND_PRIORITY[bBrand] : 999;
+        
+        if (aPriority !== bPriority) return aPriority - bPriority;
+        
+        // Если оба не в приоритетных брендах - сортируем по алфавиту
+        if (aPriority === 999 && bPriority === 999) {
+          return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
+        }
+        return 0;
+      }
+      
+      // Для остальных категорий - русская сортировка
+      return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
     });
   }, [filteredProducts, selectedCategory]);
 
@@ -417,7 +444,11 @@ export default function Home() {
   const handleAdminLogout = () => { setIsAdmin(false); setShowAdminPanel(false); localStorage.removeItem('liqvape_admin_session'); };
 
   const openProductForm = (product?: Product) => {
-    if (product) { setEditingProduct({ id: product.id, name: product.name, price: product.price, category: product.category, image: product.image, is_hidden: product.is_hidden, is_preorder: product.is_preorder }); setFormVariants([...product.variants].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }))); }
+    if (product) { 
+      setEditingProduct({ id: product.id, name: product.name, price: product.price, category: product.category, image: product.image, is_hidden: product.is_hidden, is_preorder: product.is_preorder }); 
+      // Сортировка по русскому алфавиту
+      setFormVariants([...product.variants].sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }))); 
+    }
     else { setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false }); setFormVariants([]); }
     setShowProductForm(true);
   };
@@ -525,7 +556,8 @@ export default function Home() {
       const aA = getAvailableStock(selectedProduct.id, a.name) > 0 || selectedProduct.is_preorder;
       const bA = getAvailableStock(selectedProduct.id, b.name) > 0 || selectedProduct.is_preorder;
       if (aA && !bA) return -1; if (!aA && bA) return 1;
-      return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+      // Сортировка по русскому алфавиту (localeCompare с 'ru')
+      return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
     });
   }, [selectedProduct]);
 
@@ -538,7 +570,34 @@ export default function Home() {
     selectionList.forEach(item => { if (!grouped[item.productName]) grouped[item.productName] = []; grouped[item.productName].push(item); });
     return Object.entries(grouped);
   }, [selectionList]);
-  const filteredAdminProducts = useMemo(() => products.filter(p => p.name.toLowerCase().includes(adminSearch.toLowerCase()) && (adminCategory === 'Все' || p.category === adminCategory)), [products, adminSearch, adminCategory]);
+  const filteredAdminProducts = useMemo(() => {
+    const filtered = products.filter(p => p.name.toLowerCase().includes(adminSearch.toLowerCase()) && (adminCategory === 'Все' || p.category === adminCategory));
+    
+    // Сортировка в админке
+    return filtered.sort((a, b) => {
+      // Для расходников - по брендам
+      if (adminCategory === 'Расходники') {
+        const aBrand = Object.keys(CONSUMABLE_BRAND_PRIORITY).find(brand => 
+          a.name.toUpperCase().includes(brand.toUpperCase())
+        );
+        const bBrand = Object.keys(CONSUMABLE_BRAND_PRIORITY).find(brand => 
+          b.name.toUpperCase().includes(brand.toUpperCase())
+        );
+        
+        const aPriority = aBrand ? CONSUMABLE_BRAND_PRIORITY[aBrand] : 999;
+        const bPriority = bBrand ? CONSUMABLE_BRAND_PRIORITY[bBrand] : 999;
+        
+        if (aPriority !== bPriority) return aPriority - bPriority;
+        if (aPriority === 999 && bPriority === 999) {
+          return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
+        }
+        return 0;
+      }
+      
+      // Для остальных - по алфавиту
+      return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
+    });
+  }, [products, adminSearch, adminCategory]);
 
   if (showAdminPanel) {
     return (
