@@ -4,7 +4,7 @@ import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircl
 import { supabase } from '@/lib/supabase';
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
-const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Снюс': 2, 'Расходники': 3, 'POD-системы': 4, 'Одноразки': 5, 'Табак-угли': 6, 'Другое': 7 };
+const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Одноразки': 2, 'Расходники': 3, 'Снюс': 4, 'POD-системы': 5, 'Табак-угли': 6, 'Другое': 7 };
 
 // Приоритет брендов для расходников
 const CONSUMABLE_BRAND_PRIORITY: Record<string, number> = {
@@ -317,6 +317,17 @@ export default function Home() {
       const aP = getPriority(aAvail > 0, a.is_preorder);
       const bP = getPriority(bAvail > 0, b.is_preorder);
       if (aP !== bP) return aP - bP;
+      
+      // Во вкладке "Все" - сначала по приоритету категорий, потом по алфавиту
+      if (selectedCategory === 'Все') {
+        const aCatPriority = CATEGORY_PRIORITY[a.category] || 99;
+        const bCatPriority = CATEGORY_PRIORITY[b.category] || 99;
+        
+        if (aCatPriority !== bCatPriority) return aCatPriority - bCatPriority;
+        
+        // Внутри одной категории - по алфавиту
+        return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
+      }
       
       // Специальная сортировка для расходников по брендам
       if (selectedCategory === 'Расходники') {
