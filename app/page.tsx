@@ -15,7 +15,7 @@ const CONSUMABLE_BRAND_PRIORITY: Record<string, number> = {
 
 const ADMIN_PASSWORD = 'K7m2Q9';
 const MANAGER_USERNAME = 'LiqVape_2';
-const CHANNEL_USERNAME = 'zslvape';
+const CHANNEL_USERNAME = 'LiqVape';
 const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 
 interface Variant { name: string; stock: number; price?: number; }
