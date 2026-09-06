@@ -27,6 +27,7 @@ const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 часа кэш
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [showGhost, setShowGhost] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -61,6 +62,14 @@ export default function Home() {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
   const [isUploading, setIsUploading] = useState(false);
+
+  
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `@keyframes ghostFly { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-15px) rotate(3deg)} }`;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
@@ -816,6 +825,30 @@ export default function Home() {
       {showList && (<div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowList(false)}></div><div className="relative glass-panel w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto relative z-10"><div className="sticky top-0 z-10 bg-black/80 backdrop-blur-xl border-b border-white/5 p-3 flex items-center justify-between"><h2 className="text-lg font-bold">Мой список</h2><div className="flex items-center gap-1.5">{selectionList.length > 0 && <button onClick={clearList} className="text-[10px] text-red-400">Очистить</button>}<button onClick={() => setShowList(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div></div><div className="p-3">{selectionList.length === 0 ? (<div className="text-center py-8"><ShoppingBag className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Список пуст</p></div>) : (<div>{groupedSelectionList.map(([productName, items]) => (<div key={productName} className="mb-3"><div className="text-xs font-bold text-orange-400 mb-1.5 px-1">{productName}</div><div className="space-y-1.5">{items.map((item) => { const idx = selectionList.indexOf(item); return (<div key={idx} className={`glass-card p-2.5 ${item.isPreorder ? 'border-orange-500/30' : ''}`}><div className="flex items-start justify-between mb-1.5"><div className="flex-1"><p className="text-xs font-medium">{item.variant}{item.isPreorder && <span className="ml-1 text-[9px] text-orange-400">[ПРЕДЗАКАЗ]</span>}</p><p className="text-[10px] text-gray-400">{item.price} BYN</p></div><button onClick={() => removeFromList(idx)} className="w-6 h-6 rounded-md bg-red-500/10 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button></div><div className="flex items-center justify-between"><div className="flex items-center gap-2"><button onClick={() => updateListQuantity(idx, -1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Minus className="w-2.5 h-2.5" /></button><span className="text-xs font-bold w-5 text-center">{item.quantity}</span><button onClick={() => updateListQuantity(idx, 1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Plus className="w-2.5 h-2.5" /></button></div><span className="text-sm font-bold gradient-text">{item.price * item.quantity} BYN</span></div></div>); })}</div></div>))}<div className="border-t border-white/10 pt-3 mt-3"><div className="flex items-center justify-between mb-3"><span className="text-gray-400 text-sm">Итого:</span><span className="text-xl font-bold gradient-text">{totalListPrice.toFixed(2)} BYN</span></div><button onClick={() => setShowSendConfirm(true)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center gap-1.5"><Send className="w-4 h-4" /> Отправить менеджеру</button></div></div>)}</div></div></div>)}
 
       {selectionList.length > 0 && (<button onClick={() => setShowList(true)} className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 shadow-lg shadow-orange-500/40 flex items-center justify-center"><ShoppingBag className="w-6 h-6 text-white" /><span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white text-orange-500 text-[10px] font-bold flex items-center justify-center">{totalListItems}</span></button>)}
+    
+      {/* === ЛЕТАЮЩИЙ ПРИЗРАК === */}
+      {showGhost && (
+        <div style={{ position: 'fixed', bottom: '80px', left: '20px', zIndex: 50, animation: 'ghostFly 4s ease-in-out infinite' }}>
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="url(#gGrad)" style={{ filter: 'drop-shadow(0 0 12px rgba(236,72,153,0.8))' }}>
+            <defs>
+              <linearGradient id="gGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#fb923c" />
+                <stop offset="100%" stopColor="#ec4899" />
+              </linearGradient>
+            </defs>
+            <path d="M12 2C7.58 2 4 5.58 4 10v10c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-1h2v1c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-1h2v1c0 .55.45 1 1 1h2c.55 0 1-.45 1-1V10c0-4.42-3.58-8-8-8zm-3 8c.83 0 1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5S8.17 10 9 10zm6 0c.83 0 1.5.67 1.5 1.5S15.83 13 15 13s-1.5-.67-1.5-1.5S14.17 10 15 10z"/>
+          </svg>
+          <div style={{ position: 'absolute', top: '-10px', left: '55px', background: 'linear-gradient(135deg, #fb923c, #ec4899)', borderRadius: '16px', padding: '12px 14px', maxWidth: '200px', boxShadow: '0 0 20px rgba(236,72,153,0.5)' }}>
+            <p style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>👋 Привет!</p>
+            <p style={{ color: 'white', fontSize: '11px', marginBottom: '8px', lineHeight: '1.3' }}>Мы в новом канале! Дропы и скидки</p>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button onClick={() => { window.open('https://t.me/LiqVape', '_blank'); }} style={{ flex: 1, background: 'white', color: '#ec4899', fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Подписаться</button>
+              <button onClick={() => setShowGhost(false)} style={{ flex: 1, background: 'rgba(255,255,255,0.2)', color: 'white', fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Позже</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
