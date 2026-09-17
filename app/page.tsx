@@ -3,6 +3,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+// === ЗАГЛУШКА ТЕХНИЧЕСКИХ РАБОТ ===
+// Чтобы ОТКЛЮЧИТЬ заглушку, поменяй true на false:
+const SHOW_MAINTENANCE = true;
+// ================================
+
+
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Одноразки': 2, 'Расходники': 3, 'Снюс': 4, 'POD-системы': 5, 'Табак-угли': 6, 'Другое': 7 };
 
@@ -707,6 +713,60 @@ export default function Home() {
 
   return (
     <div className="min-h-screen text-white relative bg-black">
+
+      {/* === ЗАГЛУШКА ТЕХНИЧЕСКИХ РАБОТ === */}
+      {SHOW_MAINTENANCE && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-md p-6 text-center relative">
+            {/* Декоративный элемент */}
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+
+            <h1 className="text-2xl font-bold gradient-text mb-4">
+              Технические работы
+            </h1>
+
+            <div className="space-y-3 text-sm text-gray-300 leading-relaxed">
+              <p className="text-white font-semibold">
+                Сегодня обновляем наличие в приложении❗️❗️❗️
+              </p>
+              <p>
+                Плюсом, убираем косяки выявленные в ходе двухнедельной работы. 
+                Поэтому сегодня-завтра работаем через таблицу.
+              </p>
+              <p>
+                Дабы не перегружать бота и у Вас всё работало исправно, 
+                на эти два дня вводим такой режим работы
+              </p>
+              <p className="text-orange-400 font-semibold">
+                Всё делается для оптимизации и улучшения пользования🙏
+              </p>
+            </div>
+
+            <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30">
+              <p className="text-xs text-gray-400 mb-2">️ Ссылка на таблицу ️</p>
+              <a 
+                href="https://docs.google.com/spreadsheets/d/11o1xhXau8w_nv0RjdHh3fmDgMXolTJJo3sBlxturhI4/edit?gid=0#gid=0" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold hover:scale-105 transition-transform shadow-lg shadow-orange-500/30"
+              >
+                 Открыть PRICE
+              </a>
+            </div>
+
+            <div className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-500">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span>Сроки: 17.09 — 18.09</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         .glass-panel { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.5rem; }
