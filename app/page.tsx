@@ -1,4 +1,5 @@
 'use client';
+import MaintenancePage from '@/components/MaintenancePage';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
 import { pb, getProducts, createOrder } from '@/lib/pocketbase';
@@ -32,6 +33,9 @@ const BATCH_SIZE = 12;
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 export default function Home() {
+  const isMaintenance = new Date() < new Date('2026-09-20T23:59:59');
+  if (isMaintenance) return <MaintenancePage />;
+
   const maintenanceUntil = new Date('2026-09-20T23:59:59');
   const isMaintenance = new Date() < maintenanceUntil;
 
