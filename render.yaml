@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: liqvape-pocketbase
+    env: docker
+    region: frankfurt
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile.pocketbase
+    envVars:
+      - key: ADMIN_EMAIL
+        value: miroslavkarasik@gmail.com
+      - key: ADMIN_PASSWORD
+        value: lypolinaA2
+    disk:
+      name: pocketbase-data
+      mountPath: /pocketbase/pb_data
+      sizeGB: 1

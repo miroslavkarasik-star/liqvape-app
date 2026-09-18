@@ -1,0 +1,4 @@
+node_modules
+.pocketbase
+.git
+*.md
