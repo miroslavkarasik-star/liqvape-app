@@ -1,14 +1,12 @@
 'use client';
-import MaintenancePage from '@/components/MaintenancePage';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
-import { pb, getProducts, createOrder } from '@/lib/pocketbase';
+import { pb } from '@/lib/pocketbase';
 
-// === ЗАГЛУШКА ТЕХНИЧЕСКИХ РАБОТ ===
-// Чтобы ОТКЛЮЧИТЬ заглушку, поменяй true на false:
-const SHOW_MAINTENANCE = false;
-// ================================
-
+// === НАСТРОЙКА ЗАГЛУШКИ ===
+// Поменяй на false, когда нужно открыть магазин!
+const SHOW_MAINTENANCE = true; 
+// ==========================
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Одноразки': 2, 'Расходники': 3, 'Снюс': 4, 'POD-системы': 5, 'Табак-угли': 6, 'Другое': 7 };
@@ -25,7 +23,6 @@ const CHANNEL_USERNAME = 'LiqVape';
 const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 
 interface Variant { name: string; stock: number; price?: number; }
-// Обратите внимание: поле теперь 'image', а не 'image_url', так как в PocketBase оно так называется
 interface Product { id: string; name: string; category: string; price: number; image: string | null; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
@@ -33,266 +30,88 @@ const BATCH_SIZE = 12;
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 export default function Home() {
-  const isMaintenance = new Date() < new Date('2026-09-20T23:59:59');
-  if (isMaintenance) return <MaintenancePage />;
+  const [products, setProducts] = useState<Product[]>([]);
+  const [showGhost, setShowGhost] = useState(true);
+  const [search, setSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('Все');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedVariants, setSelectedVariants] = useState<{ name: string; quantity: number }[]>([]);
+  const [showAllVariants, setShowAllVariants] = useState(false);
+  const [selectionList, setSelectionList] = useState<ListItem[]>([]);
+  const [showList, setShowList] = useState(false);
+  const [userId, setUserId] = useState('');
+  const [notification, setNotification] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  const [notificationVisible, setNotificationVisible] = useState(false);
+  const [showSubscribePrompt, setShowSubscribePrompt] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [adminTab, setAdminTab] = useState<'products' | 'requests'>('products');
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminCategory, setAdminCategory] = useState('Все');
+  const [allRequests, setAllRequests] = useState<any[]>([]);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Partial<Product> & { id?: string } | null>(null);
+  const [formVariants, setFormVariants] = useState<Variant[]>([]);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  const [showSendConfirm, setShowSendConfirm] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('');
+  const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
+  const [isUploading, setIsUploading] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
-  const maintenanceUntil = new Date('2026-09-20T23:59:59');
-  const isMaintenance = new Date() < maintenanceUntil;
-
-  if (isMaintenance) {
-    return (
-      <div className="min-h-screen bg-black text-white relative overflow-hidden">
-        <style jsx global>{`
-          @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-          .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-          .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: float 25s infinite ease-in-out; }
-          .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -150px; left: -150px; }
-          .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
-          @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
-        `}</style>
-        
-        <div className="lava-lamp">
-          <div className="lava-blob lava-blob-1"></div>
-          <div className="lava-blob lava-blob-2"></div>
-        </div>
-
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse shadow-lg shadow-orange-500/50">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            
-            <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              Технические работы
-            </h1>
-            
-            <div className="space-y-4 text-sm text-gray-300 mb-6">
-              <p className="font-medium text-white">Сегодня обновляем наличие в приложении❗❗</p>
-              <p>Плюсом, убираем косяки выявленные в ходе двухнедельной работы. Поэтому сегодня-завтра работаем через таблицу.</p>
-              <p>Дабы не перегружать бота и у Вас всё работало исправно, на эти два дня вводим такой режим работы</p>
-              <p className="text-orange-400 font-medium">Всё делается для оптимизации и улучшения пользования🙏</p>
-            </div>
-
-            <div className="space-y-3">
-              <a href="https://docs.google.com/spreadsheets/d/1ABC123" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105">
-                📊 Открыть PRICE
-              </a>
-              <a href="https://t.me/LiqVape_2" target="_blank" rel="noopener noreferrer" className="block w-full py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all">
-                💬 Написать менеджеру
-              </a>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <p className="text-xs text-gray-500">🟢 Сроки: до 20.09.2026</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const maintenanceUntil = new Date('2026-09-20T23:59:59');
-  const isMaintenance = new Date() < maintenanceUntil;
-
-  if (isMaintenance) {
-    return (
-      <div className="min-h-screen bg-black text-white relative overflow-hidden">
-        <style jsx global>{`
-          @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-          .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-          .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: float 25s infinite ease-in-out; }
-          .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -150px; left: -150px; }
-          .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
-          @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
-        `}</style>
-        
-        <div className="lava-lamp">
-          <div className="lava-blob lava-blob-1"></div>
-          <div className="lava-blob lava-blob-2"></div>
-        </div>
-
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse shadow-lg shadow-orange-500/50">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            
-            <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              Технические работы
-            </h1>
-            
-            <div className="space-y-4 text-sm text-gray-300 mb-6">
-              <p className="font-medium text-white">Сегодня обновляем наличие в приложении❗❗</p>
-              <p>Плюсом, убираем косяки выявленные в ходе двухнедельной работы. Поэтому сегодня-завтра работаем через таблицу.</p>
-              <p>Дабы не перегружать бота и у Вас всё работало исправно, на эти два дня вводим такой режим работы</p>
-              <p className="text-orange-400 font-medium">Всё делается для оптимизации и улучшения пользования🙏</p>
-            </div>
-
-            <div className="space-y-3">
-              <a href="https://docs.google.com/spreadsheets/d/1ABC123" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105">
-                📊 Открыть PRICE
-              </a>
-              <a href="https://t.me/LiqVape_2" target="_blank" rel="noopener noreferrer" className="block w-full py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all">
-                💬 Написать менеджеру
-              </a>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <p className="text-xs text-gray-500">🟢 Сроки: до 20.09.2026</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const isMaintenance = new Date() < new Date('2026-09-20T23:59:59');
-  if (isMaintenance) {
+  // === КРАСИВАЯ ЗАГЛУШКА НА ВЕСЬ ЭКРАН ===
+  if (SHOW_MAINTENANCE) {
     return (
       <div className="min-h-screen bg-black text-white relative overflow-hidden flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse">
-            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          </div>
-          <h1 className="text-3xl font-bold mb-4 text-orange-500">Технические работы</h1>
-          <div className="space-y-3 text-sm text-gray-300 mb-6">
-            <p className="font-medium text-white">Сегодня обновляем наличие в приложении❗❗</p>
-            <p>Плюсом, убираем косяки, выявленные в ходе двухнедельной работы. Поэтому сегодня-завтра работаем через таблицу.</p>
-            <p>Дабы не перегружать бота и у Вас всё работало исправно, на эти два дня вводим такой режим работы.</p>
-            <p className="text-orange-400 font-medium">Всё делается для оптимизации и улучшения пользования 🙏</p>
-          </div>
-          <div className="space-y-3">
-            <a href="https://docs.google.com/spreadsheets/d/1ABC123" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg hover:scale-105 transition-transform">
-              📊 Открыть PRICE
-            </a>
-            <a href="https://t.me/LiqVape_2" target="_blank" rel="noopener noreferrer" className="block w-full py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all">
-              💬 Написать менеджеру
-            </a>
-          </div>
-          <div className="mt-6 pt-4 border-t border-white/10">
-            <p className="text-xs text-gray-500">🟢 Сроки: до 20.09.2026</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  const maintenanceUntil = new Date('2026-09-20T23:59:59');
-  const isMaintenance = new Date() < maintenanceUntil;
-
-  if (isMaintenance) {
-    return (
-      <div className="min-h-screen bg-black text-white relative overflow-hidden">
-        <style jsx global>{\`
-          @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-          .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-          .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: float 25s infinite ease-in-out; }
-          .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -150px; left: -150px; }
-          .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
-          @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
-        \`}
-        </style>
-        
-        <div className="lava-lamp">
-          <div className="lava-blob lava-blob-1"></div>
-          <div className="lava-blob lava-blob-2"></div>
-        </div>
-
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse shadow-lg shadow-orange-500/50">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            
-            <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              Технические работы
-            </h1>
-            
-            <div className="space-y-4 text-sm text-gray-300 mb-6">
-              <p className="font-medium text-white">Сегодня обновляем наличие в приложении❗❗</p>
-              <p>Плюсом, убираем косяки выявленные в ходе двухнедельной работы. Поэтому сегодня-завтра работаем через таблицу.</p>
-              <p>Дабы не перегружать бота и у Вас всё работало исправно, на эти два дня вводим такой режим работы</p>
-              <p className="text-orange-400 font-medium">Всё делается для оптимизации и улучшения пользования🙏</p>
-            </div>
-
-            <div className="space-y-3">
-              <a href="https://docs.google.com/spreadsheets/d/1ABC123" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105">
-                📊 Открыть PRICE
-              </a>
-              <a href="https://t.me/LiqVape_2" target="_blank" rel="noopener noreferrer" className="block w-full py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all">
-                 Написать менеджеру
-              </a>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <p className="text-xs text-gray-500">🟢 Сроки: до 20.09.2026</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  const maintenanceUntil = new Date('2026-09-20T23:59:59');
-  const isMaintenance = new Date() < maintenanceUntil;
-
-  if (isMaintenance) {
-    return (
-      <div className="min-h-screen bg-black text-white relative overflow-hidden">
         <style jsx global>{`
           @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
           .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
           .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: float 25s infinite ease-in-out; }
           .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -150px; left: -150px; }
           .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
+          .lava-blob-3 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 140, 0, 0.5), transparent); top: 40%; left: 30%; animation-delay: -16s; }
           @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
-        `}
-        </style>
+          .glass-panel { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.5rem; }
+          .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        `}</style>
         
         <div className="lava-lamp">
           <div className="lava-blob lava-blob-1"></div>
           <div className="lava-blob lava-blob-2"></div>
+          <div className="lava-blob lava-blob-3"></div>
         </div>
 
-        <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-gradient-to-br from-gray-900/95 to-black/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl">
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse shadow-lg shadow-orange-500/50">
+        <div className="relative z-10 w-full max-w-md">
+          <div className="glass-panel p-8 text-center relative">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse shadow-lg shadow-orange-500/40">
               <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            
-            <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-              Технические работы
-            </h1>
-            
-            <div className="space-y-4 text-sm text-gray-300 mb-6">
-              <p className="font-medium text-white">
-                Сегодня обновляем наличие в приложении❗❗
-              </p>
-              <p>
-                Плюсом, убираем косяки выявленные в ходе двухнедельной работы. Поэтому сегодня-завтра работаем через таблицу.
-              </p>
-              <p>
-                Дабы не перегружать бота и у Вас всё работало исправно, на эти два дня вводим такой режим работы
-              </p>
-              <p className="text-orange-400 font-medium">
-                Всё делается для оптимизации и улучшения пользования🙏
-              </p>
+
+            <h1 className="text-3xl font-bold gradient-text mb-6">Технические работы</h1>
+
+            <div className="space-y-4 text-sm text-gray-300 leading-relaxed mb-8">
+              <p className="text-white font-semibold text-base">Сегодня обновляем наличие в приложении ❗️❗️❗️</p>
+              <p>Плюсом, убираем косяки, выявленные в ходе двухнедельной работы. Поэтому сегодня-завтра работаем через таблицу.</p>
+              <p>Дабы не перегружать бота и у Вас всё работало исправно, на эти два дня вводим такой режим работы.</p>
+              <p className="text-orange-400 font-semibold">Всё делается для оптимизации и улучшения пользования 🙏</p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <a 
-                href="https://docs.google.com/spreadsheets/d/1ABC123" 
-                target="_blank"
+                href="https://docs.google.com/spreadsheets/d/11o1xhXau8w_nv0RjdHh3fmDgMXolTJJo3sBlxturhI4/edit?gid=0#gid=0" 
+                target="_blank" 
                 rel="noopener noreferrer"
                 className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
               >
@@ -301,26 +120,40 @@ export default function Home() {
               
               <a 
                 href="https://t.me/LiqVape_2" 
-                target="_blank"
+                target="_blank" 
                 rel="noopener noreferrer"
-                className="block w-full py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all"
+                className="block w-full py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"
               >
-                 Написать менеджеру
+                <Send className="w-4 h-4" /> Написать менеджеру
               </a>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <p className="text-xs text-gray-500">
-                🟢 Сроки: до 20.09.2026
-              </p>
+            <div className="mt-8 pt-6 border-t border-white/10 flex items-center justify-center gap-2 text-xs text-gray-500">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+              <span>Ориентировочные сроки: до 20.09.2026</span>
             </div>
           </div>
         </div>
       </div>
     );
   }
+  // =======================================
 
-  , []);
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `@keyframes ghostFly { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-15px) rotate(3deg)} }`;
+    document.head.appendChild(style);
+    return () => { document.head.removeChild(style); };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
+      (window as any).Telegram.WebApp.ready();
+      const platform = (window as any).Telegram.WebApp.platform || '';
+      const isDesktop = platform.toLowerCase().includes('tdesktop') || platform.toLowerCase().includes('macos');
+      if (!isDesktop) (window as any).Telegram.WebApp.expand();
+    }
+  }, []);
 
   useEffect(() => {
     const hasSeen = localStorage.getItem('liqvape_seen_subscribe');
@@ -359,7 +192,6 @@ export default function Home() {
         setDisplayCount(BATCH_SIZE);
         setLoadingProgress(0);
         setLoadingMessage('');
-        // Тихая перезагрузка данных с сервера для актуальности
         loadProductsFromDB(includeHidden, true).catch(() => {});
         return parsed;
       } catch(e) { console.error('Cache error:', e); }
@@ -377,10 +209,8 @@ export default function Home() {
       const startTime = Date.now();
       if (!silent) setLoadingProgress(40);
       
-      // === ЗАМЕНА: Получаем данные из PocketBase ===
       const records = await pb.collection('products').getFullList({
         sort: '-created',
-        // Если не админ, фильтруем скрытые. Если админ - показываем все.
         filter: includeHidden ? '' : 'is_hidden = false',
       });
       
@@ -406,7 +236,7 @@ export default function Home() {
           name: p.name || 'Без названия',
           category: p.category || 'Другое',
           price: Number(p.price) || 0,
-          image: p.image || null, // PocketBase возвращает имя файла в поле 'image'
+          image: p.image || null,
           variants: variants,
           is_hidden: Boolean(p.is_hidden),
           is_preorder: Boolean(p.is_preorder),
@@ -589,9 +419,13 @@ export default function Home() {
     setSelectionList([]); setShowList(false); setShowSendConfirm(false);
     showNotification('Переходим в Telegram...', 'success');
     
-    // === ЗАМЕНА: Сохранение заказа в PocketBase ===
     try { 
-      await createOrder(selectionList, totalPrice, 'Клиент');
+      await pb.collection('user_requests').create({
+        items: JSON.stringify(selectionList),
+        total_price: totalPrice,
+        username: 'Клиент',
+        status: 'new',
+      });
     } catch(e) { console.error('Background save failed:', e); }
     finally { setIsSending(false); }
   };
@@ -610,11 +444,10 @@ export default function Home() {
       setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false }); 
       setFormVariants([]); 
     }
-    setSelectedImageFile(null); // Сбрасываем выбранный файл при открытии формы
+    setSelectedImageFile(null);
     setShowProductForm(true);
   };
 
-  // === ЗАМЕНА: Новая логика загрузки картинки ===
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !editingProduct) return;
@@ -628,7 +461,6 @@ export default function Home() {
     showNotification('Обработка фото...');
     
     try {
-      // Сжимаем картинку для оптимизации
       const img = new Image();
       img.src = URL.createObjectURL(file);
       await new Promise((resolve) => { img.onload = resolve; });
@@ -649,7 +481,6 @@ export default function Home() {
       
       const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), { type: 'image/webp' });
       
-      // Сохраняем файл в состояние и показываем превью
       setSelectedImageFile(compressedFile);
       setEditingProduct({ ...editingProduct, image: URL.createObjectURL(compressedFile) });
       showNotification('Фото готово к сохранению!', 'success');
@@ -661,19 +492,13 @@ export default function Home() {
     }
   };
 
-  // === ЗАМЕНА: Сохранение товара с поддержкой FormData для файлов ===
-    const saveProduct = async () => {
+  const saveProduct = async () => {
     if (!editingProduct?.name || !editingProduct.price) { 
       showNotification('Заполните название и цену', 'error'); 
       return; 
     }
     
     try {
-      console.log('📦 Начинаем сохранение товара...');
-      console.log('Editing product:', editingProduct);
-      console.log('Variants:', formVariants);
-      console.log('Image file:', selectedImageFile);
-      
       const formData = new FormData();
       formData.append('name', editingProduct.name);
       formData.append('price', String(Number(editingProduct.price)));
@@ -684,21 +509,14 @@ export default function Home() {
       formData.append('is_preorder', String(Boolean(editingProduct.is_preorder)));
 
       if (selectedImageFile) {
-        console.log(' Добавляем файл в FormData:', selectedImageFile.name);
         formData.append('image', selectedImageFile);
       }
 
-      console.log('📤 Отправляем FormData в PocketBase...');
-      
       if (editingProduct.id) {
-        console.log('✏️ Обновляем товар ID:', editingProduct.id);
-        const result = await pb.collection('products').update(editingProduct.id, formData);
-        console.log('✅ Товар обновлён:', result);
+        await pb.collection('products').update(editingProduct.id, formData);
         showNotification('Товар обновлён', 'success');
       } else {
-        console.log('➕ Создаём новый товар');
-        const result = await pb.collection('products').create(formData);
-        console.log('✅ Товар создан:', result);
+        await pb.collection('products').create(formData);
         showNotification('Товар добавлен', 'success');
       }
       
@@ -708,13 +526,10 @@ export default function Home() {
       setSelectedImageFile(null);
       await loadProducts(true);
     } catch(e) { 
-      console.error('❌ Ошибка сохранения:', e);
-      console.error('Ошибка details:', JSON.stringify(e, null, 2));
       showNotification('Ошибка: ' + (e as Error).message, 'error'); 
     }
   };
 
-  // === ЗАМЕНА: Админские действия через PocketBase ===
   const toggleHidden = async (p: Product) => { 
     try {
       await pb.collection('products').update(p.id, { is_hidden: !p.is_hidden });
@@ -884,60 +699,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen text-white relative bg-black">
-
-      {/* === ЗАГЛУШКА ТЕХНИЧЕСКИХ РАБОТ === */}
-      {SHOW_MAINTENANCE && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
-          <div className="glass-panel w-full max-w-md p-6 text-center relative">
-            {/* Декоративный элемент */}
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse">
-              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-
-            <h1 className="text-2xl font-bold gradient-text mb-4">
-              Технические работы
-            </h1>
-
-            <div className="space-y-3 text-sm text-gray-300 leading-relaxed">
-              <p className="text-white font-semibold">
-                Сегодня обновляем наличие в приложении❗️❗️❗️
-              </p>
-              <p>
-                Плюсом, убираем косяки выявленные в ходе двухнедельной работы. 
-                Поэтому сегодня-завтра работаем через таблицу.
-              </p>
-              <p>
-                Дабы не перегружать бота и у Вас всё работало исправно, 
-                на эти два дня вводим такой режим работы
-              </p>
-              <p className="text-orange-400 font-semibold">
-                Всё делается для оптимизации и улучшения пользования🙏
-              </p>
-            </div>
-
-            <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/30">
-              <p className="text-xs text-gray-400 mb-2">️ Ссылка на таблицу ️</p>
-              <a 
-                href="https://docs.google.com/spreadsheets/d/11o1xhXau8w_nv0RjdHh3fmDgMXolTJJo3sBlxturhI4/edit?gid=0#gid=0" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold hover:scale-105 transition-transform shadow-lg shadow-orange-500/30"
-              >
-                 Открыть PRICE
-              </a>
-            </div>
-
-            <div className="mt-5 flex items-center justify-center gap-2 text-xs text-gray-500">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-              <span>Сроки: 17.09 — 18.09</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       <style jsx global>{`
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         .glass-panel { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.5rem; }
@@ -1019,7 +780,6 @@ export default function Home() {
                     <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all flex flex-col h-full ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
                       <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
                         {p.image ? (
-                          // === ЗАМЕНА: Формирование URL картинки через PocketBase ===
                           <img src={pb.files.getUrl(p, p.image, { thumb: '400x0' })} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" loading="eager" />
                         ) : (
                           <Package className="w-12 h-12 text-neutral-600" />
