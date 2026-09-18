@@ -32,6 +32,36 @@ const BATCH_SIZE = 12;
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 export default function Home() {
+  const isMaintenance = new Date() < new Date('2026-09-20T23:59:59');
+  if (isMaintenance) {
+    return (
+      <div className="min-h-screen bg-black text-white relative overflow-hidden flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          </div>
+          <h1 className="text-3xl font-bold mb-4 text-orange-500">Технические работы</h1>
+          <div className="space-y-3 text-sm text-gray-300 mb-6">
+            <p className="font-medium text-white">Сегодня обновляем наличие в приложении❗❗</p>
+            <p>Плюсом, убираем косяки, выявленные в ходе двухнедельной работы. Поэтому сегодня-завтра работаем через таблицу.</p>
+            <p>Дабы не перегружать бота и у Вас всё работало исправно, на эти два дня вводим такой режим работы.</p>
+            <p className="text-orange-400 font-medium">Всё делается для оптимизации и улучшения пользования 🙏</p>
+          </div>
+          <div className="space-y-3">
+            <a href="https://docs.google.com/spreadsheets/d/1ABC123" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg hover:scale-105 transition-transform">
+              📊 Открыть PRICE
+            </a>
+            <a href="https://t.me/LiqVape_2" target="_blank" rel="noopener noreferrer" className="block w-full py-3 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all">
+              💬 Написать менеджеру
+            </a>
+          </div>
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <p className="text-xs text-gray-500">🟢 Сроки: до 20.09.2026</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const maintenanceUntil = new Date('2026-09-20T23:59:59');
   const isMaintenance = new Date() < maintenanceUntil;
 
