@@ -1,0 +1,7150 @@
+[
+  {
+    "id": "07OgGKMY22NuWtubBrI7",
+    "total_price": 16,
+    "items": [
+      {
+        "price": 16,
+        "isPreorder": false,
+        "productId": "E5mdLwB54wcZQgxLdnnG",
+        "quantity": 1,
+        "variant": "Грейпфрут малина клубника",
+        "productName": "DUALL EXTRA HARD 30 мл (50 мг)"
+      }
+    ],
+    "created_at": "2026-07-31T16:27:13.728Z",
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "c250a6e2-9cc0-4de3-9a56-1d5440b8fb3e"
+  },
+  {
+    "id": "09FJJOCNcHKL3ShBpSxo",
+    "created_at": "2026-07-28T15:47:44.749Z",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "variant": "Банан Клубника",
+        "quantity": 1,
+        "price": 17
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 17,
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4"
+  },
+  {
+    "id": "0Jl3zXJQGDGYhdXOisiK",
+    "items": [
+      {
+        "price": 17,
+        "variant": "Кислый грейпфрут с вишней",
+        "productName": "Catswill SOUR 30 мл (50 мг)\t",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "R2uu9XKA82oPCym9G0et"
+      }
+    ],
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "8db761a7-898d-41a5-afdf-5553090edb9d",
+    "created_at": "2026-07-30T12:23:36.171Z",
+    "total_price": 17
+  },
+  {
+    "id": "0fwjGerRkWsHvAdEAS6M",
+    "status": "new",
+    "total_price": 28,
+    "items": [
+      {
+        "productName": "Табак - MUST HAVE Undeecoal 25 г",
+        "quantity": 1,
+        "productId": "cY9pBH8jTsFFwCkV8MoN",
+        "variant": "Вишневый сок",
+        "price": 14,
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "price": 14
+      }
+    ],
+    "user_id": "0328f46d-61f4-4be7-8c5c-e20799028f5a",
+    "created_at": "2026-07-29T13:33:24.723Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "1AM5deknjLvSoQBLmDIA",
+    "total_price": 40,
+    "items": [
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Blueberry Rose Mint",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      },
+      {
+        "variant": "Blue Razz Ice",
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      }
+    ],
+    "user_id": "87a7f465-0866-41a9-b7db-6275eab81573",
+    "status": "new",
+    "created_at": "2026-08-01T13:26:07.746Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "1BzoC5MBlwXBIfv8YqgC",
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "SMOANT Knight/Pasito II 0,2 Om ",
+        "isPreorder": false,
+        "price": 13,
+        "productId": "LAr2OagMjDkSCFCSyBIn",
+        "productName": "SMOANT Knight/Pasito"
+      },
+      {
+        "variant": "Энергия Безумия ",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "price": 17
+      }
+    ],
+    "user_id": "a9f60138-527f-4a67-a0f3-4a4a14cd262c",
+    "created_at": "2026-08-18T21:44:00.315Z",
+    "total_price": 30
+  },
+  {
+    "id": "1HIkFDSluT0MPIqGyJID",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "created_at": "2026-07-30T14:24:18.540Z",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 31,
+    "items": [
+      {
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      },
+      {
+        "variant": "Ягодные Леденцы Лед",
+        "productName": "SLIME Arctic Line 30 мл (20 мг)\t",
+        "quantity": 1,
+        "productId": "yIXFMVlVcw5OEmCzkQ5l",
+        "isPreorder": false,
+        "price": 17
+      }
+    ]
+  },
+  {
+    "id": "1UPpz7CU9lcVu5QsfDIK",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "variant": "Черника, малина лимон",
+        "quantity": 1,
+        "price": 16,
+        "productName": "Podonki Malasian 30 мл (50 мг)\t"
+      }
+    ],
+    "user_id": "2511c501-8f0b-4a44-b704-b1de85a6e989",
+    "username": "Клиент",
+    "created_at": "2026-08-20T23:07:37.477Z",
+    "total_price": 16
+  },
+  {
+    "id": "1X51UXDh2mFgWQguLkyb",
+    "total_price": 50,
+    "user_id": "09b2b629-e615-4e1e-9c5b-e5c61e70ade8",
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-08-05T09:32:06.516Z",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Iced Mango",
+        "productId": "j5gTzPsD4xlAEoJtiM0r",
+        "productName": "ELFLIQ ICE 30 мл (50 мг)\t",
+        "price": 20,
+        "isPreorder": false
+      },
+      {
+        "price": 15,
+        "isPreorder": false,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "variant": "Малиновая конфета",
+        "quantity": 1,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "price": 15,
+        "variant": "Скитлс",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "2gfLb82a0QZ99hTDcQs9",
+    "username": "Клиент",
+    "total_price": 17,
+    "created_at": "2026-08-05T14:48:18.458Z",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "quantity": 1,
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "variant": "Дыня Персик"
+      }
+    ],
+    "user_id": "6ddbfbec-c566-4679-b191-579a956352df"
+  },
+  {
+    "id": "2kvUu97HAgSr6wzIxlG8",
+    "status": "new",
+    "user_id": "920496a9-f439-4a4a-89e4-83ec1b30048d",
+    "items": [
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "variant": "Клубничный Коктейль ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      },
+      {
+        "quantity": 1,
+        "variant": "Морс из Лесных Ягод",
+        "isPreorder": false,
+        "productId": "cYJEYAXoUOWFTW4XuWei",
+        "price": 18,
+        "productName": "Злая Милфа 30ml (70mg)"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-20T06:47:12.390Z",
+    "total_price": 35
+  },
+  {
+    "id": "2uVGH1ZEf9TRO2wuG3xn",
+    "total_price": 16,
+    "created_at": "2026-08-03T09:27:33.349Z",
+    "user_id": "51704bdc-a3e1-47c5-8e96-258a0248b2fc",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 16,
+        "isPreorder": false,
+        "productName": "PIXEL 30 мл (20 мг)",
+        "variant": "Вишневый Йогурт",
+        "productId": "M2vmG5PePkz0OyY5b6BB",
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "id": "2xDwmZwZSyKqCfEqUuEK",
+    "total_price": 17,
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "Гуава Ананас",
+        "isPreorder": false,
+        "price": 17,
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      }
+    ],
+    "created_at": "2026-08-20T15:18:52.476Z",
+    "status": "new",
+    "user_id": "f2ec1e9d-cad9-45a9-9390-d481dba94b8c"
+  },
+  {
+    "id": "3Y8cKSsFEeTEMjwb6nSs",
+    "total_price": 16,
+    "items": [
+      {
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "variant": "Маракуйя, гуава и апельсин",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 16,
+        "productId": "7uqXCnMOhvxJAPhBO9gD"
+      }
+    ],
+    "created_at": "2026-08-02T14:57:08.456Z",
+    "status": "new",
+    "user_id": "fc8c8770-37a0-4a40-ba2a-f3f0979587f4",
+    "username": "Клиент"
+  },
+  {
+    "id": "3gGqF9tpod9lMgVgAYd3",
+    "user_id": "09b2b629-e615-4e1e-9c5b-e5c61e70ade8",
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-08-02T12:31:17.396Z",
+    "total_price": 29,
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "LAr2OagMjDkSCFCSyBIn",
+        "quantity": 1,
+        "variant": "SMOANT Knight/Pasito II 0,15 Om ",
+        "price": 13,
+        "productName": "SMOANT Knight/Pasito"
+      },
+      {
+        "variant": "Бабл гам",
+        "productName": "PIXEL 30 мл (20 мг)",
+        "quantity": 1,
+        "productId": "M2vmG5PePkz0OyY5b6BB",
+        "price": 16,
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "3oqbyRmDI3IHMxYuT8Rd",
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "e71a1378-7a28-4614-aa7b-09e9896c9e15",
+    "created_at": "2026-08-01T11:13:34.818Z",
+    "items": [
+      {
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "productName": "Pynepod Boost Pro 20000",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 27,
+        "variant": "Juice Peach"
+      }
+    ],
+    "total_price": 27
+  },
+  {
+    "id": "3qfgyvtMOwgM4yPbWU6X",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false
+      },
+      {
+        "price": 17,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "variant": "Дыня Персик",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 31,
+    "created_at": "2026-08-20T17:55:15.226Z",
+    "status": "new",
+    "user_id": "28b872a5-16e9-4a66-bc27-c96750414de5"
+  },
+  {
+    "id": "418l0JuZDRA6W0FIwxtG",
+    "total_price": 42,
+    "items": [
+      {
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "variant": "Смородина Черника",
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "quantity": 1,
+        "price": 15,
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "productName": "Pynepod Boost Pro 20000",
+        "variant": "Blueberry Watermelon",
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "price": 27,
+        "isPreorder": false
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "d7dc0b82-09d7-4783-8a9a-5e759275556c",
+    "status": "new",
+    "created_at": "2026-07-27T18:09:35.570Z"
+  },
+  {
+    "id": "43Ur6vy0ywgBDzuJtJ3I",
+    "user_id": "f829e767-ec38-498e-8956-ae03b7b3ce42",
+    "total_price": 14,
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "quantity": 1,
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-07-30T13:32:50.437Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "49UAHK9O0V59C4hQBLoE",
+    "username": "Клиент",
+    "user_id": "116ea416-9c89-436d-b39f-2ebeeb2089d8",
+    "total_price": 27,
+    "created_at": "2026-08-03T13:14:50.818Z",
+    "status": "new",
+    "items": [
+      {
+        "productName": "Pynepod Boost Pro 20000",
+        "quantity": 1,
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "price": 27,
+        "isPreorder": false,
+        "variant": "Lush Ice"
+      }
+    ]
+  },
+  {
+    "id": "4OYnykRINyRiLUxCgBlL",
+    "total_price": 44,
+    "created_at": "2026-08-04T08:19:18.334Z",
+    "username": "Клиент",
+    "user_id": "e4738df8-60b5-496a-a94e-c2d9b87949ad",
+    "status": "new",
+    "items": [
+      {
+        "variant": "Voopoo VMATE V2 0.7 Om 3 ml",
+        "productId": "7hmgM3GCjwmNkSpjr70y",
+        "price": 14,
+        "isPreorder": false,
+        "productName": "VOOPOO VMATE",
+        "quantity": 1
+      },
+      {
+        "productName": "GEEKVAPE\tBoost Hero",
+        "productId": "BO0kzfPcPaJVZbXqHH20",
+        "price": 13,
+        "quantity": 1,
+        "variant": "GEEKVAPE Boost Hero 0,2 Om ",
+        "isPreorder": false
+      },
+      {
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "variant": "Виноград Киви",
+        "quantity": 1,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "price": 17,
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "4XDvbk2ISLKfmcJkoqXm",
+    "items": [
+      {
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      },
+      {
+        "productId": "OmkybCfXN8VChKrv0oMy",
+        "productName": "ЗЛАЯ МОНАШКА HARD 30 мл (50 мг)\t",
+        "quantity": 1,
+        "price": 18,
+        "isPreorder": false,
+        "variant": "Киви Манго"
+      }
+    ],
+    "status": "new",
+    "total_price": 32,
+    "username": "Клиент",
+    "created_at": "2026-07-28T15:33:44.880Z",
+    "user_id": "737914a2-e294-45c9-92d2-423289d4a8f0"
+  },
+  {
+    "id": "5PewVI2mHe81smpQ5AJY",
+    "items": [
+      {
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 3,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false
+      },
+      {
+        "variant": "Blueberry Sour Raspberry",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false
+      },
+      {
+        "variant": "Sour Watermelon Gummy",
+        "price": 20,
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      },
+      {
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Cherry Lemon Peach",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20
+      },
+      {
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Strawberry Cherry Lemon ",
+        "quantity": 1
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "quantity": 2,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.6 Om 2 ml Corex 2.0 (крат 4)"
+      }
+    ],
+    "status": "new",
+    "user_id": "c1ab0982-50d8-4dff-b120-9e2adb27b2cf",
+    "username": "Клиент",
+    "total_price": 150,
+    "created_at": "2026-08-18T16:01:13.552Z"
+  },
+  {
+    "id": "5VVblghg7M0ws1BHddxm",
+    "created_at": "2026-08-03T08:06:30.151Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "ICEBERG EXTRA STRONG 100 мг",
+        "productId": "u76yQcPgOvlVBG79pWDK",
+        "variant": "Ice Mint",
+        "price": 16,
+        "quantity": 1
+      }
+    ],
+    "total_price": 16,
+    "status": "new",
+    "user_id": "b02681a4-7463-405e-8eef-a4ae1b64f339"
+  },
+  {
+    "id": "5dEzYGZcD533ssT3oJjH",
+    "items": [
+      {
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "variant": "Вишневый энергетик",
+        "quantity": 1,
+        "price": 16,
+        "isPreorder": false,
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-01T13:17:12.111Z",
+    "user_id": "ad72fc82-bf9c-4ea2-9a36-435b554658ea",
+    "status": "new",
+    "total_price": 16
+  },
+  {
+    "id": "5h3KMotwdMe1RaiMOApF",
+    "total_price": 48,
+    "items": [
+      {
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "variant": "Pink Lemonade "
+      },
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "isPreorder": false,
+        "quantity": 2,
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-08-05T14:10:49.259Z",
+    "user_id": "a34a88be-e370-43f8-9582-5f6944591abe"
+  },
+  {
+    "id": "63LOJPY45k5iKsDqjS5x",
+    "created_at": "2026-08-03T11:00:14.138Z",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 16,
+    "user_id": "51704bdc-a3e1-47c5-8e96-258a0248b2fc",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "variant": "Кислый Малиновый мармелад",
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "quantity": 1,
+        "price": 16
+      }
+    ]
+  },
+  {
+    "id": "6Fceb906IsuQFKR9veg4",
+    "total_price": 31,
+    "created_at": "2026-07-28T07:45:51.243Z",
+    "items": [
+      {
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "quantity": 1,
+        "price": 17,
+        "variant": "Мятная Жвачка"
+      }
+    ],
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "447d7c60-333b-4b8f-9108-c61ddae62670"
+  },
+  {
+    "id": "6If7xrLnDlho1Nls4yWw",
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "Kiwi Passion Fruit Guava",
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 48
+      },
+      {
+        "isPreorder": false,
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-08-01T17:23:25.684Z",
+    "user_id": "24b87b8e-ee7d-4cb5-9c51-6296603f665b",
+    "total_price": 62
+  },
+  {
+    "id": "6NZbwjjmCjuOmlDpTiuD",
+    "items": [
+      {
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "isPreorder": false,
+        "price": 15,
+        "quantity": 1,
+        "variant": "Виноград Мята",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t"
+      }
+    ],
+    "user_id": "4bb104ff-1be9-46d8-a52e-3b75bcfff1d4",
+    "status": "new",
+    "username": "Клиент",
+    "created_at": "2026-07-31T13:56:54.990Z",
+    "total_price": 15
+  },
+  {
+    "id": "6iOJeZrvvKVOaYXjrtSE",
+    "total_price": 16,
+    "user_id": "09b2b629-e615-4e1e-9c5b-e5c61e70ade8",
+    "created_at": "2026-08-02T15:02:38.689Z",
+    "items": [
+      {
+        "variant": "Энергетик ",
+        "isPreorder": false,
+        "productId": "M2vmG5PePkz0OyY5b6BB",
+        "quantity": 1,
+        "productName": "PIXEL 30 мл (20 мг)",
+        "price": 16
+      }
+    ],
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "6pZDyY6J9IoZ8LwrjTDW",
+    "total_price": 19,
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 19,
+        "isPreorder": false,
+        "quantity": 1,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "variant": "Голубика Лед",
+        "productId": "xkiQ9rDla5mj02p4r7My"
+      }
+    ],
+    "created_at": "2026-07-31T13:50:06.224Z",
+    "user_id": "3973954a-4890-429d-9cbf-253f003f2ea0"
+  },
+  {
+    "id": "6rmaaBieZg7cjc63ZxIT",
+    "total_price": 34,
+    "status": "new",
+    "user_id": "3b693596-68e7-4105-83bb-2c13085e8fc3",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "variant": "Strawberry Cherry Lemon ",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-08-04T14:08:21.063Z"
+  },
+  {
+    "id": "7X7gdoe6akjGzfboegmX",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)"
+      },
+      {
+        "price": 19,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "variant": "Кислая Вишня",
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "status": "new",
+    "total_price": 33,
+    "user_id": "737914a2-e294-45c9-92d2-423289d4a8f0",
+    "created_at": "2026-07-28T15:56:24.459Z"
+  },
+  {
+    "id": "7n05ck0qEybi00QabntG",
+    "total_price": 36,
+    "created_at": "2026-07-26T17:37:05.602Z",
+    "username": "Клиент",
+    "user_id": "6a6a392e-bba9-41b9-8def-aa9278079415",
+    "status": "new",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Grape",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "variant": "Виноград и клубника",
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "price": 16
+      }
+    ]
+  },
+  {
+    "id": "83C2auiXfJDpAK2UJqRw",
+    "status": "new",
+    "items": [
+      {
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "price": 18,
+        "variant": "Арбузный Бабл гам",
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "quantity": 1,
+        "isPreorder": false
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-18T09:41:03.355Z",
+    "total_price": 18,
+    "user_id": "e443e037-fef2-43da-bc59-b929df84ecdd"
+  },
+  {
+    "id": "83CxqRUzBhS6kpwHn0lW",
+    "user_id": "a341d528-e451-4080-93c3-3334bc13b122",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Iced Mint",
+        "isPreorder": false,
+        "price": 20,
+        "productName": "ELFLIQ ICE 30 мл (50 мг)\t",
+        "productId": "j5gTzPsD4xlAEoJtiM0r"
+      }
+    ],
+    "created_at": "2026-08-04T11:38:36.046Z",
+    "total_price": 20,
+    "status": "new"
+  },
+  {
+    "id": "8BpoOzzJ2veW48kSWpaE",
+    "items": [
+      {
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "variant": "Blue Razz Ice",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      },
+      {
+        "isPreorder": false,
+        "productName": "Drymost 200 мг",
+        "variant": "Appletini",
+        "quantity": 1,
+        "price": 15,
+        "productId": "c0rRrnoMX4w6dggYReSb"
+      },
+      {
+        "productId": "c0rRrnoMX4w6dggYReSb",
+        "productName": "Drymost 200 мг",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 15,
+        "variant": "Fantasy "
+      }
+    ],
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "username": "Клиент",
+    "total_price": 64,
+    "status": "new",
+    "created_at": "2026-08-20T17:29:10.176Z"
+  },
+  {
+    "id": "8cu7i9mPRuCUZmf0fiJv",
+    "status": "new",
+    "username": "Клиент",
+    "created_at": "2026-07-27T19:04:51.617Z",
+    "items": [
+      {
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      },
+      {
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "quantity": 1,
+        "variant": "Алое Виноград",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "8c91c478-c10e-4cc5-b5f6-9f514c9651e4",
+    "total_price": 31
+  },
+  {
+    "id": "96AuVJPi9BbGrD3sKqvQ",
+    "user_id": "116ea416-9c89-436d-b39f-2ebeeb2089d8",
+    "total_price": 27,
+    "created_at": "2026-08-04T06:42:27.686Z",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "quantity": 1,
+        "productName": "Pynepod Boost Pro 20000",
+        "price": 27,
+        "variant": "California Cherry"
+      }
+    ],
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "9aus2As0xPSBxl1Wqq7S",
+    "items": [
+      {
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "isPreorder": false,
+        "price": 17,
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "variant": "Лимонад Черника лайм",
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "73dcdb08-feb7-4059-84a0-9406f30efdc1",
+    "created_at": "2026-07-29T15:52:28.526Z",
+    "total_price": 17
+  },
+  {
+    "id": "9cmosYh0ESQmXbiR4yZF",
+    "items": [
+      {
+        "productName": "DUALL EXTRA HARD 30 мл (50 мг)",
+        "productId": "E5mdLwB54wcZQgxLdnnG",
+        "isPreorder": false,
+        "price": 16,
+        "variant": "Грейпфрут малина клубника",
+        "quantity": 1
+      },
+      {
+        "variant": "Экзотические фрукты",
+        "productId": "E5mdLwB54wcZQgxLdnnG",
+        "quantity": 1,
+        "price": 16,
+        "productName": "DUALL EXTRA HARD 30 мл (50 мг)",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "created_at": "2026-07-28T05:25:54.455Z",
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 32
+  },
+  {
+    "id": "9gvMfc4s2Bd47o7BgSQo",
+    "status": "new",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      },
+      {
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "variant": "Mango Peach ",
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "9e7b5092-e64a-40ea-bcc5-9db7831268a3",
+    "total_price": 34,
+    "created_at": "2026-08-01T23:31:45.287Z"
+  },
+  {
+    "id": "9mx34KYX1FvY6oLrkB3n",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-08-02T13:35:08.486Z",
+    "total_price": 40,
+    "items": [
+      {
+        "price": 20,
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "variant": "Strawberry Kiwi",
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      },
+      {
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "variant": "Watermelon Cherry ",
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      }
+    ]
+  },
+  {
+    "id": "ACENfhu5qHnc6ZzIVQP3",
+    "user_id": "f04307e3-0552-446a-afcd-14d65b92fe05",
+    "status": "new",
+    "created_at": "2026-08-19T15:09:46.063Z",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Малина Черника",
+        "isPreorder": false,
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "price": 18,
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)"
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "total_price": 32,
+    "username": "Клиент"
+  },
+  {
+    "id": "AM0OQILsYQsLtCJPd5Jt",
+    "items": [
+      {
+        "price": 70,
+        "productName": "Xros 5 mini Pod",
+        "variant": "Titanium Silver",
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "status": "new",
+    "total_price": 70,
+    "created_at": "2026-08-05T16:01:49.783Z",
+    "username": "Клиент",
+    "user_id": "ad72fc82-bf9c-4ea2-9a36-435b554658ea"
+  },
+  {
+    "id": "AtoknNMJbTOx3pyEGdB8",
+    "total_price": 70,
+    "status": "new",
+    "user_id": "5ecc70d9-aac0-4455-bea7-60f0fbde0065",
+    "items": [
+      {
+        "productName": "Xros 5 mini Pod",
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "price": 70,
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Sky Blue"
+      }
+    ],
+    "created_at": "2026-08-20T15:10:48.078Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "AwKz5foYANEm0yEWfFFm",
+    "total_price": 16,
+    "username": "Клиент",
+    "user_id": "b36c547a-e528-44ed-9bb0-3521448d37d9",
+    "status": "new",
+    "items": [
+      {
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "variant": "Розовый лимонад",
+        "isPreorder": false,
+        "price": 16,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-08-03T17:27:59.534Z"
+  },
+  {
+    "id": "B0CXEkBEo7M7RlrXaXv7",
+    "status": "new",
+    "user_id": "84227012-2d76-41ff-8dc5-5778a5c0bba9",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Лимонад Черника лайм",
+        "isPreorder": false,
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "price": 17
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-07-29T14:27:23.733Z",
+    "total_price": 17
+  },
+  {
+    "id": "B2kWhskyrJZ0ibVVJzVk",
+    "items": [
+      {
+        "price": 20,
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "variant": "Sour Watermelon Gummy",
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      },
+      {
+        "variant": "Spearmint ",
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "quantity": 1
+      },
+      {
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)",
+        "isPreorder": false,
+        "price": 14,
+        "quantity": 2,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "total_price": 68,
+    "created_at": "2026-08-20T19:15:38.876Z",
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "c4833261-aa30-41fa-9344-d47d90d95cfd"
+  },
+  {
+    "id": "B5yhR3vLryINixWwxTRs",
+    "status": "new",
+    "items": [
+      {
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "price": 18,
+        "quantity": 1,
+        "variant": "Виноград Малина Арбуз",
+        "isPreorder": false,
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)"
+      },
+      {
+        "variant": "Conifer-Grapefruit Хвоя-Грейпфрут",
+        "price": 16,
+        "quantity": 1,
+        "productName": "HOTSPOT FUEL 30 мл (50 мг)\t",
+        "productId": "dC0L3vSZoT1t26AQeomz",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-08-19T21:57:19.786Z",
+    "user_id": "f0dfec02-9b95-4617-a582-ef2847353c13",
+    "total_price": 34,
+    "username": "Клиент"
+  },
+  {
+    "id": "BZY8gcsprKdenRK0t7wf",
+    "total_price": 62,
+    "created_at": "2026-08-19T11:32:04.002Z",
+    "user_id": "6aa49a73-d40f-4d37-a30f-89d56cc36f26",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "quantity": 2,
+        "productName": "VOOPOO VMATE",
+        "productId": "7hmgM3GCjwmNkSpjr70y",
+        "price": 14,
+        "variant": "Voopoo VMATE V2 0.7 Om 3 ml"
+      },
+      {
+        "isPreorder": false,
+        "productName": "Catswill x RM NEW (30ml 50mg)",
+        "productId": "aNFW8tl8kPMw9xoh6UEn",
+        "quantity": 1,
+        "variant": "Черника Малина",
+        "price": 17
+      },
+      {
+        "price": 17,
+        "quantity": 1,
+        "productId": "aNFW8tl8kPMw9xoh6UEn",
+        "variant": "Клубника Лесные Ягоды",
+        "isPreorder": false,
+        "productName": "Catswill x RM NEW (30ml 50mg)"
+      }
+    ]
+  },
+  {
+    "id": "BuxipNtuO93tKEFRwB5k",
+    "items": [
+      {
+        "variant": "Грейпфрут малина клубника",
+        "isPreorder": false,
+        "productId": "E5mdLwB54wcZQgxLdnnG",
+        "productName": "DUALL EXTRA HARD 30 мл (50 мг)",
+        "quantity": 1,
+        "price": 16
+      },
+      {
+        "price": 16,
+        "isPreorder": false,
+        "productName": "DUALL EXTRA HARD 30 мл (50 мг)",
+        "variant": "Экзотические фрукты",
+        "productId": "E5mdLwB54wcZQgxLdnnG",
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "quantity": 2,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "price": 14
+      }
+    ],
+    "total_price": 60,
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "created_at": "2026-07-28T05:25:31.922Z",
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "CP3OhHGE6awZ71mIEvC7",
+    "items": [
+      {
+        "variant": "Blackberry Lemon ",
+        "isPreorder": false,
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Watermelon ",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1,
+        "price": 20
+      }
+    ],
+    "status": "new",
+    "user_id": "bedd7497-3b59-4443-8b13-cae47dcf0b3d",
+    "created_at": "2026-08-02T17:18:34.005Z",
+    "total_price": 40,
+    "username": "Клиент"
+  },
+  {
+    "id": "CrUigL6H0x6y0gePa8Gc",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "price": 18,
+        "isPreorder": false,
+        "variant": "Кислый Фруктовый Энергетик ",
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t"
+      },
+      {
+        "price": 14,
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "44157946-1f16-4f6a-b623-41a18ce2d70e",
+    "created_at": "2026-08-04T16:12:22.171Z",
+    "status": "new",
+    "total_price": 32
+  },
+  {
+    "id": "Cs85wDwriO7arBi5zjDC",
+    "items": [
+      {
+        "quantity": 1,
+        "price": 16,
+        "productId": "M2vmG5PePkz0OyY5b6BB",
+        "productName": "PIXEL 30 мл (20 мг)",
+        "variant": "Бабл гам",
+        "isPreorder": false
+      }
+    ],
+    "status": "new",
+    "user_id": "09b2b629-e615-4e1e-9c5b-e5c61e70ade8",
+    "created_at": "2026-08-02T14:36:22.185Z",
+    "username": "Клиент",
+    "total_price": 16
+  },
+  {
+    "id": "CwyLnMUgaHrCXIsx38Qj",
+    "user_id": "99a48999-c985-4de1-b300-617c4eaeb4e4",
+    "items": [
+      {
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 19,
+        "variant": "Арбуз Лед",
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-07-28T12:17:49.346Z",
+    "total_price": 19,
+    "username": "Клиент"
+  },
+  {
+    "id": "DQJcFUPSZd4SsfsZMDDi",
+    "user_id": "958ed785-6b74-45f7-8fb3-ea23ff9b0fda",
+    "username": "Клиент",
+    "total_price": 17,
+    "items": [
+      {
+        "productName": "SLIME Shock Line 30 мл (20 мг)\t",
+        "productId": "B8HcSnG609kgVnL3hatN",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 17,
+        "variant": "Кислый Малиновый Энергетик"
+      }
+    ],
+    "created_at": "2026-07-29T13:33:23.400Z",
+    "status": "new"
+  },
+  {
+    "id": "Dz3ulMbJozei0VUQQEq7",
+    "user_id": "3280d84c-7232-47dc-8157-3f3d058660ed",
+    "status": "new",
+    "created_at": "2026-08-05T14:22:20.847Z",
+    "total_price": 19,
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "price": 19,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "variant": "Голубика Лед",
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "EFHyNAFv2Yn1MJZ29MCR",
+    "status": "new",
+    "created_at": "2026-08-20T12:57:26.889Z",
+    "user_id": "48822c1e-5be8-46f1-9864-bc65673006e2",
+    "items": [
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "cYJEYAXoUOWFTW4XuWei",
+        "price": 18,
+        "variant": "Ягодный Спрайт",
+        "productName": "Злая Милфа 30ml (70mg)"
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 32
+  },
+  {
+    "id": "EZR03crwmABhDe7lSUg8",
+    "created_at": "2026-08-04T20:04:02.563Z",
+    "user_id": "8440a732-02d0-402b-9bfc-aa2f32b537aa",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 15,
+    "items": [
+      {
+        "variant": "Atomic Black ",
+        "price": 15,
+        "productName": "Drymost 175 мг",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "Zhzl4FevA3MxGAbjv7U3"
+      }
+    ]
+  },
+  {
+    "id": "EjVX4NcjLX0BcYGH9PKf",
+    "created_at": "2026-08-03T11:44:31.269Z",
+    "total_price": 14,
+    "items": [
+      {
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "status": "new"
+  },
+  {
+    "id": "EtUqxCX5uF7Qg71PgDbB",
+    "user_id": "945f2df5-eab5-4ad8-8be0-27b21b3c5b99",
+    "created_at": "2026-08-19T14:50:55.493Z",
+    "total_price": 27,
+    "items": [
+      {
+        "price": 27,
+        "variant": "Blue Razz Ice",
+        "productName": "Pynepod Boost Pro 20000",
+        "quantity": 1,
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "isPreorder": false
+      }
+    ],
+    "username": "Клиент",
+    "status": "new"
+  },
+  {
+    "id": "F7449MF1JFnev8PDx28n",
+    "status": "new",
+    "user_id": "24b87b8e-ee7d-4cb5-9c51-6296603f665b",
+    "created_at": "2026-08-18T17:34:53.460Z",
+    "items": [
+      {
+        "price": 20,
+        "productName": "Catswill PREMIUM 30 мл (50 мг)",
+        "quantity": 1,
+        "productId": "6vrWu4ldgMYlRd9TtpH4",
+        "isPreorder": false,
+        "variant": "Ежевика Мята Виноград"
+      },
+      {
+        "productName": "Catswill PREMIUM 30 мл (50 мг)",
+        "price": 20,
+        "variant": "Ежевика",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "6vrWu4ldgMYlRd9TtpH4"
+      },
+      {
+        "productName": "Catswill PREMIUM 30 мл (50 мг)",
+        "productId": "6vrWu4ldgMYlRd9TtpH4",
+        "variant": "Вишня Лимон",
+        "price": 20,
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "variant": "Смородина Малина",
+        "price": 20,
+        "isPreorder": false,
+        "productId": "6vrWu4ldgMYlRd9TtpH4",
+        "productName": "Catswill PREMIUM 30 мл (50 мг)"
+      },
+      {
+        "quantity": 1,
+        "variant": "Sour Watermelon Gummy",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "isPreorder": false
+      },
+      {
+        "variant": "VAPORESSO XROS 0.6 Om 2 ml Corex 2.0 (крат 4)",
+        "price": 14,
+        "quantity": 2,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      },
+      {
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 3,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "total_price": 170,
+    "username": "Клиент"
+  },
+  {
+    "id": "F8WmPEHSN5WN70w7BjFS",
+    "user_id": "e443e037-fef2-43da-bc59-b929df84ecdd",
+    "status": "new",
+    "total_price": 18,
+    "created_at": "2026-07-29T15:06:51.615Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "isPreorder": false,
+        "variant": "Алое Виноград",
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "price": 18
+      }
+    ]
+  },
+  {
+    "id": "Fp8qW2f9RbkLGtQmv9Li",
+    "total_price": 30,
+    "created_at": "2026-08-18T11:42:59.093Z",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "Малина Ежевика ",
+        "productName": "Podonki Malasian NEW 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "gUwTxNA4Y7fr693AmD7y",
+        "price": 16,
+        "isPreorder": false
+      },
+      {
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "quantity": 1
+      }
+    ],
+    "user_id": "c3d6b22a-c66a-48c4-8ece-125bf495a636"
+  },
+  {
+    "id": "GMLz9FgD8hinzr2O7bWY",
+    "created_at": "2026-07-29T15:20:59.616Z",
+    "status": "new",
+    "user_id": "630cca98-60ef-4db2-88b2-61a483d8033a",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Малина гранат",
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "isPreorder": false,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "price": 15
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 15
+  },
+  {
+    "id": "GPvECRlgHOLXPmtZsxjs",
+    "total_price": 19,
+    "user_id": "2050d82c-fe2b-4109-bec1-744f0da5282b",
+    "created_at": "2026-08-01T18:42:27.282Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "price": 19,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "quantity": 1,
+        "variant": "Клубничный Лимонад"
+      }
+    ],
+    "status": "new"
+  },
+  {
+    "id": "Go7eiaYP18XCrQCBuQ18",
+    "items": [
+      {
+        "productId": "aNFW8tl8kPMw9xoh6UEn",
+        "price": 17,
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "Catswill x RM NEW (30ml 50mg)",
+        "variant": "Черника Арбуз"
+      },
+      {
+        "variant": "Жвачка черника-мята",
+        "quantity": 1,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "price": 15,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1
+      }
+    ],
+    "total_price": 46,
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "created_at": "2026-08-19T11:28:53.833Z"
+  },
+  {
+    "id": "GpDVUz3sCVj8elictRFY",
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-08-02T10:39:04.677Z",
+    "total_price": 66,
+    "user_id": "09b2b629-e615-4e1e-9c5b-e5c61e70ade8",
+    "items": [
+      {
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "variant": "Лесные Ягоды ",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "quantity": 1,
+        "price": 18,
+        "variant": "Кислый Скиттлс",
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "variant": "Земляника Виноград",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "quantity": 1
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ]
+  },
+  {
+    "id": "GtfeOODiEK9WvJoUemlo",
+    "total_price": 29,
+    "username": "Клиент",
+    "created_at": "2026-07-31T08:27:40.400Z",
+    "user_id": "ec3ffa80-b078-4c2b-8df8-752e74260ac4",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "price": 15,
+        "quantity": 1,
+        "variant": "Классический Бабл Гам"
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "price": 14
+      }
+    ]
+  },
+  {
+    "id": "H85d2JAAHMPX46NFZuAW",
+    "user_id": "a3a5f487-bb2b-46e4-8c6d-85ebf7270614",
+    "total_price": 34,
+    "created_at": "2026-07-30T18:07:35.200Z",
+    "status": "new",
+    "items": [
+      {
+        "variant": "Grape",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "H9LXj1qO40eQ9brhXaAh",
+    "user_id": "920496a9-f439-4a4a-89e4-83ec1b30048d",
+    "total_price": 32,
+    "created_at": "2026-08-20T10:57:55.865Z",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS"
+      },
+      {
+        "variant": "Вишневый Морс",
+        "isPreorder": false,
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "price": 18,
+        "quantity": 1,
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)"
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "HFhgvYA2dtRLXORRYElW",
+    "user_id": "945f2df5-eab5-4ad8-8be0-27b21b3c5b99",
+    "total_price": 27,
+    "items": [
+      {
+        "price": 27,
+        "isPreorder": false,
+        "variant": "Blue Razz Ice",
+        "productName": "Pynepod Boost Pro 20000",
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "quantity": 1
+      }
+    ],
+    "status": "new",
+    "username": "Клиент",
+    "created_at": "2026-08-19T14:50:28.174Z"
+  },
+  {
+    "id": "HLcAPzAEpL1ayrXxCPA3",
+    "username": "Клиент",
+    "user_id": "c39ed420-f903-413a-bc01-31bc323eae06",
+    "status": "new",
+    "total_price": 34,
+    "items": [
+      {
+        "variant": "Blue Razz Lemonade",
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      },
+      {
+        "price": 14,
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 2 ml Corex 2.0 (крат 4)",
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "created_at": "2026-08-20T19:40:44.835Z"
+  },
+  {
+    "id": "HcF0ev9xL3KDbJFiyitb",
+    "status": "new",
+    "total_price": 92,
+    "user_id": "920496a9-f439-4a4a-89e4-83ec1b30048d",
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Black (Кожаный)",
+        "productName": "Xros 5 mini Pod",
+        "price": 75
+      },
+      {
+        "price": 17,
+        "productId": "Vj7JO1iOyNyi03IZL9OS",
+        "variant": "Banana (Банан)",
+        "isPreorder": false,
+        "productName": "Glitch Sauce Iced Out 30 мл (50 мг)\t",
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-07-28T18:16:37.000Z"
+  },
+  {
+    "id": "IwrLWiKLzV8ZdSPL3KD2",
+    "user_id": "05625980-2ea3-431f-83e5-8dd61a534e19",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 47,
+    "created_at": "2026-07-27T08:55:38.173Z",
+    "items": [
+      {
+        "price": 18,
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "variant": "Яблоко Виноград",
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "quantity": 1,
+        "isPreorder": false
+      },
+      {
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "isPreorder": false,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "variant": "Кокос Малина",
+        "price": 15,
+        "quantity": 1
+      },
+      {
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 1,
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "Ixw8GGW7dBlXGM2YCznN",
+    "username": "Клиент",
+    "user_id": "565456f5-5699-4094-9602-1c1f9aabbf36",
+    "created_at": "2026-08-19T22:38:58.935Z",
+    "total_price": 135,
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": true,
+        "productName": "Xros Pro 2 Pod",
+        "productId": "CXcWytvZPGDPjJvvsZ8v",
+        "variant": "Glittering Black",
+        "quantity": 1,
+        "price": 97
+      },
+      {
+        "price": 18,
+        "isPreorder": false,
+        "variant": "Вишневый Ментос",
+        "productName": "Злая Милфа ACID 30ml (70mg)",
+        "productId": "9icGUFnkLWTQ9klK6197",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "productName": "Catswill PREMIUM 30 мл (50 мг)",
+        "isPreorder": false,
+        "productId": "6vrWu4ldgMYlRd9TtpH4",
+        "price": 20,
+        "variant": "Синяя Малина"
+      }
+    ]
+  },
+  {
+    "id": "J1ngPvQ1HfBGKYsOZ169",
+    "total_price": 50,
+    "created_at": "2026-08-19T13:19:26.389Z",
+    "status": "new",
+    "user_id": "45f7faf7-af93-4f52-acc1-8da0e69acb3c",
+    "items": [
+      {
+        "price": 18,
+        "quantity": 1,
+        "variant": "Виноград Вишня",
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "isPreorder": false,
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)"
+      },
+      {
+        "price": 18,
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)",
+        "isPreorder": false,
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "variant": "Виноград Алое",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)"
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "Jo7M5aoUk8hSlArpzAhb",
+    "username": "Клиент",
+    "user_id": "298d7d60-9ba5-47ac-86f3-ba1f4c271f82",
+    "status": "new",
+    "items": [
+      {
+        "variant": "Blackcurrant Aniseed ",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1,
+        "price": 20,
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      }
+    ],
+    "created_at": "2026-07-31T06:08:56.063Z",
+    "total_price": 20
+  },
+  {
+    "id": "JrnluNaIMDF9gaqTd99g",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "Podonki Malasian NEW 30 мл (50 мг)\t",
+        "price": 16,
+        "variant": "Жвачка Клубника Киви",
+        "quantity": 1,
+        "productId": "gUwTxNA4Y7fr693AmD7y"
+      }
+    ],
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "875ac612-002f-460a-aa2c-5a26a49f39c0",
+    "created_at": "2026-07-30T17:36:15.644Z",
+    "total_price": 16
+  },
+  {
+    "id": "Jw7wQ7byOdNTcGXcy5mE",
+    "items": [
+      {
+        "productName": "Мишка HUSKY 30 мл (50 мг)",
+        "productId": "9Pn0N1OnxSgAF6973Ykh",
+        "isPreorder": false,
+        "variant": "Энергетик Кактус",
+        "quantity": 1,
+        "price": 15
+      }
+    ],
+    "created_at": "2026-08-20T07:29:54.757Z",
+    "user_id": "e1bcba97-06f6-4dcc-8eb2-53378ce905e7",
+    "status": "new",
+    "total_price": 15,
+    "username": "Клиент"
+  },
+  {
+    "id": "K1jtidcdUHMlDwphOY6S",
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "Apple Peach ",
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-07-26T14:20:00.038Z",
+    "user_id": "87d9ee39-49da-4fc8-b853-64e5076bae1d",
+    "total_price": 20
+  },
+  {
+    "id": "KWiRrNo5AI62EkIEdmUc",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 1,
+        "price": 14
+      },
+      {
+        "isPreorder": false,
+        "variant": "Клубника Арбуз ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "quantity": 1,
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ"
+      }
+    ],
+    "status": "new",
+    "total_price": 31,
+    "created_at": "2026-07-26T10:22:34.045Z",
+    "user_id": "7f314b30-b49a-4099-9d46-fc5bfd8df74f"
+  },
+  {
+    "id": "KabE3RMo3IpOeK54avnY",
+    "items": [
+      {
+        "price": 16,
+        "variant": "Дыня Клубника Банан",
+        "isPreorder": false,
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "Yi8q2s9WryjW8cjA1yrP"
+      }
+    ],
+    "status": "new",
+    "total_price": 16,
+    "created_at": "2026-07-28T11:48:27.359Z",
+    "username": "Клиент",
+    "user_id": "c39ed420-f903-413a-bc01-31bc323eae06"
+  },
+  {
+    "id": "KhuhetELs7XN2cPNdXed",
+    "created_at": "2026-07-27T09:37:46.076Z",
+    "user_id": "aa936d98-b729-43c8-be93-aad8da971af3",
+    "total_price": 136,
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": true,
+        "price": 120,
+        "productName": "Pasito 2 Mod Pod",
+        "variant": "Nymph",
+        "quantity": 1,
+        "productId": "9ldWtNtswR1HCCw8ys3P"
+      },
+      {
+        "isPreorder": false,
+        "productId": "gUwTxNA4Y7fr693AmD7y",
+        "price": 16,
+        "quantity": 1,
+        "productName": "Podonki Malasian NEW 30 мл (50 мг)\t",
+        "variant": "Кола Мармеладные Мишки "
+      }
+    ]
+  },
+  {
+    "id": "KpVGlJn4hK81HwP6hozQ",
+    "created_at": "2026-07-27T11:35:27.248Z",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "username": "Клиент",
+    "total_price": 93,
+    "items": [
+      {
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "isPreorder": false,
+        "price": 75,
+        "variant": "White (Кожаный)",
+        "productName": "Xros 5 mini Pod",
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "quantity": 1,
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "variant": "Алое Виноград",
+        "price": 18
+      }
+    ],
+    "status": "new"
+  },
+  {
+    "id": "M3M07MXprbBImlAPg2aa",
+    "items": [
+      {
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "price": 16,
+        "isPreorder": false,
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "quantity": 1,
+        "variant": "Лимонад Голубика"
+      }
+    ],
+    "created_at": "2026-07-28T15:21:30.864Z",
+    "user_id": "e7929696-5fba-46ac-8ea3-b1bd1d0738c5",
+    "username": "Клиент",
+    "total_price": 16,
+    "status": "new"
+  },
+  {
+    "id": "M3ZELHXhqL4dLp8N10cp",
+    "created_at": "2026-08-03T14:32:45.929Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 19,
+        "variant": "Кислый Грейпфрут с Вишней",
+        "productId": "vQ8iS3qPKiIHe9C19Lb5",
+        "productName": "Самоубийца V2 ACID 30 мл (70 мг)\t",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "status": "new",
+    "total_price": 33,
+    "user_id": "ea3839af-191a-43c3-a5b6-02ff1ff203fd"
+  },
+  {
+    "id": "MG60i88UkIVf6dJ5gYIT",
+    "status": "new",
+    "user_id": "6a6a392e-bba9-41b9-8def-aa9278079415",
+    "total_price": 18,
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "ЗЛАЯ МОНАШКА HARD 30 мл (50 мг)\t",
+        "productId": "OmkybCfXN8VChKrv0oMy",
+        "price": 18,
+        "variant": "Фруктовый мармелад лед",
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-07-31T20:53:30.596Z"
+  },
+  {
+    "id": "MHruLYlFuobM8FqbBgao",
+    "status": "new",
+    "created_at": "2026-08-20T13:09:08.910Z",
+    "total_price": 29,
+    "user_id": "bec33688-3bd6-44df-bf03-ad25c7292f68",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Ежевика Малина ",
+        "price": 15,
+        "isPreorder": false,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "productId": "sOpdIlPBvtmEi1Ch3E46"
+      },
+      {
+        "isPreorder": false,
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS"
+      }
+    ]
+  },
+  {
+    "id": "MN1URw0NCXjx7T6DiyfN",
+    "created_at": "2026-07-29T13:32:43.549Z",
+    "items": [
+      {
+        "productName": "SLIME Arctic Line 30 мл (20 мг)\t",
+        "price": 17,
+        "isPreorder": false,
+        "variant": "Ягодные Леденцы Лед",
+        "quantity": 1,
+        "productId": "yIXFMVlVcw5OEmCzkQ5l"
+      }
+    ],
+    "user_id": "32f14eba-ca7d-4fd2-b63c-8860ee1dc556",
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 17
+  },
+  {
+    "id": "MUtkqr50dh2NzOJcnAXT",
+    "total_price": 14,
+    "created_at": "2026-08-20T06:36:39.083Z",
+    "items": [
+      {
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "565456f5-5699-4094-9602-1c1f9aabbf36",
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "MZbKnpvzhqJPLM3D8VED",
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 18,
+    "items": [
+      {
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)",
+        "variant": "Персиковый Лимонад",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 18
+      }
+    ],
+    "user_id": "214cd880-9b7e-4769-b77d-087e752188ec",
+    "created_at": "2026-08-20T17:13:38.327Z"
+  },
+  {
+    "id": "Meos9HeGzBOKgcYMPXzg",
+    "user_id": "6a6a392e-bba9-41b9-8def-aa9278079415",
+    "items": [
+      {
+        "price": 18,
+        "productId": "OmkybCfXN8VChKrv0oMy",
+        "quantity": 1,
+        "variant": "Фруктовый мармелад лед",
+        "isPreorder": false,
+        "productName": "ЗЛАЯ МОНАШКА HARD 30 мл (50 мг)\t"
+      }
+    ],
+    "created_at": "2026-07-31T20:53:05.610Z",
+    "total_price": 18,
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "MiE2Jf2xpCSb3ShjEEmG",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1,
+        "price": 20,
+        "variant": "Strawberry Ice",
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      },
+      {
+        "price": 20,
+        "quantity": 1,
+        "variant": "Grape",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false
+      }
+    ],
+    "status": "new",
+    "user_id": "61b8c460-ff9e-46c5-a870-1218fb02f027",
+    "username": "Клиент",
+    "created_at": "2026-07-30T08:31:46.347Z",
+    "total_price": 40
+  },
+  {
+    "id": "MmmvuM4hKUn4RBal6Y7o",
+    "created_at": "2026-08-20T17:56:16.967Z",
+    "total_price": 31,
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "quantity": 1,
+        "variant": "Кокос Дыня ",
+        "isPreorder": false,
+        "price": 17
+      },
+      {
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "isPreorder": false
+      }
+    ],
+    "user_id": "28b872a5-16e9-4a66-bc27-c96750414de5",
+    "status": "new"
+  },
+  {
+    "id": "Mqz8UNBZBT1wBWhWYt3h",
+    "total_price": 17,
+    "status": "new",
+    "created_at": "2026-08-20T17:19:48.023Z",
+    "user_id": "7a8c156a-5663-424b-9206-2cfe0138a243",
+    "username": "Клиент",
+    "items": [
+      {
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "isPreorder": false,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "quantity": 1,
+        "price": 17,
+        "variant": "Черника Вишня"
+      }
+    ]
+  },
+  {
+    "id": "MuulPXYwYDReZVPnicuC",
+    "username": "Клиент",
+    "created_at": "2026-07-28T17:17:10.016Z",
+    "status": "new",
+    "user_id": "702f8197-c0e0-44e6-b9d5-3430f419e542",
+    "items": [
+      {
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "variant": "Peach Ice",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 20
+      }
+    ],
+    "total_price": 20
+  },
+  {
+    "id": "N1yv60eMsuTh31SqqEqf",
+    "created_at": "2026-08-04T09:04:51.468Z",
+    "username": "Клиент",
+    "user_id": "2144d0e4-acf4-4824-94f2-cbdf7c001e0c",
+    "total_price": 82,
+    "items": [
+      {
+        "variant": "Voopoo VMATE V2 0.7 Om 3 ml",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 14,
+        "productId": "7hmgM3GCjwmNkSpjr70y",
+        "productName": "VOOPOO VMATE"
+      },
+      {
+        "isPreorder": false,
+        "price": 17,
+        "productId": "B8HcSnG609kgVnL3hatN",
+        "productName": "SLIME Shock Line 30 мл (20 мг)\t",
+        "variant": "Кислая Черника Лайм",
+        "quantity": 1
+      },
+      {
+        "variant": "Кислый Цитрус Виноград",
+        "isPreorder": false,
+        "price": 17,
+        "productId": "B8HcSnG609kgVnL3hatN",
+        "productName": "SLIME Shock Line 30 мл (20 мг)\t",
+        "quantity": 1
+      },
+      {
+        "productName": "SLIME Shock Line 30 мл (20 мг)\t",
+        "variant": "Кислый Мармелад Клубника",
+        "productId": "B8HcSnG609kgVnL3hatN",
+        "isPreorder": false,
+        "price": 17,
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "productId": "B8HcSnG609kgVnL3hatN",
+        "quantity": 1,
+        "price": 17,
+        "productName": "SLIME Shock Line 30 мл (20 мг)\t",
+        "variant": "Кислый Ягодный Швепс"
+      }
+    ],
+    "status": "new"
+  },
+  {
+    "id": "N2JqmMI3fON7803EZaLp",
+    "user_id": "e7993f53-16e3-4fe8-ae22-ae43d1ab8d0f",
+    "status": "new",
+    "items": [
+      {
+        "variant": "Классическая Кола со Льдом",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "NkzqXv1MXSmU7yqhgH8t",
+        "price": 17,
+        "productName": "Podonki V1 30 мл (50 мг)\t"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 17,
+    "created_at": "2026-08-04T11:42:05.566Z"
+  },
+  {
+    "id": "N6L9OpFEDZThMkHT24fC",
+    "user_id": "6788f87a-fc82-4272-988d-51582747ff40",
+    "items": [
+      {
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "variant": "Дынно-земляничная резинка",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "quantity": 1,
+        "price": 17,
+        "isPreorder": false
+      },
+      {
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 1
+      }
+    ],
+    "status": "new",
+    "username": "Клиент",
+    "created_at": "2026-08-02T18:35:38.129Z",
+    "total_price": 31
+  },
+  {
+    "id": "NlCnY8EAbbsBMrzM55XH",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1,
+        "variant": "Mango Peach ",
+        "price": 20
+      },
+      {
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Jasmine Raspberry ",
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20
+      },
+      {
+        "quantity": 2,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "user_id": "c1bd091a-3e78-419d-b7c5-e91edf067553",
+    "status": "new",
+    "created_at": "2026-08-18T15:25:35.348Z",
+    "username": "Клиент",
+    "total_price": 68
+  },
+  {
+    "id": "NtWGm3jKgkgdaE47wIIN",
+    "items": [
+      {
+        "productId": "TUUtDQ2LswQAcszjkdUJ",
+        "price": 16,
+        "variant": "Клубничный йогурт ",
+        "productName": "DUALL 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "status": "new",
+    "created_at": "2026-07-28T09:20:12.959Z",
+    "total_price": 16,
+    "username": "Клиент"
+  },
+  {
+    "id": "NyRCUTELy05ttiPKjUft",
+    "items": [
+      {
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "price": 19,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "quantity": 1,
+        "variant": "Малина Кислый Лед",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-07-30T11:51:59.534Z",
+    "username": "Клиент",
+    "user_id": "afead9dd-1e57-49bc-8de1-9b1ceb8725b4",
+    "total_price": 19,
+    "status": "new"
+  },
+  {
+    "id": "O7ah0317y1ufss0laLeX",
+    "total_price": 35,
+    "user_id": "ecf57ee6-818c-4356-83be-4a8b6932e47b",
+    "username": "Клиент",
+    "created_at": "2026-08-03T12:12:15.569Z",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": true,
+        "productId": "GdZM5RcBuSCgxkRx3n2u",
+        "price": 21,
+        "quantity": 1,
+        "productName": "RELL ULTIMA 30 мл (20 мг)",
+        "variant": "Peach and Berries"
+      },
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "O9AOK1v9PfcBsaqLEm1M",
+    "total_price": 17,
+    "username": "Клиент",
+    "created_at": "2026-08-05T07:04:03.878Z",
+    "items": [
+      {
+        "price": 17,
+        "variant": "Ягодный Энергетик",
+        "productName": "SLIME Arctic Line 30 мл (20 мг)\t",
+        "quantity": 1,
+        "productId": "yIXFMVlVcw5OEmCzkQ5l",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "61e64036-51c1-41c8-829a-6438f4a6df5a",
+    "status": "new"
+  },
+  {
+    "id": "OJwdXaEBFMsXIo1K3cnV",
+    "username": "Клиент",
+    "created_at": "2026-07-26T10:21:15.108Z",
+    "status": "new",
+    "user_id": "7f314b30-b49a-4099-9d46-fc5bfd8df74f",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      },
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "variant": "Клубника Арбуз ",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "total_price": 31
+  },
+  {
+    "id": "OgTn65AHfMa8lP9BSRpY",
+    "created_at": "2026-08-04T10:00:54.052Z",
+    "items": [
+      {
+        "productId": "FKMAsQg04aJOP7pZtKWZ",
+        "productName": "ELF BAR GH 33000 5%",
+        "variant": "Lemon Lime",
+        "quantity": 1,
+        "price": 45,
+        "isPreorder": false
+      },
+      {
+        "price": 27,
+        "productName": "Pynepod Boost Pro 20000",
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "variant": "Cherry Blossom Grape",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "variant": "Blueberry Watermelon",
+        "quantity": 1,
+        "price": 27,
+        "productName": "Pynepod Boost Pro 20000"
+      },
+      {
+        "isPreorder": false,
+        "price": 27,
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "quantity": 1,
+        "productName": "Pynepod Boost Pro 20000",
+        "variant": "Blue Razz Ice"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 126,
+    "user_id": "2144d0e4-acf4-4824-94f2-cbdf7c001e0c",
+    "status": "new"
+  },
+  {
+    "id": "Oiz67qncwC5qNNSDjdsb",
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 16,
+        "variant": "Мятные Леденцы Эквалипт",
+        "productName": "DUALL 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "TUUtDQ2LswQAcszjkdUJ"
+      }
+    ],
+    "created_at": "2026-07-30T17:03:41.192Z",
+    "total_price": 16,
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "ad72fc82-bf9c-4ea2-9a36-435b554658ea"
+  },
+  {
+    "id": "Okywvpec16TZajXvYwJw",
+    "user_id": "605168da-458f-4d77-a753-a94501160ca2",
+    "total_price": 18,
+    "status": "new",
+    "created_at": "2026-07-30T13:24:14.626Z",
+    "items": [
+      {
+        "price": 18,
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "variant": "Лесной Микс",
+        "productId": "ZJbyisnjcAIVfMzWVjgx"
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "P6hxNVM66jNS16BrEDPF",
+    "status": "new",
+    "created_at": "2026-08-05T07:40:11.928Z",
+    "user_id": "a34a88be-e370-43f8-9582-5f6944591abe",
+    "items": [
+      {
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 20,
+        "variant": "Pink Lemonade "
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 2,
+        "isPreorder": false,
+        "price": 14
+      }
+    ],
+    "total_price": 48,
+    "username": "Клиент"
+  },
+  {
+    "id": "PGbPcP44KJtxEERHhCL2",
+    "total_price": 18,
+    "user_id": "ba5cad03-ff5b-49f6-9a93-cec9995aac87",
+    "created_at": "2026-07-27T07:52:29.099Z",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "variant": "Кислый Скиттлс",
+        "quantity": 1,
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "price": 18
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "PHSQpZ9RhN67y90MSQRE",
+    "created_at": "2026-07-30T12:19:16.085Z",
+    "total_price": 16,
+    "items": [
+      {
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "price": 16,
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Барбарисовый энергетик"
+      }
+    ],
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "eda793a6-49e6-4965-ab6a-0c123152ff11"
+  },
+  {
+    "id": "PZTVfp60t56LgiR5Y8pz",
+    "created_at": "2026-08-18T10:03:17.689Z",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "total_price": 20,
+    "status": "new",
+    "items": [
+      {
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Apple Pear",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "Pcs8l32x2JQcM4ZITCJG",
+    "status": "new",
+    "user_id": "0ef130cd-ff7a-4630-a43e-7d7416289aa0",
+    "total_price": 27,
+    "created_at": "2026-08-04T11:58:43.106Z",
+    "items": [
+      {
+        "productName": "Pynepod Boost Pro 20000",
+        "quantity": 1,
+        "price": 27,
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "variant": "Peach Berry Ice",
+        "isPreorder": false
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "PqokxElLyK2jyV5e2G1S",
+    "items": [
+      {
+        "isPreorder": false,
+        "variant": "Grape Cherry ",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "quantity": 2
+      },
+      {
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "quantity": 1,
+        "variant": "Pink Lemonade ",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false
+      },
+      {
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "isPreorder": false
+      }
+    ],
+    "total_price": 74,
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "49538de5-dde5-43c7-88c5-7a5bb663ff72",
+    "created_at": "2026-07-29T10:40:18.538Z"
+  },
+  {
+    "id": "Q2WiNFOvFWxXvkrEq5b9",
+    "total_price": 18,
+    "created_at": "2026-07-26T13:40:27.073Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "Кислый Тропический Микс",
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "isPreorder": false,
+        "quantity": 1,
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "price": 18
+      }
+    ],
+    "user_id": "ad975fa9-71d0-42f7-9096-387e2f02d32e",
+    "status": "new"
+  },
+  {
+    "id": "Q5ZL1O9sAG9h8p7Y2EII",
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "6788f87a-fc82-4272-988d-51582747ff40",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "quantity": 2,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      },
+      {
+        "variant": "Кислые Малиновые Червячки",
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "price": 18,
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-08-03T15:33:59.009Z",
+    "total_price": 46
+  },
+  {
+    "id": "QqHuKfXgE8fnAIXktNqG",
+    "created_at": "2026-07-29T08:43:50.440Z",
+    "username": "Клиент",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "total_price": 96,
+    "items": [
+      {
+        "quantity": 1,
+        "price": 48,
+        "variant": "Cherry Watermelon",
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "isPreorder": false
+      },
+      {
+        "price": 48,
+        "isPreorder": false,
+        "variant": "Peach Ice",
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "quantity": 1
+      }
+    ],
+    "status": "new"
+  },
+  {
+    "id": "RMwNpCsWjUNA0EvUfWlU",
+    "created_at": "2026-08-04T14:05:47.326Z",
+    "total_price": 87,
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "price": 70,
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Flowing Blue",
+        "productName": "Xros 5 mini Pod"
+      },
+      {
+        "variant": "Мятная Жвачка",
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "quantity": 1,
+        "price": 17,
+        "isPreorder": false
+      }
+    ],
+    "status": "new",
+    "user_id": "3b693596-68e7-4105-83bb-2c13085e8fc3"
+  },
+  {
+    "id": "RV07bFmZEHGGSeS71fE3",
+    "total_price": 16,
+    "created_at": "2026-07-30T16:38:07.678Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "variant": "Дыня Клубника Банан",
+        "price": 16,
+        "quantity": 1
+      }
+    ],
+    "status": "new",
+    "user_id": "53f78e13-5626-4eba-a4f0-52746f8da13f"
+  },
+  {
+    "id": "RgKnjZzCuHd9im9WK3NR",
+    "user_id": "8f457342-083a-4038-b00d-ba18ab4182d7",
+    "created_at": "2026-08-01T04:42:45.675Z",
+    "status": "new",
+    "total_price": 18,
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 18,
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "quantity": 1,
+        "variant": "Энергетик Кислая Вишня"
+      }
+    ]
+  },
+  {
+    "id": "RoW56CTg7LZjoIvKf63e",
+    "total_price": 17,
+    "user_id": "28a05d5f-d2f4-4275-9545-bf9246a84b4a",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "quantity": 1,
+        "variant": "Виноград Вишня Лимонад"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-07-27T08:24:34.870Z"
+  },
+  {
+    "id": "RtM5MDwktSVcugEhIvek",
+    "items": [
+      {
+        "variant": "Банан Клубника",
+        "quantity": 1,
+        "price": 17,
+        "isPreorder": false,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ"
+      }
+    ],
+    "total_price": 17,
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "02089ab7-0edd-4409-a7f4-efdbde706bc7",
+    "created_at": "2026-07-28T16:17:53.969Z"
+  },
+  {
+    "id": "SYG9djJ59KfZZdRjI8Rz",
+    "status": "new",
+    "user_id": "8a6e8235-27ab-4e57-a757-d136f4130293",
+    "items": [
+      {
+        "quantity": 2,
+        "variant": "Барбарисовый Лимонад",
+        "price": 17,
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      },
+      {
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "quantity": 1,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "variant": "Грейпфрут Черная Смородина ",
+        "price": 17
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "variant": "Кислые Вишневые Червячки",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      },
+      {
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "quantity": 1,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "isPreorder": false,
+        "variant": "Кислый Ананас Апельсин "
+      },
+      {
+        "variant": "Кислый Малиново-Грейпфрутовый Швепс",
+        "price": 17,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ"
+      },
+      {
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "quantity": 1,
+        "variant": "Клюква Земляника ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      },
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "quantity": 1,
+        "price": 17,
+        "variant": "Клюква Лайм"
+      },
+      {
+        "variant": "Красный Апельсин",
+        "price": 17,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "variant": "Брусника Клюква",
+        "quantity": 1,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "price": 17,
+        "productId": "M4WpZ7dppfgcTAOOOJdz"
+      },
+      {
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "quantity": 1,
+        "price": 17,
+        "variant": "Земляничный Мохито",
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "isPreorder": false
+      },
+      {
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "variant": "Компот из Клюквы и Смородины",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 17
+      },
+      {
+        "variant": "Малина Апельсин ",
+        "price": 17,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)"
+      },
+      {
+        "quantity": 1,
+        "variant": "Сибирские Ягоды",
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "price": 17,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "isPreorder": false
+      },
+      {
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 17,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "variant": "Смородина Голубика"
+      },
+      {
+        "isPreorder": false,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "quantity": 1,
+        "variant": "Черешня Смородина",
+        "price": 17,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)"
+      },
+      {
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "price": 17,
+        "isPreorder": false,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "quantity": 1,
+        "variant": "Яблочный Энергетик "
+      },
+      {
+        "price": 17,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "variant": "Сладкое Яблоко Мандарин",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "M4WpZ7dppfgcTAOOOJdz"
+      },
+      {
+        "quantity": 3,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      },
+      {
+        "variant": "SMOANT Knight/Pasito II 0,3 Om ",
+        "isPreorder": false,
+        "quantity": 3,
+        "productId": "LAr2OagMjDkSCFCSyBIn",
+        "productName": "SMOANT Knight/Pasito",
+        "price": 13
+      }
+    ],
+    "total_price": 387,
+    "created_at": "2026-08-04T08:36:27.653Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "SfcmWcLcxigUB6bS2qqI",
+    "created_at": "2026-07-31T05:51:54.165Z",
+    "user_id": "1024a2f3-708d-4685-b4d8-5d1d9203c92a",
+    "total_price": 20,
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "productName": "ELFLIQ ICE 30 мл (50 мг)\t",
+        "productId": "j5gTzPsD4xlAEoJtiM0r",
+        "price": 20,
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Iced Strawberry Mango"
+      }
+    ]
+  },
+  {
+    "id": "SzI8mARVZXUGtwRKAya7",
+    "status": "new",
+    "items": [
+      {
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 14,
+    "created_at": "2026-08-19T18:10:14.833Z",
+    "user_id": "447d7c60-333b-4b8f-9108-c61ddae62670"
+  },
+  {
+    "id": "TDnt40xWOSYNOKfIqdVO",
+    "total_price": 68,
+    "created_at": "2026-08-20T19:17:10.075Z",
+    "items": [
+      {
+        "price": 20,
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Sour Watermelon Gummy",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "variant": "Spearmint ",
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "isPreorder": false,
+        "quantity": 2
+      }
+    ],
+    "user_id": "c4833261-aa30-41fa-9344-d47d90d95cfd",
+    "username": "Клиент",
+    "status": "new"
+  },
+  {
+    "id": "TFbVZuylqu0mk6vqOfz6",
+    "status": "new",
+    "created_at": "2026-08-02T09:54:50.819Z",
+    "total_price": 60,
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "variant": "Виноград и клубника",
+        "quantity": 1,
+        "price": 16
+      },
+      {
+        "price": 16,
+        "isPreorder": false,
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "variant": "Вишня и ананас"
+      },
+      {
+        "quantity": 2,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "price": 14
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "055577fc-c189-447f-a2ac-060cee1dc481"
+  },
+  {
+    "id": "TL2fDQNqMJbzkDZaGoiX",
+    "items": [
+      {
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)",
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "price": 18,
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Фруктовый Энергетик"
+      }
+    ],
+    "created_at": "2026-08-20T07:49:45.967Z",
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "ad975fa9-71d0-42f7-9096-387e2f02d32e",
+    "total_price": 18
+  },
+  {
+    "id": "TUMwAEEawAx0TQrNjUmk",
+    "status": "new",
+    "total_price": 81,
+    "user_id": "d623ecdc-da36-4f3d-8815-53d5bcca5b2c",
+    "created_at": "2026-08-19T21:08:48.697Z",
+    "items": [
+      {
+        "variant": "Mango Peach Watermelon",
+        "price": 48,
+        "quantity": 1,
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "variant": "Киви Виноград",
+        "price": 19,
+        "productName": "УБИВАШКА (30ml 80mg)"
+      },
+      {
+        "price": 14,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "TdcaeO1ISklFOg5a4DOZ",
+    "created_at": "2026-08-03T17:38:47.102Z",
+    "total_price": 31,
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "variant": "Кислый Малиново-Грейпфрутовый Швепс",
+        "quantity": 1,
+        "price": 17,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ"
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "user_id": "94c59541-8ade-46e2-a060-b6c4f696cb13"
+  },
+  {
+    "id": "TehNDSeG7sKTfWzQAJi2",
+    "created_at": "2026-07-30T07:17:28.348Z",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "items": [
+      {
+        "variant": "Лимонад Черника лайм",
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "isPreorder": false,
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "price": 17,
+        "quantity": 1
+      },
+      {
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "price": 17,
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "variant": "Мятная Жвачка",
+        "quantity": 1,
+        "isPreorder": false
+      },
+      {
+        "variant": "Вишневая тянучка",
+        "isPreorder": false,
+        "price": 17,
+        "quantity": 1,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      },
+      {
+        "price": 17,
+        "variant": "Гранатово-клубничный ураган",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      },
+      {
+        "variant": "Двойной удар манго",
+        "isPreorder": false,
+        "price": 17,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "quantity": 1,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      },
+      {
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 17,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "variant": "Яблочный Шторм "
+      },
+      {
+        "quantity": 1,
+        "variant": "Розовая шипучка с малиной",
+        "isPreorder": false,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "price": 17
+      },
+      {
+        "isPreorder": false,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "quantity": 1,
+        "variant": "Тропический вихрь",
+        "price": 17
+      },
+      {
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 2 ml Corex 2.0 (крат 4)",
+        "price": 14
+      }
+    ],
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 150
+  },
+  {
+    "id": "TuFx7qtoSPHAYPmtfc3N",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "QCOYGKglrSPd4q9W3uBH",
+        "variant": "Grape Pomegranate ",
+        "quantity": 1,
+        "price": 45,
+        "productName": "ELF BAR DUKE 30000 5%"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-07-30T14:25:29.349Z",
+    "username": "Клиент",
+    "total_price": 45,
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618"
+  },
+  {
+    "id": "UKijn62oUKsCp7HBQT7O",
+    "total_price": 18,
+    "user_id": "f7e35a81-1d63-4621-af49-d9734b07c063",
+    "created_at": "2026-07-29T18:29:09.039Z",
+    "status": "new",
+    "items": [
+      {
+        "price": 18,
+        "quantity": 1,
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "isPreorder": false,
+        "variant": "Кислые Малиновые Червячки"
+      }
+    ],
+    "username": "Клиент"
+  },
+  {
+    "id": "UVOvdevJGN5LNvkMgQif",
+    "items": [
+      {
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Grape Cherry ",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "price": 20
+      },
+      {
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1,
+        "variant": "Cherry Lemon Peach",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "price": 20,
+        "variant": "Mango Peach ",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1
+      },
+      {
+        "variant": "Watermelon ",
+        "price": 20,
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-07-30T18:02:27.407Z",
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 80,
+    "user_id": "a3a5f487-bb2b-46e4-8c6d-85ebf7270614"
+  },
+  {
+    "id": "UVViTGvf9ISc185njd7b",
+    "status": "new",
+    "user_id": "3da91251-0d52-43c9-bace-9c4af547bc25",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "price": 16,
+        "productName": "HOTSPOT MORPH 30 мл (50 мг)\t",
+        "productId": "mUNgyimeelLhCYY5FkTB",
+        "isPreorder": false,
+        "variant": "Киви Зеленое Яблоко Вишня "
+      },
+      {
+        "quantity": 1,
+        "variant": "Кислый Ананасовый Сок Киви",
+        "isPreorder": false,
+        "productName": "Самоубийца V2 ACID 30 мл (70 мг)\t",
+        "price": 19,
+        "productId": "vQ8iS3qPKiIHe9C19Lb5"
+      }
+    ],
+    "total_price": 35,
+    "created_at": "2026-08-02T10:16:30.263Z"
+  },
+  {
+    "id": "UfQL4SBuWphLK39d3PZE",
+    "created_at": "2026-07-26T11:28:18.194Z",
+    "total_price": 45,
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 45,
+        "productName": "ELF BAR DUKE 30000 5%",
+        "variant": "Sour Blackberry Ice",
+        "isPreorder": false,
+        "productId": "QCOYGKglrSPd4q9W3uBH",
+        "quantity": 1
+      }
+    ],
+    "user_id": "2387108c-e24e-483f-bd2c-8a13b47118a5",
+    "status": "new"
+  },
+  {
+    "id": "UptYU1Dv91dyWjxwo1BG",
+    "created_at": "2026-08-20T15:11:38.330Z",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "quantity": 1,
+        "variant": "Sky Blue",
+        "productName": "Xros 5 mini Pod",
+        "price": 70
+      }
+    ],
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 70,
+    "user_id": "5ecc70d9-aac0-4455-bea7-60f0fbde0065"
+  },
+  {
+    "id": "UvDJ7Nx0jAEy4WT1lYwX",
+    "items": [
+      {
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "variant": "Ред Булл",
+        "price": 19,
+        "productName": "УБИВАШКА (30ml 80mg)"
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "5e5b084b-c753-4219-894f-067e55cbe834",
+    "status": "new",
+    "total_price": 19,
+    "created_at": "2026-08-19T10:54:33.277Z"
+  },
+  {
+    "id": "V4FkSCQFehuLA5cMnAIt",
+    "items": [
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "variant": "Клубника Арбуз ",
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "isPreorder": false
+      }
+    ],
+    "total_price": 17,
+    "created_at": "2026-07-28T17:10:45.289Z",
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "cb9dbfb9-7f9d-411d-bbbf-759da055e5b8"
+  },
+  {
+    "id": "V8qHl4DRqFG7qMbFiAUQ",
+    "items": [
+      {
+        "variant": "Малина Черника",
+        "productName": "PODONKI INFERNO",
+        "price": 18,
+        "quantity": 1,
+        "productId": "bFQTr2MYt40mHi7APttY",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-08-19T17:57:38.447Z",
+    "username": "Клиент",
+    "total_price": 32,
+    "user_id": "449c748e-2461-4cb2-840e-5e628dbcf381"
+  },
+  {
+    "id": "VAZRl4O9DSvZJ8fWh8Kn",
+    "user_id": "0ef130cd-ff7a-4630-a43e-7d7416289aa0",
+    "created_at": "2026-07-29T12:08:14.038Z",
+    "total_price": 27,
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "productName": "Pynepod Boost Pro 20000",
+        "isPreorder": false,
+        "price": 27,
+        "quantity": 1,
+        "variant": "Peach Berry Ice"
+      }
+    ]
+  },
+  {
+    "id": "VLDtssLARZSEnsmaqX2n",
+    "created_at": "2026-08-02T14:55:54.355Z",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS",
+        "price": 14
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "a9d89d1d-72b9-4bbb-8142-f2b27522653b",
+    "total_price": 14,
+    "status": "new"
+  },
+  {
+    "id": "VhVW3Clot98ze8D2Dsq4",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Барбарисовый Лимонад",
+        "price": 17,
+        "isPreorder": false,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-07-30T08:37:50.981Z",
+    "total_price": 17,
+    "user_id": "5df864a7-d9cd-4145-87d6-0e335a6103da"
+  },
+  {
+    "id": "WAqcyVmBsnM0lFRYrrHE",
+    "total_price": 17,
+    "username": "Клиент",
+    "created_at": "2026-07-31T15:46:59.720Z",
+    "status": "new",
+    "user_id": "e199f5be-8789-450c-a6b5-39958c644577",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Лимонный кисляк",
+        "isPreorder": false,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "price": 17,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      }
+    ]
+  },
+  {
+    "id": "WEOaQtUyQ2bHNAquP4ma",
+    "username": "Клиент",
+    "created_at": "2026-08-20T09:34:08.839Z",
+    "status": "new",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "isPreorder": true,
+        "price": 21,
+        "productName": "RELL ULTIMA 30 мл (20 мг)",
+        "variant": "Apple Peach Pear",
+        "productId": "GdZM5RcBuSCgxkRx3n2u"
+      }
+    ],
+    "user_id": "ecf57ee6-818c-4356-83be-4a8b6932e47b",
+    "total_price": 35
+  },
+  {
+    "id": "WMatwsUYPSUKlhSYd3EG",
+    "user_id": "cf0a3fef-588d-4e4d-be7e-bb0990e4e194",
+    "items": [
+      {
+        "variant": "Conifer-Grapefruit Хвоя-Грейпфрут",
+        "productId": "dC0L3vSZoT1t26AQeomz",
+        "price": 16,
+        "productName": "HOTSPOT FUEL 30 мл (50 мг)\t",
+        "quantity": 1,
+        "isPreorder": false
+      },
+      {
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 15,
+        "variant": "Яблоко Вишня"
+      },
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "price": 17,
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "isPreorder": false,
+        "variant": "Кола Вишня"
+      },
+      {
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "variant": "Дыня Банан",
+        "isPreorder": false,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "price": 15,
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "productName": "Мишка HUSKY 30 мл (50 мг)",
+        "productId": "9Pn0N1OnxSgAF6973Ykh",
+        "price": 15,
+        "isPreorder": false,
+        "variant": "Энергетик Кактус"
+      }
+    ],
+    "status": "new",
+    "total_price": 78,
+    "username": "Клиент",
+    "created_at": "2026-07-28T10:40:56.607Z"
+  },
+  {
+    "id": "WXUB1D2iHWKaQJDXi9KI",
+    "username": "Клиент",
+    "user_id": "849bf933-61e4-4b65-bbf0-544c8aa0f226",
+    "created_at": "2026-07-30T08:41:56.220Z",
+    "total_price": 18,
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 18,
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "variant": "Киви Клубника",
+        "quantity": 1
+      }
+    ],
+    "status": "new"
+  },
+  {
+    "id": "XcLuaEB11xUIp1UHfHRl",
+    "total_price": 30,
+    "user_id": "e4738df8-60b5-496a-a94e-c2d9b87949ad",
+    "items": [
+      {
+        "price": 16,
+        "isPreorder": false,
+        "productId": "vWrAhdh5dvviWSLBkB0f",
+        "productName": "PIXEL SOUR (30ml 20mg)",
+        "variant": "Вишневые Червячки ",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Voopoo VMATE V2 0.7 Om 3 ml",
+        "price": 14,
+        "productId": "7hmgM3GCjwmNkSpjr70y",
+        "productName": "VOOPOO VMATE"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-08-04T14:59:11.673Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "Xm4KZo2FidtBfAkc4feu",
+    "items": [
+      {
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 17,
+        "variant": "Снежная Клубника",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      }
+    ],
+    "total_price": 17,
+    "username": "Клиент",
+    "user_id": "96043e9f-c1a3-49fb-bd47-784ed26ff068",
+    "status": "new",
+    "created_at": "2026-08-02T19:29:47.770Z"
+  },
+  {
+    "id": "XwMMnXrxGU67R3s2SsaP",
+    "status": "new",
+    "created_at": "2026-08-04T20:21:18.194Z",
+    "user_id": "d63cfd4a-a906-423c-b544-e4bcc0f954c5",
+    "username": "Клиент",
+    "total_price": 37,
+    "items": [
+      {
+        "quantity": 1,
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "isPreorder": false,
+        "variant": "Кислые Жевательные Конфетки ",
+        "price": 18
+      },
+      {
+        "isPreorder": false,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "variant": "Кислая Вишня",
+        "price": 19,
+        "quantity": 1,
+        "productId": "xkiQ9rDla5mj02p4r7My"
+      }
+    ]
+  },
+  {
+    "id": "XyBNLalKrbNCZzRJkwLD",
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 68,
+    "items": [
+      {
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 2,
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)"
+      },
+      {
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "variant": "Sour Watermelon Gummy",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "isPreorder": false
+      },
+      {
+        "variant": "Spearmint ",
+        "price": 20,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      }
+    ],
+    "user_id": "c4833261-aa30-41fa-9344-d47d90d95cfd",
+    "created_at": "2026-08-20T19:13:53.706Z"
+  },
+  {
+    "id": "Y8hVwbIWyxWUKNkdorgL",
+    "user_id": "7e7661b9-468c-46c9-9005-3837147f7280",
+    "status": "new",
+    "created_at": "2026-07-26T13:19:45.187Z",
+    "username": "Клиент",
+    "total_price": 19,
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "quantity": 1,
+        "price": 19,
+        "variant": "Энергетик Лед"
+      }
+    ]
+  },
+  {
+    "id": "YeViLXuRVDYqgGMcA48A",
+    "created_at": "2026-08-03T15:47:27.529Z",
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "239d10a7-1fed-4774-b24e-d6f716501f78",
+    "items": [
+      {
+        "variant": "Черника, смородина, малина, анис и ментол",
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "price": 16
+      },
+      {
+        "variant": "Мармеладные мишки с мандарином и лимоном",
+        "isPreorder": false,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "price": 16,
+        "quantity": 1,
+        "productName": "Podonki Malasian 30 мл (50 мг)\t"
+      }
+    ],
+    "total_price": 32
+  },
+  {
+    "id": "YoUzbMCysP3Q5wKBTjjj",
+    "user_id": "1536526f-637b-441c-b469-4469d099f80f",
+    "status": "new",
+    "items": [
+      {
+        "price": 20,
+        "isPreorder": false,
+        "variant": "Cherry Lemon Peach",
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-18T15:31:13.047Z",
+    "total_price": 20
+  },
+  {
+    "id": "Z6zSmVO7fmxphu4CSyrH",
+    "username": "Клиент",
+    "created_at": "2026-08-02T12:32:44.747Z",
+    "status": "new",
+    "user_id": "7c7ccb6e-56c6-4364-9ad2-60fb8128e05d",
+    "total_price": 15,
+    "items": [
+      {
+        "variant": "Ананас манго",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "isPreorder": false,
+        "price": 15
+      }
+    ]
+  },
+  {
+    "id": "ZLd6P2yEDnNoZYJosSX7",
+    "user_id": "24b87b8e-ee7d-4cb5-9c51-6296603f665b",
+    "created_at": "2026-08-03T17:24:38.181Z",
+    "status": "new",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1,
+        "price": 20,
+        "variant": "Blue Razz Lemonade"
+      },
+      {
+        "price": 20,
+        "isPreorder": false,
+        "variant": "Watermelon Cherry ",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      }
+    ],
+    "total_price": 54,
+    "username": "Клиент"
+  },
+  {
+    "id": "ZQP6Xpu5UhuDAjYnsHmy",
+    "user_id": "02089ab7-0edd-4409-a7f4-efdbde706bc7",
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "AFr0rMEyVgP9S9tGOQbD",
+        "variant": "Манго со Льдом",
+        "isPreorder": false,
+        "productName": "BJORN Сон призрака 30 мл (80 мг)\t",
+        "quantity": 1,
+        "price": 19
+      }
+    ],
+    "created_at": "2026-07-28T17:20:48.107Z",
+    "total_price": 19,
+    "status": "new"
+  },
+  {
+    "id": "Zb9Cqwxtk2glZnvA21ez",
+    "created_at": "2026-07-30T21:33:48.462Z",
+    "total_price": 17,
+    "status": "new",
+    "items": [
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "price": 17,
+        "variant": "Кислые Вишневые Червячки",
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "5df864a7-d9cd-4145-87d6-0e335a6103da",
+    "username": "Клиент"
+  },
+  {
+    "id": "aHEfT5ganweFwSqNuS56",
+    "items": [
+      {
+        "variant": "Яблочный Шторм ",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "price": 17,
+        "quantity": 1,
+        "isPreorder": false
+      }
+    ],
+    "total_price": 17,
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "6d45fe3d-5bd4-40b9-9363-92bc0968c80d",
+    "created_at": "2026-08-02T19:01:46.009Z"
+  },
+  {
+    "id": "aHRHIqncG3ieTjy8P0L4",
+    "created_at": "2026-07-30T14:25:00.478Z",
+    "items": [
+      {
+        "productName": "ICEBERG ULTRA 150 мг",
+        "productId": "9lFw4ef6ZfMJXKeGtRjY",
+        "price": 16,
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Strawberry Pomegranate "
+      }
+    ],
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 16
+  },
+  {
+    "id": "aY2vpQbGOCnJHTpNqv7j",
+    "username": "Клиент",
+    "total_price": 18,
+    "user_id": "cb9dbfb9-7f9d-411d-bbbf-759da055e5b8",
+    "items": [
+      {
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "price": 18,
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Арбузный Бабл гам"
+      }
+    ],
+    "created_at": "2026-07-28T17:05:04.928Z",
+    "status": "new"
+  },
+  {
+    "id": "akykfxpPjrFDLa6mndf3",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Гуава Ананас",
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      }
+    ],
+    "user_id": "8d393d7a-5439-4ae0-8e16-522a267d2530",
+    "created_at": "2026-07-26T20:06:41.626Z",
+    "status": "new",
+    "total_price": 17
+  },
+  {
+    "id": "apdooQ4MfsPZbonRx3Nr",
+    "items": [
+      {
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "quantity": 1,
+        "price": 17,
+        "variant": "Лимонад Черника лайм",
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "isPreorder": false
+      },
+      {
+        "variant": "Мятная Жвачка",
+        "price": 17,
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "Catswill 30 мл (50 мг)\t"
+      },
+      {
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "isPreorder": false,
+        "variant": "Вишневая тянучка",
+        "quantity": 1,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "price": 17
+      },
+      {
+        "variant": "Гранатово-клубничный ураган",
+        "isPreorder": false,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "quantity": 1,
+        "price": 17,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Яблочный Шторм ",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "price": 17,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "variant": "Розовая шипучка с малиной",
+        "quantity": 1,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "price": 17
+      },
+      {
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "quantity": 1,
+        "price": 17,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "isPreorder": false,
+        "variant": "Тропический вихрь"
+      },
+      {
+        "isPreorder": false,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "price": 17,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "variant": "Двойной удар манго",
+        "quantity": 1
+      }
+    ],
+    "total_price": 136,
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "status": "new",
+    "created_at": "2026-07-30T07:08:24.016Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "bDrvFi14yU6s7EgG6M9X",
+    "status": "new",
+    "user_id": "fdd7ebad-836e-4f51-9a92-f957a95916c8",
+    "total_price": 34,
+    "items": [
+      {
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "isPreorder": false,
+        "quantity": 1,
+        "price": 17,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "variant": "Лесные Ягоды"
+      },
+      {
+        "isPreorder": false,
+        "price": 17,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "quantity": 1,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "variant": "Черная Смородина"
+      }
+    ],
+    "created_at": "2026-08-04T14:49:28.284Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "bNTwo1ku3nKYyLkfuhRY",
+    "status": "new",
+    "items": [
+      {
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "variant": "Pineapple Ice",
+        "price": 20,
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      }
+    ],
+    "total_price": 20,
+    "created_at": "2026-07-27T16:27:43.013Z",
+    "username": "Клиент",
+    "user_id": "c1bd091a-3e78-419d-b7c5-e91edf067553"
+  },
+  {
+    "id": "bUM8xU47iVRIu0TgFAs5",
+    "status": "new",
+    "created_at": "2026-07-29T12:19:50.438Z",
+    "items": [
+      {
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "isPreorder": false,
+        "variant": "Blueberry ",
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 20,
+    "user_id": "d98f2adc-f248-4d04-802d-701c32be1603"
+  },
+  {
+    "id": "bsOACU0eG4toO9L91xju",
+    "user_id": "67a04f8b-a0cc-4176-b12a-4e3be36bf412",
+    "created_at": "2026-07-31T15:32:31.125Z",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": true,
+        "variant": "Glacier Silver",
+        "productId": "NUvG8WsmHm7akTP8Sb4a",
+        "productName": "VMATE PRO 2",
+        "quantity": 1,
+        "price": 85
+      },
+      {
+        "quantity": 1,
+        "variant": "Ягодный Энергетик ",
+        "productName": "SLIME EXTRA HARD 30 мл (60 мг)\t",
+        "isPreorder": false,
+        "productId": "jpnQMRO8sixqVpV4h96A",
+        "price": 17
+      },
+      {
+        "productName": "DUALL EXTREME HARD (30ml 50mg)",
+        "productId": "DJed55bZ3fc10SbB5dIO",
+        "price": 16,
+        "isPreorder": false,
+        "variant": "Мятный Тик Так",
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 118
+  },
+  {
+    "id": "bxAcuu7ffAv3SqpU9XBP",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "yIXFMVlVcw5OEmCzkQ5l",
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Апельсин Черника Лед",
+        "price": 17,
+        "productName": "SLIME Arctic Line 30 мл (20 мг)\t"
+      }
+    ],
+    "user_id": "38e1dbfb-284c-45ad-9e02-74c561436dcb",
+    "created_at": "2026-07-28T10:18:50.678Z",
+    "total_price": 17
+  },
+  {
+    "id": "c7qM4i1iwOEGcQYKeRNr",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-08-20T17:27:58.085Z",
+    "items": [
+      {
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "isPreorder": false,
+        "price": 20,
+        "variant": "Blue Razz Ice",
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 1
+      },
+      {
+        "variant": "Appletini",
+        "productId": "c0rRrnoMX4w6dggYReSb",
+        "productName": "Drymost 200 мг",
+        "quantity": 1,
+        "price": 15,
+        "isPreorder": false
+      },
+      {
+        "variant": "Fantasy ",
+        "productId": "c0rRrnoMX4w6dggYReSb",
+        "quantity": 1,
+        "price": 15,
+        "productName": "Drymost 200 мг",
+        "isPreorder": false
+      }
+    ],
+    "total_price": 64
+  },
+  {
+    "id": "cMHnESWgyf4nems2U0cW",
+    "user_id": "28b872a5-16e9-4a66-bc27-c96750414de5",
+    "username": "Клиент",
+    "created_at": "2026-08-20T18:01:52.011Z",
+    "items": [
+      {
+        "quantity": 1,
+        "price": 17,
+        "isPreorder": false,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "variant": "Кокос Дыня "
+      },
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "total_price": 31,
+    "status": "new"
+  },
+  {
+    "id": "ck8sOV5BqL2L9nd5b8O0",
+    "username": "Клиент",
+    "created_at": "2026-08-19T13:30:22.549Z",
+    "status": "new",
+    "user_id": "44157946-1f16-4f6a-b623-41a18ce2d70e",
+    "total_price": 32,
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 1,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "productId": "9gZBEM7lRpXbEj4UV8Ua",
+        "price": 18,
+        "productName": "ANNIMA LOVE KILLER (30ml, 60 mg)",
+        "quantity": 1,
+        "variant": "Малина Черника"
+      }
+    ]
+  },
+  {
+    "id": "clyATekT9LSPFFfvUOwO",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 48,
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 48,
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "variant": "Blue Razz Ice",
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "quantity": 1
+      }
+    ],
+    "user_id": "ae04a009-ed6d-481f-a0d6-3de7f1ecd236",
+    "created_at": "2026-07-28T12:08:52.115Z"
+  },
+  {
+    "id": "cxbkNaGsc5NwWMYffxSq",
+    "user_id": "47f7237a-cbdd-4815-92a7-a9f9a6f97f46",
+    "username": "Клиент",
+    "total_price": 20,
+    "items": [
+      {
+        "variant": "Вишневый Чупа Чупс",
+        "price": 20,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "6vrWu4ldgMYlRd9TtpH4",
+        "productName": "Catswill PREMIUM 30 мл (50 мг)"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-08-19T11:18:19.249Z"
+  },
+  {
+    "id": "d1C7uYv9haB6f9YeMKje",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "quantity": 1,
+        "price": 19,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "variant": "Эквалипт Мята"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-01T10:26:31.702Z",
+    "status": "new",
+    "total_price": 19,
+    "user_id": "588150dd-e7d1-4fef-b652-f18258197cc4"
+  },
+  {
+    "id": "d5nOtS9JdwAq59mcFh60",
+    "items": [
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "isPreorder": false,
+        "price": 17,
+        "variant": "Клубничный Коктейль ",
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ"
+      }
+    ],
+    "user_id": "84b23a7e-1584-4679-8e51-96bc7659108d",
+    "created_at": "2026-07-30T21:09:11.971Z",
+    "status": "new",
+    "total_price": 17,
+    "username": "Клиент"
+  },
+  {
+    "id": "dMORiLijWQw6T0lNJGZp",
+    "user_id": "9ba595d2-2749-456c-ade0-7816bd4282e9",
+    "status": "new",
+    "username": "Клиент",
+    "created_at": "2026-08-20T21:19:50.967Z",
+    "total_price": 20,
+    "items": [
+      {
+        "variant": "Peach Ice",
+        "isPreorder": false,
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      }
+    ]
+  },
+  {
+    "id": "dNnmn1YZvmKRpbMFzSEa",
+    "items": [
+      {
+        "isPreorder": false,
+        "variant": "Виноград Вишня Лимонад",
+        "quantity": 1,
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)"
+      }
+    ],
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-07-28T08:54:58.411Z",
+    "total_price": 17,
+    "user_id": "ef52da13-0392-4121-ab81-0270f8b37058"
+  },
+  {
+    "id": "dNzYg7K5gQwC9p9K69NV",
+    "created_at": "2026-08-05T10:08:21.639Z",
+    "user_id": "8280e395-c25a-4961-9a8b-84e6ba39df8d",
+    "status": "new",
+    "items": [
+      {
+        "price": 17,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "variant": "Розовая шипучка с малиной",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "9wjqnbNyyUoZs3IwMP6n"
+      }
+    ],
+    "total_price": 17,
+    "username": "Клиент"
+  },
+  {
+    "id": "dSCejv1lf5GfhTZH3bp6",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "status": "new",
+    "total_price": 64,
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 15,
+        "productName": "Drymost 200 мг",
+        "isPreorder": false,
+        "variant": "Appletini",
+        "quantity": 1,
+        "productId": "c0rRrnoMX4w6dggYReSb"
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "Drymost 200 мг",
+        "productId": "c0rRrnoMX4w6dggYReSb",
+        "variant": "Fantasy ",
+        "price": 15
+      },
+      {
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "price": 14
+      },
+      {
+        "isPreorder": false,
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Blue Razz Ice",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-08-20T17:28:24.434Z"
+  },
+  {
+    "id": "dV0CFQgCwyU9j8w77SYW",
+    "created_at": "2026-08-03T16:13:18.489Z",
+    "username": "Клиент",
+    "total_price": 19,
+    "user_id": "b0cc2fb5-5df8-4d36-ada2-24c4703a3264",
+    "status": "new",
+    "items": [
+      {
+        "price": 19,
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "variant": "Кислая Вишня Редбулл Смородина",
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "УБИВАШКА (30ml 80mg)"
+      }
+    ]
+  },
+  {
+    "id": "dq5PjQqIA4Ow6F8KunkT",
+    "items": [
+      {
+        "isPreorder": false,
+        "variant": "Фруктовый Скиттлс",
+        "quantity": 1,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "price": 17
+      },
+      {
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 31,
+    "created_at": "2026-08-04T11:58:28.383Z",
+    "user_id": "803244ed-a471-4dee-919a-bf60222ca113"
+  },
+  {
+    "id": "eKBFnQeRD6GbwlS4kq3M",
+    "total_price": 75,
+    "created_at": "2026-07-31T16:09:18.516Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "price": 75,
+        "productName": "Xros 5 mini Pod",
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "isPreorder": false,
+        "variant": "White (Кожаный)"
+      }
+    ],
+    "user_id": "77f55329-04f5-4130-bfaa-2f04bbcbd115",
+    "status": "new"
+  },
+  {
+    "id": "eYJrVOMrgEHzx9uh6O3a",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 48,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "variant": "Peach Ice",
+        "productName": "ELF BAR MoonNight 40000 5%"
+      }
+    ],
+    "total_price": 48,
+    "created_at": "2026-07-28T17:56:17.056Z",
+    "status": "new",
+    "user_id": "24b87b8e-ee7d-4cb5-9c51-6296603f665b"
+  },
+  {
+    "id": "f3CjqFeU2z7O5UIFdPMk",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 19,
+        "productName": "УБИВАШКА (30ml 80mg)",
+        "variant": "Виноградная Фанта",
+        "quantity": 1,
+        "productId": "vTetdGaXKCUgKN0ts42M"
+      },
+      {
+        "quantity": 1,
+        "productName": "УБИВАШКА (30ml 80mg)",
+        "variant": "Виноградный Лимонад",
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "price": 19,
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "quantity": 2
+      },
+      {
+        "variant": "SMOANT Knight/Pasito II 0,2 Om ",
+        "productId": "LAr2OagMjDkSCFCSyBIn",
+        "productName": "SMOANT Knight/Pasito",
+        "isPreorder": false,
+        "price": 13,
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-08-05T18:20:32.257Z",
+    "username": "Клиент",
+    "total_price": 79,
+    "user_id": "3b693596-68e7-4105-83bb-2c13085e8fc3"
+  },
+  {
+    "id": "fE5IUWbESaZ29A7VYdiZ",
+    "total_price": 49,
+    "username": "Клиент",
+    "created_at": "2026-08-01T05:01:17.031Z",
+    "user_id": "3b693596-68e7-4105-83bb-2c13085e8fc3",
+    "status": "new",
+    "items": [
+      {
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "variant": "Мятная Жвачка",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "price": 17
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "ЗЛАЯ МОНАШКА HARD 30 мл (50 мг)\t",
+        "variant": "Фруктовый мармелад лед",
+        "productId": "OmkybCfXN8VChKrv0oMy",
+        "price": 18
+      },
+      {
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ]
+  },
+  {
+    "id": "fR1nqefHx55wKcRS2fcE",
+    "total_price": 29,
+    "created_at": "2026-07-30T11:45:58.852Z",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 15,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "quantity": 1,
+        "variant": "Ежевичный Лимонад",
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14
+      }
+    ],
+    "user_id": "060ea6a3-c016-4872-a64d-064c6efb9160"
+  },
+  {
+    "id": "fY8wEmr8Uh0GAa7UjQdy",
+    "created_at": "2026-07-31T20:52:53.153Z",
+    "username": "Клиент",
+    "total_price": 18,
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "OmkybCfXN8VChKrv0oMy",
+        "productName": "ЗЛАЯ МОНАШКА HARD 30 мл (50 мг)\t",
+        "price": 18,
+        "variant": "Фруктовый мармелад лед",
+        "quantity": 1
+      }
+    ],
+    "user_id": "6a6a392e-bba9-41b9-8def-aa9278079415",
+    "status": "new"
+  },
+  {
+    "id": "foXKd03aPLW3V0LeCi6k",
+    "created_at": "2026-07-28T17:58:15.358Z",
+    "username": "Клиент",
+    "user_id": "945f2df5-eab5-4ad8-8be0-27b21b3c5b99",
+    "status": "new",
+    "total_price": 45,
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "ELF BAR DUKE 30000 5%",
+        "quantity": 1,
+        "price": 45,
+        "productId": "QCOYGKglrSPd4q9W3uBH",
+        "variant": "Nordic Berry"
+      }
+    ]
+  },
+  {
+    "id": "gBOyQt8VfODGjRAldEOi",
+    "created_at": "2026-08-18T10:15:50.003Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 19,
+        "variant": "Кислая Вишня Редбулл Смородина",
+        "quantity": 1,
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "productName": "УБИВАШКА (30ml 80mg)",
+        "isPreorder": false
+      }
+    ],
+    "status": "new",
+    "total_price": 19,
+    "user_id": "9f0e45de-2b8e-4d2f-9947-4fcfabea7f8c"
+  },
+  {
+    "id": "gPieptHcknFx0QDgqSAM",
+    "created_at": "2026-07-29T15:55:02.372Z",
+    "items": [
+      {
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Клубника Банан",
+        "price": 18,
+        "productId": "ZJbyisnjcAIVfMzWVjgx"
+      },
+      {
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ],
+    "user_id": "24b917a2-91f6-421d-865b-3aacfa62544c",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 32
+  },
+  {
+    "id": "gSVEIQYEYVhmqTm3peKm",
+    "total_price": 20,
+    "items": [
+      {
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "variant": "Cherry ",
+        "quantity": 1,
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "19d8ff42-c565-4249-ac63-98a58f18461d",
+    "status": "new",
+    "created_at": "2026-07-28T14:18:03.422Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "gYMDj1qcW0yUOZxn3JbV",
+    "user_id": "8a344c76-dba4-46fc-88fd-55246235eaa6",
+    "status": "new",
+    "total_price": 16,
+    "items": [
+      {
+        "price": 16,
+        "productName": "ICEBERG EXTREME 110 мг",
+        "isPreorder": false,
+        "variant": "Kiwi Strawberry ",
+        "productId": "QgOx8wgC6laQq5ryVVhw",
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-03T10:14:17.725Z"
+  },
+  {
+    "id": "gYzu6d1djE9LWLK0hyKb",
+    "user_id": "fb949e8d-e6eb-4136-a469-78ce33f90236",
+    "total_price": 29,
+    "status": "new",
+    "items": [
+      {
+        "variant": "Малиновая конфета",
+        "quantity": 1,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "price": 15,
+        "productId": "sOpdIlPBvtmEi1Ch3E46"
+      },
+      {
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14
+      }
+    ],
+    "created_at": "2026-07-25T22:19:57.948Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "giRV1i9C9ciCGx61iCpy",
+    "created_at": "2026-08-05T15:11:32.153Z",
+    "total_price": 31,
+    "items": [
+      {
+        "price": 17,
+        "isPreorder": false,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "variant": "Виноградный Энергетик",
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "62094e3a-9812-4e7d-9e4e-85624083d493",
+    "status": "new"
+  },
+  {
+    "id": "gjZwQ6VY69PcXv6TEIpp",
+    "username": "Клиент",
+    "status": "new",
+    "created_at": "2026-08-02T13:33:29.419Z",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "items": [
+      {
+        "price": 48,
+        "isPreorder": false,
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "variant": "Grape Ice",
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "quantity": 1
+      },
+      {
+        "variant": "Lime Cola",
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "price": 48,
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "ELF BAR MoonNight 40000 5%"
+      }
+    ],
+    "total_price": 96
+  },
+  {
+    "id": "h1QtDfFzDOZAofIAfKxd",
+    "created_at": "2026-08-02T05:28:59.251Z",
+    "user_id": "f96c0d6f-f40d-4283-9010-824bb7c11cd4",
+    "total_price": 16,
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "productId": "timA5EeeNfrrXjXR99Vp",
+        "productName": "GLITCH 75 мг",
+        "variant": "Double mint ",
+        "price": 16,
+        "quantity": 1,
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "h5FXGUZC7mnZl8dXWxeN",
+    "status": "new",
+    "total_price": 16,
+    "username": "Клиент",
+    "user_id": "cf0a3fef-588d-4e4d-be7e-bb0990e4e194",
+    "items": [
+      {
+        "variant": "Жвачка маракуйя",
+        "isPreorder": false,
+        "productName": "HOTSPOT DON'T Chew IT 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "YL0eEbB2ILVkhyYjx5FF",
+        "price": 16
+      }
+    ],
+    "created_at": "2026-07-28T18:35:53.655Z"
+  },
+  {
+    "id": "h8bBa20B2wGXPCUE4yrx",
+    "created_at": "2026-07-26T17:28:07.793Z",
+    "username": "Клиент",
+    "user_id": "1f20393e-d658-4f9a-8261-b71dbc3c82e3",
+    "total_price": 16,
+    "status": "new",
+    "items": [
+      {
+        "productName": "Рик и Морти на замерзоне Кислые 30 мл (45 мг)",
+        "quantity": 1,
+        "price": 16,
+        "variant": "Апельсиновый Адреналин",
+        "productId": "RbPMevhhGrLBcpo99JRh",
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "hXNFg4f2dZCoUvEqORLq",
+    "items": [
+      {
+        "productId": "DJed55bZ3fc10SbB5dIO",
+        "quantity": 1,
+        "price": 16,
+        "isPreorder": false,
+        "variant": "Жвачка Клубника Банан",
+        "productName": "DUALL EXTREME HARD (30ml 50mg)"
+      },
+      {
+        "price": 16,
+        "quantity": 1,
+        "productId": "DJed55bZ3fc10SbB5dIO",
+        "productName": "DUALL EXTREME HARD (30ml 50mg)",
+        "variant": "Тик Так Апельсин",
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Малина гранат",
+        "price": 15,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "quantity": 1,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "variant": "Кислый киви",
+        "price": 15
+      },
+      {
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "variant": "Скитлс",
+        "price": 15
+      },
+      {
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "price": 15,
+        "variant": "Еживика Черника "
+      },
+      {
+        "quantity": 1,
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "variant": "Виноград и клубника",
+        "isPreorder": false,
+        "price": 16
+      },
+      {
+        "isPreorder": false,
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "price": 16,
+        "quantity": 1,
+        "variant": "Жвачка, клубника и киви"
+      },
+      {
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 16,
+        "variant": "Розовый лимонад"
+      },
+      {
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "isPreorder": false,
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "variant": "Манго, гуава и маракуйя",
+        "quantity": 1,
+        "price": 16
+      },
+      {
+        "quantity": 1,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 170,
+    "status": "new",
+    "created_at": "2026-08-18T17:11:13.521Z",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4"
+  },
+  {
+    "id": "hpFa6GlT2iYkkcFLePv8",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "variant": "Жвачка черника-мята",
+        "price": 15,
+        "quantity": 1
+      },
+      {
+        "productName": "Catswill x RM NEW (30ml 50mg)",
+        "price": 17,
+        "quantity": 1,
+        "productId": "aNFW8tl8kPMw9xoh6UEn",
+        "variant": "Черника Арбуз",
+        "isPreorder": false
+      },
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 46,
+    "status": "new",
+    "created_at": "2026-08-19T11:27:24.685Z"
+  },
+  {
+    "id": "i88FaUzO3MKoA6cs7Y4z",
+    "created_at": "2026-07-27T14:38:54.045Z",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "price": 19,
+        "variant": "Кислый Ягодный Микс",
+        "quantity": 1
+      }
+    ],
+    "user_id": "bda8c257-e2be-4282-a12b-fc43d11c67a1",
+    "status": "new",
+    "total_price": 19,
+    "username": "Клиент"
+  },
+  {
+    "id": "iGxOCsrjyKDDuAqx8Zaq",
+    "status": "new",
+    "total_price": 46,
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "username": "Клиент",
+    "created_at": "2026-08-19T11:26:46.354Z",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Черника Арбуз",
+        "isPreorder": false,
+        "productName": "Catswill x RM NEW (30ml 50mg)",
+        "price": 17,
+        "productId": "aNFW8tl8kPMw9xoh6UEn"
+      },
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "price": 14
+      },
+      {
+        "isPreorder": false,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "variant": "Жвачка черника-мята",
+        "price": 15,
+        "quantity": 1,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t"
+      }
+    ]
+  },
+  {
+    "id": "iN3m2nsjOUettCoddM0X",
+    "user_id": "09b2b629-e615-4e1e-9c5b-e5c61e70ade8",
+    "created_at": "2026-08-03T12:38:23.332Z",
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "quantity": 1,
+        "variant": "Малина Банан",
+        "productName": "УБИВАШКА (30ml 80mg)",
+        "isPreorder": false,
+        "price": 19
+      },
+      {
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "quantity": 1,
+        "productName": "УБИВАШКА (30ml 80mg)",
+        "variant": "Вишня Лайм",
+        "isPreorder": false,
+        "price": 19
+      },
+      {
+        "isPreorder": false,
+        "price": 14,
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ],
+    "total_price": 52
+  },
+  {
+    "id": "iSjjysVQchbQOKZwuba4",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "total_price": 16,
+    "status": "new",
+    "created_at": "2026-07-26T15:52:56.056Z",
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "Экзотические фрукты",
+        "productId": "E5mdLwB54wcZQgxLdnnG",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 16,
+        "productName": "DUALL EXTRA HARD 30 мл (50 мг)"
+      }
+    ]
+  },
+  {
+    "id": "ihikni6Z6G1FTseOyIZ2",
+    "user_id": "51704bdc-a3e1-47c5-8e96-258a0248b2fc",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "HPSM8a5WYQ7sTnZP4bh7",
+        "quantity": 1,
+        "productName": "Xros 5 mini Pod",
+        "variant": "Flowing Pink",
+        "price": 70
+      }
+    ],
+    "created_at": "2026-07-28T19:20:30.827Z",
+    "total_price": 70,
+    "status": "new"
+  },
+  {
+    "id": "imWoahqaJLoZD6xbo3rH",
+    "items": [
+      {
+        "price": 45,
+        "productId": "FKMAsQg04aJOP7pZtKWZ",
+        "productName": "ELF BAR GH 33000 5%",
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Sour Strawberry Dragonfruit"
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "389381fe-d458-4993-9e28-72c34f83cda8",
+    "created_at": "2026-08-05T14:17:32.403Z",
+    "status": "new",
+    "total_price": 45
+  },
+  {
+    "id": "itUkUGjRjqoRaIGyBy5a",
+    "user_id": "3b693596-68e7-4105-83bb-2c13085e8fc3",
+    "created_at": "2026-08-04T14:36:46.078Z",
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "price": 13,
+        "isPreorder": false,
+        "productId": "LAr2OagMjDkSCFCSyBIn",
+        "quantity": 1,
+        "variant": "SMOANT Knight/Pasito II 0,3 Om ",
+        "productName": "SMOANT Knight/Pasito"
+      }
+    ],
+    "total_price": 13
+  },
+  {
+    "id": "j0hpV192hmMHahlQKSiG",
+    "user_id": "7f0d8731-b8d5-4ece-a08a-b856bd8c368f",
+    "items": [
+      {
+        "price": 16,
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "variant": "Малина, клубника, черная и красная смородина",
+        "quantity": 1,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "isPreorder": false
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14
+      }
+    ],
+    "total_price": 30,
+    "status": "new",
+    "username": "Клиент",
+    "created_at": "2026-07-26T08:40:12.591Z"
+  },
+  {
+    "id": "jNtWe6wJQcOXRONVIJO7",
+    "user_id": "3bf1336e-7e19-480b-ae17-638e418768dd",
+    "username": "Клиент",
+    "total_price": 16,
+    "status": "new",
+    "items": [
+      {
+        "variant": "Raspberry Gum",
+        "price": 16,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "CDiayOp2PSCFJI7crEbT",
+        "productName": "ICEBERG Limited Edition 130 мг"
+      }
+    ],
+    "created_at": "2026-08-01T15:03:58.486Z"
+  },
+  {
+    "id": "jQnKYJ5DciVUKCPClIWg",
+    "items": [
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "isPreorder": false,
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "quantity": 1,
+        "variant": "Арбузная Жвачка"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-07-28T08:02:31.584Z",
+    "user_id": "8b89721e-2a20-4b4d-933b-1faa4a7722f5",
+    "total_price": 17,
+    "status": "new"
+  },
+  {
+    "id": "jfkLQ1Geig3kB0OCowwI",
+    "total_price": 27,
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "fab53900-06ce-48ed-b147-f68068f23c7a",
+    "created_at": "2026-07-27T18:04:45.408Z",
+    "items": [
+      {
+        "variant": "Blue Razz Ice",
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "quantity": 1,
+        "price": 27,
+        "productName": "Pynepod Boost Pro 20000",
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "k6xBIKnYUDxSmt5R9hAC",
+    "username": "Клиент",
+    "created_at": "2026-07-28T12:10:12.621Z",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "variant": "Кислая Вишня",
+        "quantity": 1,
+        "price": 19
+      }
+    ],
+    "total_price": 19,
+    "user_id": "2511c501-8f0b-4a44-b704-b1de85a6e989",
+    "status": "new"
+  },
+  {
+    "id": "k8AqChpaOTHxl280nT21",
+    "created_at": "2026-08-04T07:18:32.443Z",
+    "user_id": "d7dc0b82-09d7-4783-8a9a-5e759275556c",
+    "items": [
+      {
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      },
+      {
+        "price": 18,
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Малина Ежевика",
+        "productName": "PODONKI INFERNO",
+        "productId": "bFQTr2MYt40mHi7APttY"
+      }
+    ],
+    "total_price": 32,
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "kIYUEyxAlQTduJJZs7p1",
+    "status": "new",
+    "user_id": "e443e037-fef2-43da-bc59-b929df84ecdd",
+    "username": "Клиент",
+    "total_price": 18,
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 18,
+        "variant": "Лесной Микс",
+        "quantity": 1,
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t"
+      }
+    ],
+    "created_at": "2026-07-29T14:58:58.105Z"
+  },
+  {
+    "id": "kIoQV9AJnkHHvPtySBzN",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 17,
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Nomad (Фруктовый, йогурт, кумкват, маракуйя, с холодком)",
+        "productId": "Vj7JO1iOyNyi03IZL9OS",
+        "productName": "Glitch Sauce Iced Out 30 мл (50 мг)\t"
+      },
+      {
+        "productName": "ELFLIQ ICE 30 мл (50 мг)\t",
+        "productId": "j5gTzPsD4xlAEoJtiM0r",
+        "quantity": 1,
+        "price": 20,
+        "variant": "Iced Mango",
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "productName": "ELFLIQ ICE 30 мл (50 мг)\t",
+        "productId": "j5gTzPsD4xlAEoJtiM0r",
+        "variant": "Iced Passion Fruit ",
+        "isPreorder": false,
+        "price": 20
+      }
+    ],
+    "user_id": "4c60b595-0a39-4fea-aeee-c1a2fe29d43f",
+    "created_at": "2026-07-28T19:08:25.564Z",
+    "total_price": 57
+  },
+  {
+    "id": "kRqbF9GOC3fKk2DkjIN7",
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "Жвачка Клубника Банан",
+        "isPreorder": false,
+        "productName": "DUALL EXTREME HARD (30ml 50mg)",
+        "price": 16,
+        "quantity": 1,
+        "productId": "DJed55bZ3fc10SbB5dIO"
+      }
+    ],
+    "created_at": "2026-08-20T13:18:41.234Z",
+    "user_id": "202f2eea-6e63-4b90-b671-221f2fe231e0",
+    "total_price": 16,
+    "status": "new"
+  },
+  {
+    "id": "kdfu64n5ncepaKvD7DdU",
+    "total_price": 32,
+    "user_id": "1ce80985-b5c3-4730-ac48-4aa696aa3639",
+    "created_at": "2026-08-01T15:49:39.141Z",
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "price": 18,
+        "variant": "Клубника Банан",
+        "quantity": 1,
+        "productId": "ZJbyisnjcAIVfMzWVjgx",
+        "productName": "ANNIMA LOVE ZOMBI 30 мл (60 мг)\t"
+      }
+    ]
+  },
+  {
+    "id": "kqSfQx44mBIOOUpw7uMW",
+    "status": "new",
+    "user_id": "2fe423d6-a9b5-42d8-b927-5494e6bb8825",
+    "items": [
+      {
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "isPreorder": false,
+        "variant": "Кислая Ежевика Клубника",
+        "quantity": 1,
+        "price": 18,
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-02T14:28:03.499Z",
+    "total_price": 18
+  },
+  {
+    "id": "l6pyEECcsrmUDK2gZMu3",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Вишневый энергетик",
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "price": 16
+      },
+      {
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "isPreorder": false,
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "status": "new",
+    "created_at": "2026-08-20T07:36:44.271Z",
+    "total_price": 30,
+    "user_id": "62f1ace0-dc4c-42b3-ba97-6cb4d4839ce4",
+    "username": "Клиент"
+  },
+  {
+    "id": "lDXsmalut4GDqEqfR1eB",
+    "items": [
+      {
+        "quantity": 1,
+        "variant": "Кислый Ягодный Микс",
+        "isPreorder": false,
+        "price": 19,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t"
+      },
+      {
+        "variant": "Ред Булл",
+        "productId": "vTetdGaXKCUgKN0ts42M",
+        "isPreorder": false,
+        "price": 19,
+        "productName": "УБИВАШКА (30ml 80mg)",
+        "quantity": 1
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "quantity": 2,
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 66,
+    "status": "new",
+    "user_id": "11740d17-3caa-4ffc-a7ef-d1f03236befa",
+    "created_at": "2026-08-05T13:31:12.227Z"
+  },
+  {
+    "id": "lP25rxtn8ZIzZJyHpGqw",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "quantity": 2
+      }
+    ],
+    "status": "new",
+    "total_price": 28,
+    "username": "Клиент",
+    "created_at": "2026-07-30T18:03:08.977Z",
+    "user_id": "a3a5f487-bb2b-46e4-8c6d-85ebf7270614"
+  },
+  {
+    "id": "lu3ORlrRhueFlIzh5tGf",
+    "total_price": 68,
+    "created_at": "2026-08-20T19:13:00.821Z",
+    "items": [
+      {
+        "variant": "Sour Watermelon Gummy",
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Spearmint ",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "price": 20
+      },
+      {
+        "variant": "VAPORESSO XROS 0.8 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS",
+        "price": 14,
+        "quantity": 2,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "user_id": "c4833261-aa30-41fa-9344-d47d90d95cfd",
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "m5aF7zQeQ00ZfZ6vIglK",
+    "username": "Клиент",
+    "total_price": 60,
+    "items": [
+      {
+        "variant": "Voopoo VMATE V2 0.7 Om 3 ml",
+        "price": 14,
+        "isPreorder": false,
+        "productId": "7hmgM3GCjwmNkSpjr70y",
+        "quantity": 2,
+        "productName": "VOOPOO VMATE"
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Лимонад Черника лайм",
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "price": 17,
+        "productName": "Catswill 30 мл (50 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t",
+        "quantity": 1,
+        "price": 15,
+        "variant": "Ягодный Микс Мята"
+      }
+    ],
+    "created_at": "2026-07-30T08:07:31.671Z",
+    "user_id": "6aa49a73-d40f-4d37-a30f-89d56cc36f26",
+    "status": "new"
+  },
+  {
+    "id": "m6nclSUmJoVZwcuyotN2",
+    "user_id": "389381fe-d458-4993-9e28-72c34f83cda8",
+    "total_price": 48,
+    "created_at": "2026-08-20T15:34:26.516Z",
+    "items": [
+      {
+        "quantity": 1,
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "variant": "Mango Peach Watermelon",
+        "price": 48,
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "isPreorder": false
+      }
+    ],
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "mFfDU9wS26j2DHPxdoqd",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 31,
+    "user_id": "447d7c60-333b-4b8f-9108-c61ddae62670",
+    "items": [
+      {
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "variant": "Мятная Жвачка",
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "price": 17
+      },
+      {
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-07-28T07:43:21.413Z"
+  },
+  {
+    "id": "mV6k2jIJiHjnNWpEvkJt",
+    "created_at": "2026-08-03T06:49:14.676Z",
+    "total_price": 31,
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 17,
+        "isPreorder": false,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "variant": "Радужные конфеты с кислинкой",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 1,
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "status": "new",
+    "user_id": "447d7c60-333b-4b8f-9108-c61ddae62670"
+  },
+  {
+    "id": "mWz3K7Ls6OjX4kC4VnQi",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ],
+    "created_at": "2026-07-29T12:22:34.150Z",
+    "total_price": 14,
+    "status": "new",
+    "user_id": "d76c0f48-635e-4dc5-a5b7-951cfd8262a4"
+  },
+  {
+    "id": "nCvdAV2UXKtbv5xUJfkX",
+    "username": "Клиент",
+    "total_price": 17,
+    "created_at": "2026-07-28T14:14:26.394Z",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "price": 17,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "variant": "Кола Вишня",
+        "quantity": 1
+      }
+    ],
+    "user_id": "c62923dc-6d89-40c2-8193-852e8b42a52e"
+  },
+  {
+    "id": "nCxOfkWNXAOzq1AuCduu",
+    "items": [
+      {
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "price": 18,
+        "variant": "Кислый Тропический Микс",
+        "isPreorder": false,
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "quantity": 1
+      },
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "quantity": 1
+      }
+    ],
+    "created_at": "2026-07-27T14:23:05.066Z",
+    "username": "Клиент",
+    "user_id": "345e77fe-6710-4813-a504-9fb1219d54ce",
+    "status": "new",
+    "total_price": 32
+  },
+  {
+    "id": "nCxgBqjFheCcRwGvWlUM",
+    "status": "new",
+    "total_price": 54,
+    "items": [
+      {
+        "variant": "Sour Watermelon Gummy",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "quantity": 1,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "price": 20,
+        "isPreorder": false
+      },
+      {
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "variant": "Jasmine Raspberry ",
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      },
+      {
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-07-31T10:36:56.521Z",
+    "user_id": "2f659d45-bf8a-4769-9973-a5abc4410a7c"
+  },
+  {
+    "id": "nL8t6FlB4kt2bVqtcsCm",
+    "created_at": "2026-08-01T15:24:05.602Z",
+    "user_id": "6a6a392e-bba9-41b9-8def-aa9278079415",
+    "username": "Клиент",
+    "total_price": 19,
+    "items": [
+      {
+        "price": 19,
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Кислый Энергетик со Скиттлсом",
+        "productId": "vQ8iS3qPKiIHe9C19Lb5",
+        "productName": "Самоубийца V2 ACID 30 мл (70 мг)\t"
+      }
+    ],
+    "status": "new"
+  },
+  {
+    "id": "nLNTkikgjOlZ32R468Jc",
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "8280e395-c25a-4961-9a8b-84e6ba39df8d",
+    "created_at": "2026-08-05T10:06:42.111Z",
+    "total_price": 17,
+    "items": [
+      {
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "variant": "Розовая шипучка с малиной",
+        "price": 17,
+        "quantity": 1,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "ncPaNjnXEA9qYHHduZmc",
+    "username": "Клиент",
+    "total_price": 48,
+    "status": "new",
+    "created_at": "2026-08-18T15:09:48.901Z",
+    "items": [
+      {
+        "price": 20,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "variant": "Blueberry Sour Raspberry",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "quantity": 2,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "user_id": "1536526f-637b-441c-b469-4469d099f80f"
+  },
+  {
+    "id": "oBjeHKPSz5KajpOx18ty",
+    "created_at": "2026-07-31T18:58:43.832Z",
+    "user_id": "e0a43865-ff15-43b4-8219-7b3f76898da7",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 35,
+    "items": [
+      {
+        "variant": "Мятная Жвачка",
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 19
+      },
+      {
+        "isPreorder": false,
+        "quantity": 1,
+        "productName": "ICEBERG ULTRA 150 мг",
+        "price": 16,
+        "productId": "9lFw4ef6ZfMJXKeGtRjY",
+        "variant": "Mandarin "
+      }
+    ]
+  },
+  {
+    "id": "oOBh8s3sHeI5eylfa9Wm",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "price": 14
+      }
+    ],
+    "status": "new",
+    "user_id": "a5bff459-621d-4852-a317-da5eae72d55f",
+    "username": "Клиент",
+    "total_price": 14,
+    "created_at": "2026-07-29T15:03:16.488Z"
+  },
+  {
+    "id": "ouwjZWiUluaV4IEcHL4E",
+    "created_at": "2026-07-29T08:40:11.893Z",
+    "items": [
+      {
+        "price": 26,
+        "productName": "KPEKPE PS12000A",
+        "variant": "Клубника Арбуз Киви",
+        "productId": "SyfVFoP3AUkLcIk1y5YI",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "84124f63-b2a9-4db9-9a95-25ef46cc4618",
+    "status": "new",
+    "total_price": 26
+  },
+  {
+    "id": "pXYM7LlEN2dQpraXxt0g",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14,
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS"
+      },
+      {
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "price": 16,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "quantity": 1,
+        "isPreorder": false,
+        "variant": "Жвачка, клубника и киви"
+      },
+      {
+        "variant": "Арбузная Жвачка",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "quantity": 1,
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "variant": "Клубничный йогурт ",
+        "productId": "TUUtDQ2LswQAcszjkdUJ",
+        "productName": "DUALL 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "price": 16
+      }
+    ],
+    "status": "new",
+    "user_id": "bef56c29-0136-4c8f-99a5-591486794aa5",
+    "username": "Клиент",
+    "total_price": 63,
+    "created_at": "2026-07-28T11:22:20.540Z"
+  },
+  {
+    "id": "plKwXSywpzSi7AB26nxU",
+    "total_price": 15,
+    "items": [
+      {
+        "productName": "RELL Eazy 30 мл (50 мг)",
+        "productId": "XBTTWHDNkMBFcTZQGG9n",
+        "variant": "Зеленое Яблоко с Киви",
+        "price": 15,
+        "quantity": 1,
+        "isPreorder": true
+      }
+    ],
+    "created_at": "2026-08-18T10:35:00.667Z",
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "b3fb1dbf-8ecb-4954-892a-fdc5fe2c4a04"
+  },
+  {
+    "id": "pxT9LJIZPqQsYHuLIUrl",
+    "items": [
+      {
+        "isPreorder": true,
+        "productId": "affRgeJe09udHBAeBfEl",
+        "price": 55,
+        "quantity": 1,
+        "productName": "Xros Cube Pod",
+        "variant": "Silver"
+      }
+    ],
+    "created_at": "2026-07-31T15:24:53.880Z",
+    "username": "Клиент",
+    "user_id": "77f55329-04f5-4130-bfaa-2f04bbcbd115",
+    "status": "new",
+    "total_price": 55
+  },
+  {
+    "id": "q2yPmfkvarOZ2crBKbWg",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14
+      },
+      {
+        "quantity": 1,
+        "price": 20,
+        "variant": "Strawberry Banana ",
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "isPreorder": false
+      }
+    ],
+    "total_price": 34,
+    "username": "Клиент",
+    "created_at": "2026-07-30T13:41:39.885Z",
+    "status": "new",
+    "user_id": "f829e767-ec38-498e-8956-ae03b7b3ce42"
+  },
+  {
+    "id": "q87klYi5ngSygyN6QJnp",
+    "user_id": "773f75a6-8e7d-4f83-96c5-1ae858385b0d",
+    "username": "Клиент",
+    "items": [
+      {
+        "productName": "DUALL EXTRA HARD 30 мл (50 мг)",
+        "variant": "Черника арбуз",
+        "productId": "E5mdLwB54wcZQgxLdnnG",
+        "isPreorder": false,
+        "price": 16,
+        "quantity": 1
+      },
+      {
+        "price": 14,
+        "isPreorder": false,
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ],
+    "created_at": "2026-07-28T08:03:47.090Z",
+    "total_price": 30,
+    "status": "new"
+  },
+  {
+    "id": "qLIxbmI00vsLpMINQXll",
+    "user_id": "e199f5be-8789-450c-a6b5-39958c644577",
+    "username": "Клиент",
+    "total_price": 14,
+    "status": "new",
+    "created_at": "2026-07-31T15:48:18.666Z",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "qxw4z93qay7Fbjt3arGm",
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "fb949e8d-e6eb-4136-a469-78ce33f90236",
+    "created_at": "2026-07-29T15:04:04.818Z",
+    "items": [
+      {
+        "productName": "DUALL 30 мл (50 мг)\t",
+        "quantity": 1,
+        "productId": "TUUtDQ2LswQAcszjkdUJ",
+        "price": 16,
+        "isPreorder": false,
+        "variant": "Мятные Леденцы Эквалипт"
+      },
+      {
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "isPreorder": false
+      }
+    ],
+    "total_price": 30
+  },
+  {
+    "id": "rNeTQQmJ4pHnbQq04ehz",
+    "status": "new",
+    "items": [
+      {
+        "variant": "Pink Lemonade ",
+        "price": 20,
+        "quantity": 1,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "quantity": 2,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14
+      },
+      {
+        "quantity": 1,
+        "variant": "Blueberry ",
+        "isPreorder": false,
+        "productId": "poq5ckO51Xzjo9Yl2pzH",
+        "price": 20,
+        "productName": "ELFLIQ 30 мл (50 мг)\t"
+      }
+    ],
+    "created_at": "2026-07-26T07:35:19.154Z",
+    "username": "Клиент",
+    "user_id": "a34a88be-e370-43f8-9582-5f6944591abe",
+    "total_price": 68
+  },
+  {
+    "id": "rg7jDLXznIgKsYgVrwen",
+    "total_price": 177,
+    "created_at": "2026-07-30T07:06:04.337Z",
+    "user_id": "720fbe01-6032-4eda-aaac-51936d6b9a54",
+    "items": [
+      {
+        "variant": "Кислые Чернично-Малиновые Червячки",
+        "isPreorder": false,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "quantity": 1,
+        "price": 17
+      },
+      {
+        "price": 80,
+        "isPreorder": false,
+        "productName": "Xros 6 mini Pod",
+        "quantity": 1,
+        "variant": "Jelly Blue",
+        "productId": "40PwfsjkhEmCPOKDJNAM"
+      },
+      {
+        "isPreorder": false,
+        "productId": "40PwfsjkhEmCPOKDJNAM",
+        "quantity": 1,
+        "variant": "Jelly Pink",
+        "productName": "Xros 6 mini Pod",
+        "price": 80
+      }
+    ],
+    "username": "Клиент",
+    "status": "new"
+  },
+  {
+    "id": "ryFDw1bMCQ2PUzI30U4d",
+    "created_at": "2026-08-19T11:50:30.501Z",
+    "user_id": "0e3e2308-4ea1-422a-bf76-bdbfb1a4a69c",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": true,
+        "price": 58,
+        "productId": "2Te16tqFmJafnklsQjI6",
+        "productName": "ELFX Pod",
+        "quantity": 1,
+        "variant": "Purple"
+      },
+      {
+        "variant": "Черная смородина личи",
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "price": 16,
+        "quantity": 1,
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "isPreorder": false
+      }
+    ],
+    "total_price": 74,
+    "status": "new"
+  },
+  {
+    "id": "sc0nQ86avcyuwsUbqLHu",
+    "items": [
+      {
+        "variant": "Iced Mint",
+        "price": 20,
+        "productId": "j5gTzPsD4xlAEoJtiM0r",
+        "quantity": 1,
+        "productName": "ELFLIQ ICE 30 мл (50 мг)\t",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-08-04T11:40:29.283Z",
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 20,
+    "user_id": "a341d528-e451-4080-93c3-3334bc13b122"
+  },
+  {
+    "id": "se8fWGDGHb4Cq1kCRo1I",
+    "user_id": "51704bdc-a3e1-47c5-8e96-258a0248b2fc",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "40PwfsjkhEmCPOKDJNAM",
+        "price": 75,
+        "variant": "Plume White",
+        "productName": "Xros 6 mini Pod",
+        "quantity": 1
+      }
+    ],
+    "status": "new",
+    "total_price": 75,
+    "username": "Клиент",
+    "created_at": "2026-08-19T17:18:26.166Z"
+  },
+  {
+    "id": "shNR3bKCSTMPxW88WnLh",
+    "created_at": "2026-07-30T11:38:39.869Z",
+    "total_price": 34,
+    "items": [
+      {
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "price": 17,
+        "isPreorder": false,
+        "variant": "Виноградный Холлс ",
+        "quantity": 1
+      },
+      {
+        "price": 17,
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "isPreorder": false,
+        "variant": "Кислый Арбуз Лайм",
+        "quantity": 1,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ"
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "8d63722a-514d-45a8-83c4-00e3a63d6716",
+    "status": "new"
+  },
+  {
+    "id": "swz9BXra8cnNXnW7LLtM",
+    "created_at": "2026-08-04T06:42:53.602Z",
+    "total_price": 26,
+    "user_id": "116ea416-9c89-436d-b39f-2ebeeb2089d8",
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "price": 26,
+        "isPreorder": false,
+        "productId": "SyfVFoP3AUkLcIk1y5YI",
+        "quantity": 1,
+        "variant": "Арбуз",
+        "productName": "KPEKPE PS12000A"
+      }
+    ]
+  },
+  {
+    "id": "szlCBfGTGVAseVWFZwpQ",
+    "created_at": "2026-08-04T12:08:54.168Z",
+    "username": "Клиент",
+    "status": "new",
+    "total_price": 30,
+    "user_id": "2144d0e4-acf4-4824-94f2-cbdf7c001e0c",
+    "items": [
+      {
+        "variant": "Виноград и клубника",
+        "productName": "Podonki Malasian 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "7uqXCnMOhvxJAPhBO9gD",
+        "price": 16
+      },
+      {
+        "price": 14,
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS"
+      }
+    ]
+  },
+  {
+    "id": "tEBN8I28BNytWpXoduTG",
+    "items": [
+      {
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "productName": "Pynepod Boost Pro 20000",
+        "quantity": 1,
+        "variant": "Blue Razz Ice",
+        "isPreorder": false,
+        "price": 27
+      }
+    ],
+    "total_price": 27,
+    "username": "Клиент",
+    "user_id": "945f2df5-eab5-4ad8-8be0-27b21b3c5b99",
+    "created_at": "2026-08-19T14:50:12.593Z",
+    "status": "new"
+  },
+  {
+    "id": "tJ3U8K47QgEAG086buij",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS",
+        "price": 14,
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "status": "new",
+    "username": "Клиент",
+    "user_id": "24b917a2-91f6-421d-865b-3aacfa62544c",
+    "created_at": "2026-07-29T17:24:38.964Z",
+    "total_price": 14
+  },
+  {
+    "id": "tKTZJt4wP5BbyXtwL2wZ",
+    "items": [
+      {
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "quantity": 1
+      },
+      {
+        "productName": "PODONKI Last Hap 2 30 мл (50 мг)\t",
+        "productId": "bYh1mFmAdhMkWB6RfeDU",
+        "quantity": 1,
+        "price": 17,
+        "isPreorder": false,
+        "variant": "Арбуз Лед"
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "bb76ab8c-0ca9-48e7-9805-b9b9b86582c8",
+    "status": "new",
+    "created_at": "2026-07-26T07:32:32.924Z",
+    "total_price": 31
+  },
+  {
+    "id": "tQq2XzouqdUneN3atDrI",
+    "items": [
+      {
+        "productId": "QgOx8wgC6laQq5ryVVhw",
+        "price": 16,
+        "isPreorder": false,
+        "productName": "ICEBERG EXTREME 110 мг",
+        "variant": "Kiwi Strawberry ",
+        "quantity": 1
+      }
+    ],
+    "user_id": "8a344c76-dba4-46fc-88fd-55246235eaa6",
+    "status": "new",
+    "created_at": "2026-08-03T10:13:28.897Z",
+    "username": "Клиент",
+    "total_price": 16
+  },
+  {
+    "id": "twmSrEH5u3obZl42K07a",
+    "created_at": "2026-08-20T17:42:49.365Z",
+    "username": "Клиент",
+    "total_price": 30,
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "variant": "Киви Ананас",
+        "productId": "sg7e96Q5u3KKMMcmT091",
+        "price": 16,
+        "productName": "DOGSWILL 30 мл (45мг)",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "productName": "VAPORESSO XROS"
+      }
+    ]
+  },
+  {
+    "id": "u439O9Uy7jxgOeUQSVl7",
+    "username": "Клиент",
+    "items": [
+      {
+        "price": 48,
+        "quantity": 1,
+        "variant": "Peach Ice",
+        "productId": "lEG1ymlRzcdQhnHKU5RE",
+        "productName": "ELF BAR MoonNight 40000 5%",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-08-03T16:59:21.753Z",
+    "status": "new",
+    "total_price": 48,
+    "user_id": "3b693596-68e7-4105-83bb-2c13085e8fc3"
+  },
+  {
+    "id": "u8BU8XFes2SyD5P5uRrs",
+    "items": [
+      {
+        "productId": "TUUtDQ2LswQAcszjkdUJ",
+        "productName": "DUALL 30 мл (50 мг)\t",
+        "price": 16,
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Мятные Леденцы Эквалипт"
+      },
+      {
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)"
+      }
+    ],
+    "total_price": 30,
+    "created_at": "2026-07-29T15:07:09.881Z",
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "fb949e8d-e6eb-4136-a469-78ce33f90236"
+  },
+  {
+    "id": "uaxDAi9twkybafy6zjWt",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Blue Razz Ice",
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "price": 27,
+        "productName": "Pynepod Boost Pro 20000"
+      }
+    ],
+    "user_id": "945f2df5-eab5-4ad8-8be0-27b21b3c5b99",
+    "created_at": "2026-08-19T14:53:08.674Z",
+    "total_price": 27
+  },
+  {
+    "id": "ufvU0zvLIuI0aKlpBMm2",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "ELFLIQ 30 мл (50 мг)\t",
+        "quantity": 1,
+        "price": 20,
+        "variant": "Mango Peach ",
+        "productId": "poq5ckO51Xzjo9Yl2pzH"
+      },
+      {
+        "isPreorder": false,
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 1,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "created_at": "2026-07-30T16:11:11.660Z",
+    "username": "Клиент",
+    "user_id": "6a6a392e-bba9-41b9-8def-aa9278079415",
+    "total_price": 34
+  },
+  {
+    "id": "uyTfjW9sMpWkEieWIGJ7",
+    "username": "Клиент",
+    "created_at": "2026-08-02T13:54:55.742Z",
+    "total_price": 15,
+    "status": "new",
+    "user_id": "97d1fbc5-e2df-4e70-b180-8b077443c1f0",
+    "items": [
+      {
+        "productName": "Pouches GLITCH SAUCE 30mg",
+        "quantity": 1,
+        "productId": "vORTz1rxT65xJ6a7ssji",
+        "price": 15,
+        "variant": "Mighty Peppermint",
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "v2Tr86KGDuKfX8V2uNcK",
+    "username": "Клиент",
+    "user_id": "7a8c156a-5663-424b-9206-2cfe0138a243",
+    "total_price": 17,
+    "status": "new",
+    "created_at": "2026-08-04T19:34:52.785Z",
+    "items": [
+      {
+        "price": 17,
+        "quantity": 1,
+        "variant": "Вишневый Чупа Чупс",
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "isPreorder": false
+      }
+    ]
+  },
+  {
+    "id": "vF8dg4u8QdPJVHQSoC4r",
+    "user_id": "0328f46d-61f4-4be7-8c5c-e20799028f5a",
+    "status": "new",
+    "created_at": "2026-07-29T07:23:28.488Z",
+    "items": [
+      {
+        "variant": "Мятная Жвачка",
+        "price": 17,
+        "quantity": 1,
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "isPreorder": false
+      },
+      {
+        "quantity": 1,
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "price": 17,
+        "isPreorder": false,
+        "variant": "Розовая шипучка с малиной"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 34
+  },
+  {
+    "id": "vbctkGWruOnqQv2ddXbG",
+    "username": "Клиент",
+    "created_at": "2026-08-03T13:18:33.923Z",
+    "items": [
+      {
+        "price": 20,
+        "productName": "ELFLIQ ICE 30 мл (50 мг)\t",
+        "productId": "j5gTzPsD4xlAEoJtiM0r",
+        "variant": "Iced Passion Fruit ",
+        "isPreorder": false,
+        "quantity": 1
+      }
+    ],
+    "user_id": "1c1985cd-01f2-44d8-b44c-3b7d3fda3be8",
+    "status": "new",
+    "total_price": 20
+  },
+  {
+    "id": "vcUZvhYd8FqrCNz67J6U",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "total_price": 150,
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "Лимонад Черника лайм",
+        "price": 17,
+        "productName": "Catswill 30 мл (50 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "productId": "WafkRkKsEQ25spivGPnu",
+        "productName": "Catswill 30 мл (50 мг)\t",
+        "variant": "Мятная Жвачка",
+        "quantity": 1,
+        "price": 17
+      },
+      {
+        "price": 17,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "variant": "Вишневая тянучка",
+        "isPreorder": false,
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "variant": "Двойной удар манго",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "isPreorder": false,
+        "price": 17
+      },
+      {
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "quantity": 1,
+        "variant": "Снежная Клубника",
+        "isPreorder": false,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "price": 17
+      },
+      {
+        "quantity": 1,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "price": 17,
+        "isPreorder": false,
+        "variant": "Тропический вихрь"
+      },
+      {
+        "price": 17,
+        "variant": "Розовая шипучка с малиной",
+        "quantity": 1,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t",
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "isPreorder": false
+      },
+      {
+        "productId": "9wjqnbNyyUoZs3IwMP6n",
+        "isPreorder": false,
+        "price": 17,
+        "variant": "Гранатово-клубничный ураган",
+        "quantity": 1,
+        "productName": "Catswill & MALASIAN 30 мл (45 мг)\t"
+      },
+      {
+        "isPreorder": false,
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 2 ml Corex 2.0 (крат 4)",
+        "productName": "VAPORESSO XROS"
+      }
+    ],
+    "created_at": "2026-07-30T07:13:02.840Z",
+    "status": "new"
+  },
+  {
+    "id": "vur64eze0mzKyXNjnPTS",
+    "username": "Клиент",
+    "status": "new",
+    "user_id": "62f1ace0-dc4c-42b3-ba97-6cb4d4839ce4",
+    "items": [
+      {
+        "price": 80,
+        "variant": "Plume White",
+        "productName": "Xros 6 mini Pod",
+        "quantity": 1,
+        "productId": "40PwfsjkhEmCPOKDJNAM",
+        "isPreorder": false
+      }
+    ],
+    "total_price": 80,
+    "created_at": "2026-07-26T17:56:39.207Z"
+  },
+  {
+    "id": "w7KVdfwZ0vvc4NQvI8oj",
+    "total_price": 14,
+    "created_at": "2026-08-02T13:08:31.999Z",
+    "user_id": "803244ed-a471-4dee-919a-bf60222ca113",
+    "status": "new",
+    "username": "Клиент",
+    "items": [
+      {
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "quantity": 1,
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ]
+  },
+  {
+    "id": "x5R518QG0AklJpaEemm9",
+    "created_at": "2026-08-02T19:06:19.768Z",
+    "total_price": 17,
+    "username": "Клиент",
+    "status": "new",
+    "items": [
+      {
+        "isPreorder": false,
+        "productId": "bYh1mFmAdhMkWB6RfeDU",
+        "quantity": 1,
+        "variant": "Виноградный Холлс",
+        "price": 17,
+        "productName": "PODONKI Last Hap 2 30 мл (50 мг)\t"
+      }
+    ],
+    "user_id": "8b3f7ab6-3076-404a-a29d-be6267c69380"
+  },
+  {
+    "id": "xXup1Xsq3tZaaZnr8MpT",
+    "total_price": 34,
+    "user_id": "88b83262-98f9-4448-a5f2-56ed48f233d3",
+    "items": [
+      {
+        "variant": "Клубника Банан Яблоко",
+        "productName": "Catswill PREMIUM 30 мл (50 мг)",
+        "price": 20,
+        "quantity": 1,
+        "productId": "6vrWu4ldgMYlRd9TtpH4",
+        "isPreorder": false
+      },
+      {
+        "price": 14,
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "created_at": "2026-08-19T12:47:02.965Z",
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "xb29Cj6aj4a4QmgA3gm2",
+    "status": "new",
+    "user_id": "4c67a929-aa57-4b8f-b25d-914daa46eba6",
+    "items": [
+      {
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "quantity": 1,
+        "price": 27,
+        "productName": "Pynepod Boost Pro 20000",
+        "isPreorder": false,
+        "variant": "California Cherry"
+      }
+    ],
+    "username": "Клиент",
+    "total_price": 27,
+    "created_at": "2026-08-03T13:45:06.353Z"
+  },
+  {
+    "id": "xnxy2aoEXrcI1bCldrUq",
+    "total_price": 16,
+    "user_id": "3bf1336e-7e19-480b-ae17-638e418768dd",
+    "created_at": "2026-08-01T15:04:52.926Z",
+    "items": [
+      {
+        "price": 16,
+        "isPreorder": false,
+        "productId": "CDiayOp2PSCFJI7crEbT",
+        "quantity": 1,
+        "productName": "ICEBERG Limited Edition 130 мг",
+        "variant": "Raspberry Gum"
+      }
+    ],
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "yDu9PkeJu3swiHIgfGfQ",
+    "items": [
+      {
+        "productId": "Yi8q2s9WryjW8cjA1yrP",
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "PODONKI MALASIAN ARCADE 30 мл (50 мг)\t",
+        "variant": "Маунтин дью Кислое яблоко",
+        "price": 16
+      }
+    ],
+    "total_price": 16,
+    "user_id": "0d2eb511-b8fd-4c46-b467-44745e5bfcff",
+    "created_at": "2026-07-28T17:27:40.237Z",
+    "username": "Клиент",
+    "status": "new"
+  },
+  {
+    "id": "yEYcrmdtblVRYcV6v5Em",
+    "username": "Клиент",
+    "items": [
+      {
+        "quantity": 1,
+        "productId": "LAr2OagMjDkSCFCSyBIn",
+        "variant": "SMOANT Knight/Pasito II 0,15 Om ",
+        "productName": "SMOANT Knight/Pasito",
+        "price": 13,
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-08-04T14:36:34.802Z",
+    "total_price": 13,
+    "status": "new",
+    "user_id": "3b693596-68e7-4105-83bb-2c13085e8fc3"
+  },
+  {
+    "id": "yJqzpglSzoERFu0WRMs5",
+    "total_price": 27,
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 27,
+        "productId": "PR2PLeD0ZWJJK9E0AvCp",
+        "quantity": 1,
+        "productName": "Pynepod Boost Pro 20000",
+        "variant": "Blue Razz Ice"
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "1ce15a69-8419-456d-9d19-54b6ceceb79c",
+    "created_at": "2026-07-28T18:22:34.705Z",
+    "status": "new"
+  },
+  {
+    "id": "yRKT1RWjzRYYsins10kn",
+    "user_id": "586c933b-0c37-4482-ad32-c33d99c349a4",
+    "items": [
+      {
+        "productName": "ANNIMA LOVE SOUR 30 мл (60 мг)\t",
+        "price": 18,
+        "productId": "lKgE5FM9ICaguu37NjbK",
+        "quantity": 1,
+        "variant": "Кислое Яблоко Киви",
+        "isPreorder": false
+      }
+    ],
+    "created_at": "2026-07-28T11:42:31.965Z",
+    "total_price": 18,
+    "status": "new",
+    "username": "Клиент"
+  },
+  {
+    "id": "yTOyjvUTmoVDqjlX5umV",
+    "items": [
+      {
+        "price": 17,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "quantity": 1,
+        "variant": "Фруктовый Скиттлс",
+        "isPreorder": false,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)"
+      }
+    ],
+    "username": "Клиент",
+    "created_at": "2026-08-20T16:27:11.200Z",
+    "total_price": 17,
+    "status": "new",
+    "user_id": "aa936d98-b729-43c8-be93-aad8da971af3"
+  },
+  {
+    "id": "yeRd4CXQhn9uEacnlJYh",
+    "username": "Клиент",
+    "items": [
+      {
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "productName": "VAPORESSO XROS",
+        "quantity": 1,
+        "isPreorder": false,
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)"
+      },
+      {
+        "isPreorder": false,
+        "productId": "aNFW8tl8kPMw9xoh6UEn",
+        "price": 17,
+        "productName": "Catswill x RM NEW (30ml 50mg)",
+        "variant": "Черника Арбуз",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "productId": "sOpdIlPBvtmEi1Ch3E46",
+        "variant": "Жвачка черника-мята",
+        "price": 15,
+        "isPreorder": false,
+        "productName": "PODONKI PODGON 30 мл (50 мг)\t"
+      }
+    ],
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "created_at": "2026-08-19T11:28:00.020Z",
+    "status": "new",
+    "total_price": 46
+  },
+  {
+    "id": "ygeeHau7U8e2znjLQSs7",
+    "username": "Клиент",
+    "created_at": "2026-08-20T19:24:21.302Z",
+    "status": "new",
+    "user_id": "1f20393e-d658-4f9a-8261-b71dbc3c82e3",
+    "items": [
+      {
+        "price": 17,
+        "variant": "Манго Скиттлс",
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "quantity": 1,
+        "isPreorder": false,
+        "productId": "M4WpZ7dppfgcTAOOOJdz"
+      }
+    ],
+    "total_price": 17
+  },
+  {
+    "id": "yi0nijWujEcmSCtygsqb",
+    "items": [
+      {
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "quantity": 1,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "price": 14
+      }
+    ],
+    "user_id": "74ae9fd0-c3d3-4c45-99b9-2b7479b88497",
+    "total_price": 14,
+    "status": "new",
+    "created_at": "2026-07-31T17:59:24.688Z",
+    "username": "Клиент"
+  },
+  {
+    "id": "ykUgZHAxL7nK1h1zlDGs",
+    "username": "Клиент",
+    "total_price": 66,
+    "status": "new",
+    "created_at": "2026-07-26T16:29:03.154Z",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "price": 19,
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "variant": "Малина Кислый Лед",
+        "quantity": 1
+      },
+      {
+        "quantity": 1,
+        "productName": "BJORN Темный хор 30 мл (80 мг)\t",
+        "productId": "xkiQ9rDla5mj02p4r7My",
+        "price": 19,
+        "isPreorder": false,
+        "variant": "Голубика Лед"
+      },
+      {
+        "price": 14,
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "variant": "VAPORESSO XROS 0.8 Om 2 ml Corex 2.0 (крат 4)",
+        "quantity": 2,
+        "productId": "YcdxZbKNd19LDJRjvuXX"
+      }
+    ],
+    "user_id": "c40d0424-3478-4ce6-b25e-24fb21e4a97f"
+  },
+  {
+    "id": "yrSrpEYcWvZJGxk6wXpI",
+    "status": "new",
+    "username": "Клиент",
+    "total_price": 37,
+    "items": [
+      {
+        "variant": "Киви Манго",
+        "price": 18,
+        "productName": "ЗЛАЯ МОНАШКА HARD 30 мл (50 мг)\t",
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "OmkybCfXN8VChKrv0oMy"
+      },
+      {
+        "productId": "vQ8iS3qPKiIHe9C19Lb5",
+        "quantity": 1,
+        "isPreorder": false,
+        "productName": "Самоубийца V2 ACID 30 мл (70 мг)\t",
+        "price": 19,
+        "variant": "Кислая Маракуйя Гуава"
+      }
+    ],
+    "user_id": "8a6e8235-27ab-4e57-a757-d136f4130293",
+    "created_at": "2026-08-04T08:52:55.950Z"
+  },
+  {
+    "id": "yvhtvziEw6QmeSDC9i9F",
+    "status": "new",
+    "user_id": "fa9a2ec3-3406-451b-ae03-f8f804ed638b",
+    "items": [
+      {
+        "isPreorder": false,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "price": 14,
+        "quantity": 1
+      }
+    ],
+    "total_price": 14,
+    "username": "Клиент",
+    "created_at": "2026-08-20T17:02:18.129Z"
+  },
+  {
+    "id": "yxqgDfprBRsMTG6s6lis",
+    "user_id": "1a723521-c89b-4e39-b10d-03c2bc440d91",
+    "items": [
+      {
+        "price": 14,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false,
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.6 Om 3 ml Corex 3.0 (крат 4)",
+        "productName": "VAPORESSO XROS"
+      },
+      {
+        "productId": "R2uu9XKA82oPCym9G0et",
+        "quantity": 1,
+        "variant": "Кислый леденец виноград киви яблоко",
+        "isPreorder": false,
+        "price": 17,
+        "productName": "Catswill SOUR 30 мл (50 мг)\t"
+      }
+    ],
+    "created_at": "2026-08-18T14:09:08.724Z",
+    "total_price": 31,
+    "username": "Клиент",
+    "status": "new"
+  },
+  {
+    "id": "zIbWmD1rQFLKjWKh4OLJ",
+    "username": "Клиент",
+    "total_price": 17,
+    "status": "new",
+    "user_id": "1293499f-8bf2-4ed1-a12d-e35d56301ee4",
+    "items": [
+      {
+        "isPreorder": false,
+        "price": 17,
+        "quantity": 1,
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)",
+        "variant": "Арбузная Жвачка",
+        "productId": "M4WpZ7dppfgcTAOOOJdz"
+      }
+    ],
+    "created_at": "2026-08-18T11:47:05.942Z"
+  },
+  {
+    "id": "zYyjoet7nwxHlMm9Fkgl",
+    "user_id": "8d63722a-514d-45a8-83c4-00e3a63d6716",
+    "status": "new",
+    "created_at": "2026-08-04T11:53:58.414Z",
+    "username": "Клиент",
+    "total_price": 33,
+    "items": [
+      {
+        "productName": "DUALL EXTREME HARD (30ml 50mg)",
+        "quantity": 1,
+        "price": 16,
+        "productId": "DJed55bZ3fc10SbB5dIO",
+        "isPreorder": false,
+        "variant": "Фруктовый Лед"
+      },
+      {
+        "variant": "Арбузный Фреш",
+        "price": 17,
+        "isPreorder": false,
+        "quantity": 1,
+        "productId": "M4WpZ7dppfgcTAOOOJdz",
+        "productName": "RICK & MORTY RUSSIA (30ml 50 mg)"
+      }
+    ]
+  },
+  {
+    "id": "zdeakskexkLpAZnTQriV",
+    "created_at": "2026-07-26T07:36:56.618Z",
+    "status": "new",
+    "items": [
+      {
+        "variant": "Земляника Виноград",
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "quantity": 1,
+        "price": 17,
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "isPreorder": false
+      },
+      {
+        "productName": "RICK & MORTY DOOMSDAY 30 мл (50 мг)",
+        "price": 17,
+        "isPreorder": false,
+        "variant": "Кислый Ананас Апельсин ",
+        "productId": "dsHC7cJ2Moy0PcaEOgEQ",
+        "quantity": 1
+      },
+      {
+        "price": 14,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "quantity": 2,
+        "productName": "VAPORESSO XROS",
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "isPreorder": false
+      }
+    ],
+    "username": "Клиент",
+    "user_id": "a34a88be-e370-43f8-9582-5f6944591abe",
+    "total_price": 62
+  },
+  {
+    "id": "zsg7pVgayem1c7Kkv0oY",
+    "created_at": "2026-08-18T14:57:49.176Z",
+    "username": "Клиент",
+    "total_price": 31,
+    "status": "new",
+    "user_id": "df9db0a2-3c68-4d45-a8aa-a3eaa779ea3a",
+    "items": [
+      {
+        "productId": "aNFW8tl8kPMw9xoh6UEn",
+        "quantity": 1,
+        "variant": "Смородиновый Лимонад",
+        "isPreorder": false,
+        "price": 17,
+        "productName": "Catswill x RM NEW (30ml 50mg)"
+      },
+      {
+        "productName": "VAPORESSO XROS",
+        "isPreorder": false,
+        "productId": "YcdxZbKNd19LDJRjvuXX",
+        "quantity": 1,
+        "variant": "VAPORESSO XROS 0.4 Om 3 ml (крат 4)",
+        "price": 14
+      }
+    ]
+  }
+]

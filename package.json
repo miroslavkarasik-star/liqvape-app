@@ -12,9 +12,10 @@
     "@supabase/supabase-js": "^2.112.1",
     "@twa-dev/sdk": "^8.0.2",
     "date-fns": "^4.4.0",
-    "firebase": "^12.16.0",
+    "firebase": "^12.19.0",
     "lucide-react": "^1.17.0",
     "next": "14.2.35",
+    "pocketbase": "^0.28.1",
     "react": "^18",
     "react-dom": "^18",
     "uuid": "^14.0.0"
