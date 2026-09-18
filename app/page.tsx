@@ -428,10 +428,18 @@ export default function Home() {
   };
 
   // === ЗАМЕНА: Сохранение товара с поддержкой FormData для файлов ===
-  const saveProduct = async () => {
-    if (!editingProduct?.name || !editingProduct.price) { showNotification('Заполните название и цену', 'error'); return; }
+    const saveProduct = async () => {
+    if (!editingProduct?.name || !editingProduct.price) { 
+      showNotification('Заполните название и цену', 'error'); 
+      return; 
+    }
     
     try {
+      console.log('📦 Начинаем сохранение товара...');
+      console.log('Editing product:', editingProduct);
+      console.log('Variants:', formVariants);
+      console.log('Image file:', selectedImageFile);
+      
       const formData = new FormData();
       formData.append('name', editingProduct.name);
       formData.append('price', String(Number(editingProduct.price)));
@@ -441,17 +449,22 @@ export default function Home() {
       formData.append('is_hidden', String(Boolean(editingProduct.is_hidden)));
       formData.append('is_preorder', String(Boolean(editingProduct.is_preorder)));
 
-      // Если выбран новый файл, добавляем его. PocketBase сам сохранит его в поле 'image'
       if (selectedImageFile) {
+        console.log(' Добавляем файл в FormData:', selectedImageFile.name);
         formData.append('image', selectedImageFile);
       }
-      // Если файл не менялся, но это редактирование, PocketBase оставит старую картинку автоматически.
 
+      console.log('📤 Отправляем FormData в PocketBase...');
+      
       if (editingProduct.id) {
-        await pb.collection('products').update(editingProduct.id, formData);
+        console.log('✏️ Обновляем товар ID:', editingProduct.id);
+        const result = await pb.collection('products').update(editingProduct.id, formData);
+        console.log('✅ Товар обновлён:', result);
         showNotification('Товар обновлён', 'success');
       } else {
-        await pb.collection('products').create(formData);
+        console.log('➕ Создаём новый товар');
+        const result = await pb.collection('products').create(formData);
+        console.log('✅ Товар создан:', result);
         showNotification('Товар добавлен', 'success');
       }
       
@@ -461,6 +474,8 @@ export default function Home() {
       setSelectedImageFile(null);
       await loadProducts(true);
     } catch(e) { 
+      console.error('❌ Ошибка сохранения:', e);
+      console.error('Ошибка details:', JSON.stringify(e, null, 2));
       showNotification('Ошибка: ' + (e as Error).message, 'error'); 
     }
   };
