@@ -5,7 +5,7 @@ import { pb, getProducts, createOrder } from '@/lib/pocketbase';
 
 // === ЗАГЛУШКА ТЕХНИЧЕСКИХ РАБОТ ===
 // Чтобы ОТКЛЮЧИТЬ заглушку, поменяй true на false:
-const SHOW_MAINTENANCE = true;
+const SHOW_MAINTENANCE = false;
 // ================================
 
 
