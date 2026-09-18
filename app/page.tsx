@@ -153,7 +153,7 @@ export default function Home() {
       if (!silent) setLoadingProgress(70);
       
       const parsed: Product[] = records.map((p: any) => {
-        let variants = [];
+        let variants: Variant[] = [];
         try {
           if (p.flavors) {
             const parsedFlavors = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : p.flavors;
