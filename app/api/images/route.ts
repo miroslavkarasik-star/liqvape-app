@@ -9,13 +9,14 @@ export async function GET() {
     // Если папки нет, создаём
     if (!fs.existsSync(imagesDir)) {
       fs.mkdirSync(imagesDir, { recursive: true });
+      return NextResponse.json([]);
     }
     
     const files = fs.readdirSync(imagesDir);
     
-    // Фильтруем только PNG (и можно добавить JPG/WebP)
+    // Фильтруем только картинки
     const images = files
-      .filter(f => f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.webp'))
+      .filter(f => f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.webp'))
       .map(f => ({
         name: f,
         url: `/images/products/${f}`

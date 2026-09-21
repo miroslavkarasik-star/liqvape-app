@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, ImageIcon } from 'lucide-react';
 import { db, getAllProducts, createProduct, updateProduct, deleteProductRecord, createOrder, getAllOrders, deleteOrderRecord } from '@/lib/firebase';
+
+interface ImageFile { name: string; url: string; }
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Одноразки': 2, 'Расходники': 3, 'Снюс': 4, 'POD-системы': 5, 'Табак-угли': 6, 'Другое': 7 };
@@ -19,7 +21,7 @@ const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 const PRICE_LINK = 'https://docs.google.com/spreadsheets/d/11o1xhXau8w_nv0RjdHh3fmDgMXolTJJo3sBlxturhI4/edit?gid=0#gid=0';
 
 interface Variant { name: string; stock: number; price?: number; }
-interface Product { id: string; name: string; category: string; price: number; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
+interface Product { id: string; name: string; category: string; price: number; image?: string; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
 const BATCH_SIZE = 12;
@@ -62,6 +64,10 @@ export default function Home() {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
   const [dbError, setDbError] = useState(false);
+  
+  // Галерея картинок
+  const [availableImages, setAvailableImages] = useState<ImageFile[]>([]);
+  const [showImageGallery, setShowImageGallery] = useState(false);
 
   useEffect(() => {
     const style = document.createElement('style');
@@ -103,6 +109,17 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
+  // Загрузка списка картинок
+  const loadAvailableImages = useCallback(async () => {
+    try {
+      const resp = await fetch('/api/images');
+      const data = await resp.json();
+      setAvailableImages(data);
+    } catch (e) {
+      console.error('Error loading images:', e);
+    }
+  }, []);
+
   const loadProducts = useCallback(async (includeHidden = false) => {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
@@ -138,6 +155,7 @@ export default function Home() {
         name: p.name || 'Без названия',
         category: p.category || 'Другое',
         price: Number(p.price) || 0,
+        image: p.image || null,
         variants: Array.isArray(p.flavors) ? p.flavors : (typeof p.flavors === 'string' ? JSON.parse(p.flavors) : []),
         is_hidden: Boolean(p.is_hidden),
         is_preorder: Boolean(p.is_preorder),
@@ -153,7 +171,7 @@ export default function Home() {
       try {
         const optimizedCache = parsed.map(p => ({
           id: p.id, name: p.name, price: p.price, category: p.category,
-          variants: p.variants, is_preorder: p.is_preorder, is_hidden: p.is_hidden
+          image: p.image, variants: p.variants, is_preorder: p.is_preorder, is_hidden: p.is_hidden
         }));
         localStorage.setItem(cacheKey, JSON.stringify(optimizedCache));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
@@ -181,8 +199,11 @@ export default function Home() {
 
   useEffect(() => {
     loadProducts(isAdmin);
-    if (isAdmin) loadAllRequests();
-  }, [isAdmin, loadProducts, loadAllRequests]);
+    if (isAdmin) {
+      loadAllRequests();
+      loadAvailableImages();
+    }
+  }, [isAdmin, loadProducts, loadAllRequests, loadAvailableImages]);
 
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
     setNotification({ message, type });
@@ -297,7 +318,7 @@ export default function Home() {
     const grouped: Record<string, ListItem[]> = {};
     selectionList.forEach(item => { if (!grouped[item.productName]) grouped[item.productName] = []; grouped[item.productName].push(item); });
     for (const [name, items] of Object.entries(grouped)) {
-      message += `🛍️ ${name}\n`;
+      message += `️ ${name}\n`;
       for (const item of items) message += `   • ${item.variant} × ${item.quantity}${item.isPreorder ? ' [ПРЕДЗАКАЗ]' : ''}\n`;
     }
     message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
@@ -329,13 +350,25 @@ export default function Home() {
 
   const openProductForm = (product?: Product) => {
     if (product) { 
-      setEditingProduct({ id: product.id, name: product.name, price: product.price, category: product.category, is_hidden: product.is_hidden, is_preorder: product.is_preorder }); 
+      setEditingProduct({ id: product.id, name: product.name, price: product.price, category: product.category, image: product.image, is_hidden: product.is_hidden, is_preorder: product.is_preorder }); 
       setFormVariants([...product.variants].sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }))); 
     } else { 
-      setEditingProduct({ name: '', price: 0, category: 'Другое', is_hidden: false, is_preorder: false }); 
+      setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false }); 
       setFormVariants([]); 
     }
     setShowProductForm(true);
+    loadAvailableImages();
+  };
+
+  const selectImageFromGallery = (imageName: string) => {
+    setEditingProduct({ ...editingProduct, image: imageName });
+    setShowImageGallery(false);
+    showNotification('Картинка выбрана', 'success');
+  };
+
+  const removeImage = () => {
+    setEditingProduct({ ...editingProduct, image: null });
+    showNotification('Картинка удалена', 'success');
   };
 
   const saveProduct = async () => {
@@ -350,6 +383,7 @@ export default function Home() {
         price: Number(editingProduct.price),
         category: editingProduct.category || 'Другое',
         flavors: formVariants,
+        image: editingProduct.image || null, // Сохраняем только имя файла
         is_hidden: Boolean(editingProduct.is_hidden),
         is_preorder: Boolean(editingProduct.is_preorder),
       };
@@ -538,6 +572,26 @@ export default function Home() {
                   <div><label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label><input type="number" value={editingProduct.price || ''} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
                   <div><label className="text-xs text-gray-400 mb-1.5 block">Категория</label><select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none">{CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}</select></div>
                 </div>
+                
+                {/* ГАЛЕРЕЯ КАРТИНОК */}
+                <div className="mb-4">
+                  <label className="text-xs text-gray-400 mb-1.5 block">Фото товара</label>
+                  <button 
+                    onClick={() => { loadAvailableImages(); setShowImageGallery(true); }}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold flex items-center justify-center gap-2 hover:scale-105 transition-transform"
+                  >
+                    <ImageIcon className="w-5 h-5" /> Выбрать из галереи
+                  </button>
+                  
+                  {editingProduct.image && (
+                    <div className="mt-3 relative">
+                      <img src={`/images/products/${editingProduct.image}`} alt={editingProduct.name || 'Товар'} className="w-full h-40 object-contain rounded-xl bg-black/30" />
+                      <button onClick={removeImage} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"><X className="w-4 h-4" /></button>
+                      <p className="text-xs text-gray-400 mt-2 text-center">{editingProduct.image}</p>
+                    </div>
+                  )}
+                </div>
+                
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2"><label className="text-xs text-gray-400">Варианты</label><span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-medium">{formVariants.length} шт.</span></div>
                   <div className="space-y-2 max-h-56 overflow-y-auto">
@@ -554,6 +608,52 @@ export default function Home() {
                 </div>
                 <div className="mb-5"><button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})} className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}</button></div>
                 <div className="flex gap-3"><button onClick={() => { setShowProductForm(false); }} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium">Отмена</button><button onClick={saveProduct} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold">Сохранить</button></div>
+              </div>
+            </div>
+          )}
+          
+          {/* МОДАЛЬНОЕ ОКНО ГАЛЕРЕИ */}
+          {showImageGallery && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
+              <div className="bg-black border border-white/10 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-5">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-bold text-orange-400">Выберите картинку</h2>
+                  <button onClick={() => setShowImageGallery(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center"><X className="w-5 h-5" /></button>
+                </div>
+                
+                {availableImages.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+                    <p className="text-gray-400 text-sm">Картинки не найдены</p>
+                    <p className="text-gray-500 text-xs mt-2">Закиньте PNG/JPG файлы в папку: public/images/products/</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-3">
+                    {availableImages.map((img) => (
+                      <button
+                        key={img.name}
+                        onClick={() => selectImageFromGallery(img.name)}
+                        className={`relative group border-2 rounded-xl overflow-hidden transition-all ${
+                          editingProduct?.image === img.name 
+                            ? 'border-orange-500 shadow-lg shadow-orange-500/30' 
+                            : 'border-white/10 hover:border-orange-500/50'
+                        }`}
+                      >
+                        <div className="aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
+                          <img src={img.url} alt={img.name} className="w-full h-full object-contain p-2" />
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm py-1.5 px-2">
+                          <p className="text-[10px] text-gray-300 truncate">{img.name}</p>
+                        </div>
+                        {editingProduct?.image === img.name && (
+                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center">
+                            <CheckCircle className="w-4 h-4 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -583,7 +683,7 @@ export default function Home() {
 
       {notification && (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"><div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}><div className="flex flex-col items-center text-center"><div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>{notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}</div><p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p></div></div></div>)}
 
-      {showFirstTimeTutorial && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 relative z-10">{tutorialStep === 0 && (<div className="text-center"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-3">Добро пожаловать!</h2><p className="text-gray-400 text-xs mb-4">Быстрый гайд по заказу</p><button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать</button></div>)}{tutorialStep === 1 && (<div className="text-center"><div className="text-4xl mb-4">🛍️</div><h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2><p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p><button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 2 && (<div className="text-center"><div className="text-4xl mb-4">📋</div><h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2><p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p><button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 3 && (<div className="text-center"><div className="text-4xl mb-4">📤</div><h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй</h2><p className="text-gray-400 text-xs mb-4">Нажми "Отправить" для перехода в Telegram</p><button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button></div>)}</div></div>)}
+      {showFirstTimeTutorial && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 relative z-10">{tutorialStep === 0 && (<div className="text-center"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-3">Добро пожаловать!</h2><p className="text-gray-400 text-xs mb-4">Быстрый гайд по заказу</p><button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать</button></div>)}{tutorialStep === 1 && (<div className="text-center"><div className="text-4xl mb-4">🛍️</div><h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2><p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p><button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 2 && (<div className="text-center"><div className="text-4xl mb-4"></div><h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2><p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p><button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 3 && (<div className="text-center"><div className="text-4xl mb-4">📤</div><h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй</h2><p className="text-gray-400 text-xs mb-4">Нажми "Отправить" для перехода в Telegram</p><button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button></div>)}</div></div>)}
 
       {showSubscribePrompt && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><button onClick={() => setShowSubscribePrompt(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4 text-gray-400" /></button><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Подпишись на канал</h2><button onClick={() => { if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.openTelegramLink) (window as any).Telegram.WebApp.openTelegramLink(CHANNEL_LINK); else window.open(CHANNEL_LINK, '_blank'); setTimeout(() => setShowSubscribePrompt(false), 1000); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white mb-2">Подписаться</button><button onClick={() => setShowSubscribePrompt(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">Продолжить</button></div></div>)}
 
@@ -591,9 +691,9 @@ export default function Home() {
 
       {showInstructions && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm max-h-[80vh] overflow-y-auto p-5 relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowInstructions(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">Инструкция</h2><div className="w-10"></div></div><div className="space-y-3 text-xs text-gray-300"><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">1. Выбор товара</h3><p>Нажми на карточку товара</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">2. Выбор вкуса</h3><p>Отметь галочкой нужные вкусы</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">3. Просмотр списка</h3><p>Кнопка корзины внизу справа</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">4. Отправка</h3><p>Нажми "Отправить"</p></div></div></div></div>)}
 
-      {showAbout && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowAbout(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">О приложении</h2><div className="w-10"></div></div><div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-10 h-10 text-white" /></div><h3 className="text-xl font-bold mb-1">Liq<span className="text-orange-500">Vape</span></h3><p className="text-gray-400 text-xs mb-4">Premium vape shop</p><div className="glass-card p-3 mb-4 text-left space-y-1 text-xs"><p className="text-gray-400">Версия: <span className="text-white">5.0.0 (Firebase)</span></p><p className="text-gray-400">Канал: <span className="text-orange-400">@{CHANNEL_USERNAME}</span></p><p className="text-gray-400">Менеджер: <span className="text-orange-400">@{MANAGER_USERNAME}</span></p></div><p className="text-[10px] text-gray-500">© 2026 LiqVape</p></div></div>)}
+      {showAbout && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowAbout(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">О приложении</h2><div className="w-10"></div></div><div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-10 h-10 text-white" /></div><h3 className="text-xl font-bold mb-1">Liq<span className="text-orange-500">Vape</span></h3><p className="text-gray-400 text-xs mb-4">Premium vape shop</p><div className="glass-card p-3 mb-4 text-left space-y-1 text-xs"><p className="text-gray-400">Версия: <span className="text-white">5.1.0 (Firebase + Gallery)</span></p><p className="text-gray-400">Канал: <span className="text-orange-400">@{CHANNEL_USERNAME}</span></p><p className="text-gray-400">Менеджер: <span className="text-orange-400">@{MANAGER_USERNAME}</span></p></div><p className="text-[10px] text-gray-500">© 2026 LiqVape</p></div></div>)}
 
-      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><HelpCircle className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Инструкция</p><p className="text-[11px] text-gray-400">Как пользоваться</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><Info className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">О приложении</p><p className="text-[11px] text-gray-400">LiqVape v5.0</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button></div></div></div>)}
+      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><HelpCircle className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Инструкция</p><p className="text-[11px] text-gray-400">Как пользоваться</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><Info className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">О приложении</p><p className="text-[11px] text-gray-400">LiqVape v5.1</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button></div></div></div>)}
 
       {showAdminLogin && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-4"><h2 className="text-lg font-bold gradient-text">Вход для админа</h2><button onClick={() => setShowAdminLogin(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div><input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" /><button onClick={handleAdminLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold hover:from-orange-600 hover:to-pink-600 transition-all">Войти</button></div></div>)}
 
@@ -644,7 +744,11 @@ export default function Home() {
                   return (
                     <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all flex flex-col h-full ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
                       <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
-                        <Package className="w-12 h-12 text-neutral-600" />
+                        {p.image ? (
+                          <img src={`/images/products/${p.image}`} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />
+                        ) : (
+                          <Package className="w-12 h-12 text-neutral-600" />
+                        )}
                         {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
                       </div>
                       <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
@@ -678,7 +782,7 @@ export default function Home() {
         </div>
       </div>
 
-      {selectedProduct && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }}></div><div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10"><button onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button><div className="p-4"><h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>{selectedProduct.is_preorder && (<div className="text-center mb-2"><span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">ПРЕДЗАКАЗ</span></div>)}<p className="text-sm text-gray-400 mb-4 text-center">Выберите вкусы и количество</p>
+      {selectedProduct && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }}></div><div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10"><button onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button><div className="p-4">{selectedProduct.image && (<div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-4 flex items-center justify-center border border-white/10"><img src={`/images/products/${selectedProduct.image}`} alt={selectedProduct.name} className="w-full h-full object-contain p-6 rounded-2xl" /></div>)}<h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>{selectedProduct.is_preorder && (<div className="text-center mb-2"><span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">ПРЕДЗАКАЗ</span></div>)}<p className="text-sm text-gray-400 mb-4 text-center">Выберите вкусы и количество</p>
       {sortedVariants.length === 0 && (
           <div className="text-center py-6">
             <p className="text-gray-400 text-sm mb-4">Вкусы не указаны</p>
@@ -715,7 +819,7 @@ export default function Home() {
             <path d="M12 2C7.58 2 4 5.58 4 10v10c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-1h2v1c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-1h2v1c0 .55.45 1 1 1h2c.55 0 1-.45 1-1V10c0-4.42-3.58-8-8-8zm-3 8c.83 0 1.5.67 1.5 1.5S9.83 13 9 13s-1.5-.67-1.5-1.5S8.17 10 9 10zm6 0c.83 0 1.5.67 1.5 1.5S15.83 13 15 13s-1.5-.67-1.5-1.5S14.17 10 15 10z"/>
           </svg>
           <div style={{ position: 'absolute', top: '-10px', left: '55px', background: 'linear-gradient(135deg, #fb923c, #ec4899)', borderRadius: '16px', padding: '12px 14px', maxWidth: '200px', boxShadow: '0 0 20px rgba(236,72,153,0.5)' }}>
-            <p style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>👋 Привет!</p>
+            <p style={{ color: 'white', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}> Привет!</p>
             <p style={{ color: 'white', fontSize: '11px', marginBottom: '8px', lineHeight: '1.3' }}>Мы в новом канале! Дропы и скидки</p>
             <div style={{ display: 'flex', gap: '6px' }}>
               <button onClick={() => { window.open('https://t.me/LiqVape', '_blank'); }} style={{ flex: 1, background: 'white', color: '#ec4899', fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>Подписаться</button>
