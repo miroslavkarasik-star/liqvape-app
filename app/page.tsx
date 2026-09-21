@@ -353,7 +353,7 @@ export default function Home() {
       setEditingProduct({ id: product.id, name: product.name, price: product.price, category: product.category, image: product.image, is_hidden: product.is_hidden, is_preorder: product.is_preorder }); 
       setFormVariants([...product.variants].sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }))); 
     } else { 
-      setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false }); 
+      setEditingProduct({ name: '', price: 0, category: 'Другое', image: undefined, is_hidden: false, is_preorder: false }); 
       setFormVariants([]); 
     }
     setShowProductForm(true);
