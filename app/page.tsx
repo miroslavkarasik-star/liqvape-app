@@ -367,7 +367,7 @@ export default function Home() {
   };
 
   const removeImage = () => {
-    setEditingProduct({ ...editingProduct, image: null });
+    setEditingProduct({ ...editingProduct, image: undefined });
     showNotification('Картинка удалена', 'success');
   };
 
