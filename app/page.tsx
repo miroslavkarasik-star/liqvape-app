@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, Image as ImageIcon } from 'lucide-react';
-import { pb } from '@/lib/pocketbase';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn } from 'lucide-react';
+import { db, getAllProducts, createProduct, updateProduct, deleteProductRecord, createOrder, getAllOrders, deleteOrderRecord } from '@/lib/firebase';
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Одноразки': 2, 'Расходники': 3, 'Снюс': 4, 'POD-системы': 5, 'Табак-угли': 6, 'Другое': 7 };
@@ -19,9 +19,8 @@ const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 const PRICE_LINK = 'https://docs.google.com/spreadsheets/d/11o1xhXau8w_nv0RjdHh3fmDgMXolTJJo3sBlxturhI4/edit?gid=0#gid=0';
 
 interface Variant { name: string; stock: number; price?: number; }
-interface Product { id: string; name: string; category: string; price: number; image: string | null; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
+interface Product { id: string; name: string; category: string; price: number; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
-interface ImageFile { name: string; url: string; }
 
 const BATCH_SIZE = 12;
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
@@ -62,27 +61,7 @@ export default function Home() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [displayCount, setDisplayCount] = useState(BATCH_SIZE);
-  const [isUploading, setIsUploading] = useState(false);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-  
-  // Новое состояние для галереи
-  const [availableImages, setAvailableImages] = useState<ImageFile[]>([]);
-  const [showImageGallery, setShowImageGallery] = useState(false);
-  
-  // Состояние для ошибки загрузки (fallback на заглушку)
   const [dbError, setDbError] = useState(false);
-
-  // Загрузка списка картинок из папки
-  const loadAvailableImages = useCallback(async () => {
-    try {
-      const resp = await fetch('/api/images');
-      const data = await resp.json();
-      setAvailableImages(data);
-    } catch (e) {
-      console.error('Error loading images:', e);
-      setAvailableImages([]);
-    }
-  }, []);
 
   useEffect(() => {
     const style = document.createElement('style');
@@ -124,7 +103,7 @@ export default function Home() {
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
 
-  const loadProducts = useCallback(async (includeHidden = false): Promise<Product[]> => {
+  const loadProducts = useCallback(async (includeHidden = false) => {
     const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
     const cached = localStorage.getItem(cacheKey);
     const cachedTime = localStorage.getItem(cacheKey + '_time');
@@ -139,58 +118,31 @@ export default function Home() {
         setLoadingMessage('');
         setDbError(false);
         loadProductsFromDB(includeHidden, true).catch(() => {});
-        return parsed;
+        return;
       } catch(e) { console.error('Cache error:', e); }
     }
-    return await loadProductsFromDB(includeHidden, false);
+    await loadProductsFromDB(includeHidden, false);
   }, []);
 
-  const loadProductsFromDB = useCallback(async (includeHidden = false, silent = false): Promise<Product[]> => {
+  const loadProductsFromDB = useCallback(async (includeHidden = false, silent = false) => {
     try {
       if (!silent) {
-        setLoadingMessage('Подождите пожалуйста, идёт загрузка товаров...');
-        setLoadingProgress(10);
+        setLoadingMessage('Загрузка товаров...');
+        setLoadingProgress(30);
       }
       
-      const startTime = Date.now();
-      if (!silent) setLoadingProgress(40);
+      const records = await getAllProducts();
       
-      const records = await pb.collection('products').getFullList({
-        sort: '-created',
-        filter: includeHidden ? '' : 'is_hidden = false',
-      });
-      
-      if (!silent) setLoadingProgress(70);
-      
-      const parsed: Product[] = records.map((p: any) => {
-        let variants: Variant[] = [];
-        try {
-          if (p.flavors) {
-            const parsedFlavors = typeof p.flavors === 'string' ? JSON.parse(p.flavors) : p.flavors;
-            variants = Array.isArray(parsedFlavors) ? parsedFlavors.map((v: any) => ({
-              name: String(v.name || ''),
-              stock: Number(v.stock) || 0,
-              price: v.price !== undefined ? Number(v.price) : p.price
-            })) : [];
-          }
-        } catch (e) {
-          console.error('Error parsing flavors:', e, p);
-        }
-        
-        return {
-          id: p.id || '',
-          name: p.name || 'Без названия',
-          category: p.category || 'Другое',
-          price: Number(p.price) || 0,
-          image: p.image || null,
-          variants: variants,
-          is_hidden: Boolean(p.is_hidden),
-          is_preorder: Boolean(p.is_preorder),
-          created_at: p.created || new Date().toISOString()
-        };
-      });
-      
-      if (!silent) setLoadingProgress(90);
+      const parsed: Product[] = records.map((p: any) => ({
+        id: p.id || '',
+        name: p.name || 'Без названия',
+        category: p.category || 'Другое',
+        price: Number(p.price) || 0,
+        variants: Array.isArray(p.flavors) ? p.flavors : (typeof p.flavors === 'string' ? JSON.parse(p.flavors) : []),
+        is_hidden: Boolean(p.is_hidden),
+        is_preorder: Boolean(p.is_preorder),
+        created_at: p.created_at || new Date().toISOString()
+      }));
       
       setProducts(parsed);
       setIsLoading(false);
@@ -201,48 +153,36 @@ export default function Home() {
       try {
         const optimizedCache = parsed.map(p => ({
           id: p.id, name: p.name, price: p.price, category: p.category,
-          image: p.image, variants: p.variants, is_preorder: p.is_preorder,
+          variants: p.variants, is_preorder: p.is_preorder, is_hidden: p.is_hidden
         }));
         localStorage.setItem(cacheKey, JSON.stringify(optimizedCache));
         localStorage.setItem(cacheKey + '_time', Date.now().toString());
-      } catch(e) {
-        console.error('Cache save error:', e);
-      }
+      } catch(e) { console.error('Cache save error:', e); }
       
       if (!silent) {
         setLoadingProgress(100);
-        setLoadingMessage('Готово! Все товары загружены.');
+        setLoadingMessage('Готово!');
         setTimeout(() => { setLoadingProgress(0); setLoadingMessage(''); }, 1000);
       }
-      
-      console.log('✅ PocketBase load complete in', Date.now() - startTime, 'ms, products:', parsed.length);
-      return parsed;
     } catch(e) {
       console.error('Load error:', e);
       setIsLoading(false);
       setDbError(true);
       if (!silent) { setLoadingProgress(0); setLoadingMessage(''); }
-      return [];
     }
   }, []);
 
   const loadAllRequests = useCallback(async () => {
     try {
-      const records = await pb.collection('user_requests').getFullList({
-        sort: '-created',
-        limit: 100,
-      });
+      const records = await getAllOrders();
       setAllRequests(records || []);
     } catch(e) { console.error('Load requests error:', e); }
   }, []);
 
   useEffect(() => {
     loadProducts(isAdmin);
-    if (isAdmin) {
-      loadAllRequests();
-      loadAvailableImages();
-    }
-  }, [isAdmin, loadProducts, loadAllRequests, loadAvailableImages]);
+    if (isAdmin) loadAllRequests();
+  }, [isAdmin, loadProducts, loadAllRequests]);
 
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
     setNotification({ message, type });
@@ -253,18 +193,18 @@ export default function Home() {
   const getAvailableStock = (productId: string, variant: string) => {
     const product = products.find(p => p.id === productId);
     if (!product) return 0;
-    const v = product.variants.find(x => x.name === variant);
+    const v = product.variants.find((x: Variant) => x.name === variant);
     return v ? v.stock : 0;
   };
 
   const filteredProducts = products.filter(p => {
-    return p.name.toLowerCase().includes(search.toLowerCase()) && (selectedCategory === 'Все' || p.category === selectedCategory);
+    return (!p.is_hidden || isAdmin) && p.name.toLowerCase().includes(search.toLowerCase()) && (selectedCategory === 'Все' || p.category === selectedCategory);
   });
 
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
-      const aAvail = a.variants.reduce((s, v) => s + v.stock, 0);
-      const bAvail = b.variants.reduce((s, v) => s + v.stock, 0);
+      const aAvail = a.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
+      const bAvail = b.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
       const getPriority = (inStock: boolean, isPreorder: boolean) => inStock ? 1 : (isPreorder ? 2 : 3);
       const aP = getPriority(aAvail > 0, a.is_preorder);
       const bP = getPriority(bAvail > 0, b.is_preorder);
@@ -288,7 +228,7 @@ export default function Home() {
       }
       return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
     });
-  }, [filteredProducts, selectedCategory]);
+  }, [filteredProducts, selectedCategory, isAdmin]);
 
   const visibleProducts = sortedProducts.slice(0, displayCount);
   const hasMore = displayCount < sortedProducts.length;
@@ -326,7 +266,7 @@ export default function Home() {
     if (!selectedProduct || selectedVariants.length === 0) { showNotification('Выберите вкус', 'error'); return; }
     let newList = [...selectionList];
     for (const sv of selectedVariants) {
-      const v = selectedProduct.variants.find(x => x.name === sv.name);
+      const v = selectedProduct.variants.find((x: Variant) => x.name === sv.name);
       const price = (v?.price !== undefined && v?.price !== null && v.price > 0) ? v.price : selectedProduct.price;
       const idx = newList.findIndex(i => i.productId === selectedProduct.id && i.variant === sv.name);
       if (idx >= 0) newList[idx].quantity += sv.quantity;
@@ -341,7 +281,7 @@ export default function Home() {
   const updateListQuantity = (i: number, d: number) => {
     const item = selectionList[i];
     const p = products.find(x => x.id === item.productId);
-    const v = p?.variants.find(x => x.name === item.variant);
+    const v = p?.variants.find((x: Variant) => x.name === item.variant);
     const nq = item.quantity + d;
     if (v && nq > v.stock && !item.isPreorder) { showNotification('Максимум: ' + v.stock, 'error'); return; }
     if (nq <= 0) setSelectionList(selectionList.filter((_, x) => x !== i));
@@ -371,7 +311,7 @@ export default function Home() {
     showNotification('Переходим в Telegram...', 'success');
     
     try { 
-      await pb.collection('user_requests').create({
+      await createOrder({
         items: JSON.stringify(selectionList),
         total_price: totalPrice,
         username: 'Клиент',
@@ -389,26 +329,13 @@ export default function Home() {
 
   const openProductForm = (product?: Product) => {
     if (product) { 
-      setEditingProduct({ id: product.id, name: product.name, price: product.price, category: product.category, image: product.image, is_hidden: product.is_hidden, is_preorder: product.is_preorder }); 
+      setEditingProduct({ id: product.id, name: product.name, price: product.price, category: product.category, is_hidden: product.is_hidden, is_preorder: product.is_preorder }); 
       setFormVariants([...product.variants].sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }))); 
     } else { 
-      setEditingProduct({ name: '', price: 0, category: 'Другое', image: null, is_hidden: false, is_preorder: false }); 
+      setEditingProduct({ name: '', price: 0, category: 'Другое', is_hidden: false, is_preorder: false }); 
       setFormVariants([]); 
     }
-    setSelectedImageFile(null);
     setShowProductForm(true);
-    loadAvailableImages();
-  };
-
-  const selectImageFromGallery = (imageName: string) => {
-    setEditingProduct({ ...editingProduct, image: imageName });
-    setShowImageGallery(false);
-    showNotification('Картинка выбрана', 'success');
-  };
-
-  const removeImage = () => {
-    setEditingProduct({ ...editingProduct, image: null });
-    showNotification('Картинка удалена', 'success');
   };
 
   const saveProduct = async () => {
@@ -418,32 +345,26 @@ export default function Home() {
     }
     
     try {
-      const formData = new FormData();
-      formData.append('name', editingProduct.name);
-      formData.append('price', String(Number(editingProduct.price)));
-      formData.append('category', editingProduct.category || 'Другое');
-      formData.append('flavors', JSON.stringify(formVariants));
-      formData.append('stock_quantity', String(formVariants.reduce((s, f) => s + (f.stock || 0), 0)));
-      formData.append('is_hidden', String(Boolean(editingProduct.is_hidden)));
-      formData.append('is_preorder', String(Boolean(editingProduct.is_preorder)));
-      
-      // Если выбрана картинка из галереи, сохраняем только имя файла
-      if (editingProduct.image) {
-        formData.append('image', editingProduct.image);
-      }
+      const data = {
+        name: editingProduct.name,
+        price: Number(editingProduct.price),
+        category: editingProduct.category || 'Другое',
+        flavors: formVariants,
+        is_hidden: Boolean(editingProduct.is_hidden),
+        is_preorder: Boolean(editingProduct.is_preorder),
+      };
 
       if (editingProduct.id) {
-        await pb.collection('products').update(editingProduct.id, formData);
+        await updateProduct(editingProduct.id, data);
         showNotification('Товар обновлён', 'success');
       } else {
-        await pb.collection('products').create(formData);
+        await createProduct(data);
         showNotification('Товар добавлен', 'success');
       }
       
       setShowProductForm(false); 
       setEditingProduct(null); 
       setFormVariants([]); 
-      setSelectedImageFile(null);
       await loadProducts(true);
     } catch(e) { 
       showNotification('Ошибка: ' + (e as Error).message, 'error'); 
@@ -452,14 +373,14 @@ export default function Home() {
 
   const toggleHidden = async (p: Product) => { 
     try {
-      await pb.collection('products').update(p.id, { is_hidden: !p.is_hidden });
+      await updateProduct(p.id, { is_hidden: !p.is_hidden });
       await loadProducts(true); 
     } catch(e) { showNotification('Ошибка', 'error'); }
   };
   
   const togglePreorder = async (p: Product) => { 
     try {
-      await pb.collection('products').update(p.id, { is_preorder: !p.is_preorder });
+      await updateProduct(p.id, { is_preorder: !p.is_preorder });
       await loadProducts(true); 
     } catch(e) { showNotification('Ошибка', 'error'); }
   };
@@ -467,7 +388,7 @@ export default function Home() {
   const deleteProduct = async (id: string) => {
     if (!confirm('Удалить товар?')) return;
     try {
-      await pb.collection('products').delete(id);
+      await deleteProductRecord(id);
       await loadProducts(true);
       showNotification('Товар удалён');
     } catch(e) { showNotification('Ошибка', 'error'); }
@@ -476,7 +397,7 @@ export default function Home() {
   const deleteRequest = async (id: string) => {
     if (!confirm('Заказ обработан? Удалить из списка?')) return;
     try {
-      await pb.collection('user_requests').delete(id);
+      await deleteOrderRecord(id);
       await loadAllRequests();
       showNotification('Заказ удален', 'success');
     } catch(e) { showNotification('Ошибка', 'error'); }
@@ -484,7 +405,7 @@ export default function Home() {
 
   const sortedVariants = useMemo(() => {
     if (!selectedProduct) return [];
-    return [...selectedProduct.variants].sort((a, b) => {
+    return [...selectedProduct.variants].sort((a: Variant, b: Variant) => {
       const aA = getAvailableStock(selectedProduct.id, a.name) > 0 || selectedProduct.is_preorder;
       const bA = getAvailableStock(selectedProduct.id, b.name) > 0 || selectedProduct.is_preorder;
       if (aA && !bA) return -1; if (!aA && bA) return 1;
@@ -532,51 +453,26 @@ export default function Home() {
           .glass-panel { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.5rem; }
           .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         `}</style>
-        
-        <div className="lava-lamp">
-          <div className="lava-blob lava-blob-1"></div>
-          <div className="lava-blob lava-blob-2"></div>
-        </div>
-
+        <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div></div>
         <div className="relative z-10 w-full max-w-md">
           <div className="glass-panel p-8 text-center relative">
             <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse shadow-lg shadow-orange-500/40">
               <AlertCircle className="w-10 h-10 text-white" />
             </div>
-
             <h1 className="text-3xl font-bold gradient-text mb-6">Технические работы</h1>
-
             <div className="space-y-4 text-sm text-gray-300 leading-relaxed mb-8">
               <p className="text-white font-semibold text-base">Сервер временно недоступен</p>
               <p>Мы уже работаем над восстановлением. Пожалуйста, попробуйте позже.</p>
-              <p className="text-orange-400 font-semibold">Приносим извинения за неудобства 🙏</p>
             </div>
-
             <div className="space-y-4">
-              <a 
-                href={PRICE_LINK}
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105"
-              >
-                📊 Открыть PRICE
-              </a>
-              
-              <a 
-                href="https://t.me/LiqVape_2" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block w-full py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"
-              >
-                <Send className="w-4 h-4" /> Написать менеджеру
-              </a>
+              <a href={PRICE_LINK} target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transition-all hover:scale-105">📊 Открыть PRICE</a>
+              <a href="https://t.me/LiqVape_2" target="_blank" rel="noopener noreferrer" className="block w-full py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-medium hover:bg-white/20 transition-all flex items-center justify-center gap-2"><Send className="w-4 h-4" /> Написать менеджеру</a>
             </div>
           </div>
         </div>
       </div>
     );
   }
-  // =======================================
 
   if (showAdminPanel) {
     return (
@@ -598,7 +494,7 @@ export default function Home() {
               <div className="space-y-2">
                 {filteredAdminProducts.map(p => (
                   <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
-                    <div className="flex items-start justify-between mb-2"><div className="flex-1"><h3 className="font-bold text-sm">{p.name}</h3><p className="text-[11px] text-gray-400">{p.price} BYN • {p.category} • {p.variants.reduce((s, v) => s + v.stock, 0)} шт.</p></div></div>
+                    <div className="flex items-start justify-between mb-2"><div className="flex-1"><h3 className="font-bold text-sm">{p.name}</h3><p className="text-[11px] text-gray-400">{p.price} BYN • {p.category} • {p.variants.reduce((s: number, v: Variant) => s + v.stock, 0)} шт.</p></div></div>
                     <div className="flex gap-1 flex-wrap">
                       <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px] flex items-center justify-center gap-1 hover:bg-white/10 transition-all"><Edit className="w-3 h-3" /> Изменить</button>
                       <button onClick={() => toggleHidden(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{p.is_hidden ? 'Показать' : 'Скрыть'}</button>
@@ -615,10 +511,10 @@ export default function Home() {
               {allRequests.map((r, index) => (
                 <div key={r.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
                   <div className="flex items-start justify-between mb-2">
-                    <div><h3 className="font-bold text-sm">Заказ #{allRequests.length - index}</h3><p className="text-[10px] text-gray-400">{new Date(r.created).toLocaleString('ru-RU')}</p></div>
+                    <div><h3 className="font-bold text-sm">Заказ #{allRequests.length - index}</h3><p className="text-[10px] text-gray-400">{r.created_at ? new Date(r.created_at).toLocaleString('ru-RU') : 'Неизвестно'}</p></div>
                   </div>
                   <div className="border-t border-white/10 pt-2 mb-3 space-y-1.5">
-                    {(r.items || []).map((item: any, i: number) => (
+                    {(r.items ? (typeof r.items === 'string' ? JSON.parse(r.items) : r.items) : []).map((item: any, i: number) => (
                       <div key={i} className="flex items-center justify-between py-1 text-[11px] rounded-lg px-2 bg-black/20">
                         <div className="flex-1"><span className="text-gray-300 block">{item.productName}</span><span className="text-[10px] text-gray-500">{item.variant}</span></div>
                         <span className="text-white font-bold ml-2">× {item.quantity}</span>
@@ -636,32 +532,12 @@ export default function Home() {
           {showProductForm && editingProduct && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/90 backdrop-blur-xl">
               <div className="bg-black border border-white/10 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5">
-                <div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold text-orange-400">{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2><button onClick={() => { setShowProductForm(false); setSelectedImageFile(null); }} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center"><X className="w-5 h-5" /></button></div>
+                <div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold text-orange-400">{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2><button onClick={() => { setShowProductForm(false); }} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center"><X className="w-5 h-5" /></button></div>
                 <div className="mb-4"><label className="text-xs text-gray-400 mb-1.5 block">Название товара</label><input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div><label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label><input type="number" value={editingProduct.price || ''} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
                   <div><label className="text-xs text-gray-400 mb-1.5 block">Категория</label><select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none">{CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}</select></div>
                 </div>
-                
-                {/* ГАЛЕРЕЯ КАРТИНОК */}
-                <div className="mb-4">
-                  <label className="text-xs text-gray-400 mb-1.5 block">Фото товара</label>
-                  <button 
-                    onClick={() => setShowImageGallery(true)}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold flex items-center justify-center gap-2 hover:scale-105 transition-transform"
-                  >
-                    <ImageIcon className="w-5 h-5" /> Выбрать из галереи
-                  </button>
-                  
-                  {editingProduct.image && (
-                    <div className="mt-3 relative">
-                      <img src={`/images/products/${editingProduct.image}`} className="w-full h-40 object-contain rounded-xl bg-black/30" />
-                      <button onClick={removeImage} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"><X className="w-4 h-4" /></button>
-                      <p className="text-xs text-gray-400 mt-2 text-center">{editingProduct.image}</p>
-                    </div>
-                  )}
-                </div>
-                
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2"><label className="text-xs text-gray-400">Варианты</label><span className="text-xs px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-medium">{formVariants.length} шт.</span></div>
                   <div className="space-y-2 max-h-56 overflow-y-auto">
@@ -677,53 +553,7 @@ export default function Home() {
                   <button onClick={() => { const newVariant = { name: '', stock: 0 }; setFormVariants([...formVariants, newVariant]); }} className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-orange-500/30 text-orange-400 text-xs font-medium flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Добавить вариант</button>
                 </div>
                 <div className="mb-5"><button onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})} className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{editingProduct.is_preorder ? 'Предзаказ включён' : 'Добавить в предзаказ'}</button></div>
-                <div className="flex gap-3"><button onClick={() => { setShowProductForm(false); setSelectedImageFile(null); }} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium">Отмена</button><button onClick={saveProduct} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold">Сохранить</button></div>
-              </div>
-            </div>
-          )}
-          
-          {/* МОДАЛЬНОЕ ОКНО ГАЛЕРЕИ */}
-          {showImageGallery && (
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl">
-              <div className="bg-black border border-white/10 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-5">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-xl font-bold text-orange-400">Выберите картинку</h2>
-                  <button onClick={() => setShowImageGallery(false)} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center"><X className="w-5 h-5" /></button>
-                </div>
-                
-                {availableImages.length === 0 ? (
-                  <div className="text-center py-12">
-                    <ImageIcon className="w-16 h-16 mx-auto mb-4 text-gray-600" />
-                    <p className="text-gray-400 text-sm">Картинки не найдены</p>
-                    <p className="text-gray-500 text-xs mt-2">Закиньте PNG файлы в папку: public/images/products/</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-3 gap-3">
-                    {availableImages.map((img) => (
-                      <button
-                        key={img.name}
-                        onClick={() => selectImageFromGallery(img.name)}
-                        className={`relative group border-2 rounded-xl overflow-hidden transition-all ${
-                          editingProduct?.image === img.name 
-                            ? 'border-orange-500 shadow-lg shadow-orange-500/30' 
-                            : 'border-white/10 hover:border-orange-500/50'
-                        }`}
-                      >
-                        <div className="aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center">
-                          <img src={img.url} alt={img.name} className="w-full h-full object-contain p-2" />
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm py-1.5 px-2">
-                          <p className="text-[10px] text-gray-300 truncate">{img.name}</p>
-                        </div>
-                        {editingProduct?.image === img.name && (
-                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-white" />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="flex gap-3"><button onClick={() => { setShowProductForm(false); }} className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium">Отмена</button><button onClick={saveProduct} className="flex-1 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold">Сохранить</button></div>
               </div>
             </div>
           )}
@@ -753,7 +583,7 @@ export default function Home() {
 
       {notification && (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"><div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}><div className="flex flex-col items-center text-center"><div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>{notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}</div><p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p></div></div></div>)}
 
-      {showFirstTimeTutorial && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 relative z-10">{tutorialStep === 0 && (<div className="text-center"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-3">Добро пожаловать!</h2><p className="text-gray-400 text-xs mb-4">Быстрый гайд по заказу</p><button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать</button></div>)}{tutorialStep === 1 && (<div className="text-center"><div className="text-4xl mb-4">🛍️</div><h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2><p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p><button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 2 && (<div className="text-center"><div className="text-4xl mb-4"></div><h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2><p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p><button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 3 && (<div className="text-center"><div className="text-4xl mb-4">📤</div><h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй</h2><p className="text-gray-400 text-xs mb-4">Нажми "Отправить" для перехода в Telegram</p><button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button></div>)}</div></div>)}
+      {showFirstTimeTutorial && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 relative z-10">{tutorialStep === 0 && (<div className="text-center"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-3">Добро пожаловать!</h2><p className="text-gray-400 text-xs mb-4">Быстрый гайд по заказу</p><button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать</button></div>)}{tutorialStep === 1 && (<div className="text-center"><div className="text-4xl mb-4">🛍️</div><h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2><p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p><button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 2 && (<div className="text-center"><div className="text-4xl mb-4">📋</div><h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2><p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p><button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 3 && (<div className="text-center"><div className="text-4xl mb-4">📤</div><h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй</h2><p className="text-gray-400 text-xs mb-4">Нажми "Отправить" для перехода в Telegram</p><button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button></div>)}</div></div>)}
 
       {showSubscribePrompt && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><button onClick={() => setShowSubscribePrompt(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4 text-gray-400" /></button><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Подпишись на канал</h2><button onClick={() => { if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.openTelegramLink) (window as any).Telegram.WebApp.openTelegramLink(CHANNEL_LINK); else window.open(CHANNEL_LINK, '_blank'); setTimeout(() => setShowSubscribePrompt(false), 1000); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white mb-2">Подписаться</button><button onClick={() => setShowSubscribePrompt(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">Продолжить</button></div></div>)}
 
@@ -761,9 +591,9 @@ export default function Home() {
 
       {showInstructions && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm max-h-[80vh] overflow-y-auto p-5 relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowInstructions(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">Инструкция</h2><div className="w-10"></div></div><div className="space-y-3 text-xs text-gray-300"><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">1. Выбор товара</h3><p>Нажми на карточку товара</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">2. Выбор вкуса</h3><p>Отметь галочкой нужные вкусы</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">3. Просмотр списка</h3><p>Кнопка корзины внизу справа</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">4. Отправка</h3><p>Нажми "Отправить"</p></div></div></div></div>)}
 
-      {showAbout && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowAbout(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">О приложении</h2><div className="w-10"></div></div><div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-10 h-10 text-white" /></div><h3 className="text-xl font-bold mb-1">Liq<span className="text-orange-500">Vape</span></h3><p className="text-gray-400 text-xs mb-4">Premium vape shop</p><div className="glass-card p-3 mb-4 text-left space-y-1 text-xs"><p className="text-gray-400">Версия: <span className="text-white">4.2.0 (Gallery)</span></p><p className="text-gray-400">Канал: <span className="text-orange-400">@{CHANNEL_USERNAME}</span></p><p className="text-gray-400">Менеджер: <span className="text-orange-400">@{MANAGER_USERNAME}</span></p></div><p className="text-[10px] text-gray-500">© 2026 LiqVape</p></div></div>)}
+      {showAbout && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowAbout(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center hover:scale-110 transition-all"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">О приложении</h2><div className="w-10"></div></div><div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-10 h-10 text-white" /></div><h3 className="text-xl font-bold mb-1">Liq<span className="text-orange-500">Vape</span></h3><p className="text-gray-400 text-xs mb-4">Premium vape shop</p><div className="glass-card p-3 mb-4 text-left space-y-1 text-xs"><p className="text-gray-400">Версия: <span className="text-white">5.0.0 (Firebase)</span></p><p className="text-gray-400">Канал: <span className="text-orange-400">@{CHANNEL_USERNAME}</span></p><p className="text-gray-400">Менеджер: <span className="text-orange-400">@{MANAGER_USERNAME}</span></p></div><p className="text-[10px] text-gray-500">© 2026 LiqVape</p></div></div>)}
 
-      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><HelpCircle className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Инструкция</p><p className="text-[11px] text-gray-400">Как пользоваться</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><Info className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">О приложении</p><p className="text-[11px] text-gray-400">LiqVape v4.2</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button></div></div></div>)}
+      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><HelpCircle className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Инструкция</p><p className="text-[11px] text-gray-400">Как пользоваться</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><Info className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">О приложении</p><p className="text-[11px] text-gray-400">LiqVape v5.0</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 hover:border-orange-500/40 transition-all group cursor-pointer"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center group-hover:scale-110 transition-all"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div><svg className="w-4 h-4 text-gray-500 group-hover:text-orange-400 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button></div></div></div>)}
 
       {showAdminLogin && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-4"><h2 className="text-lg font-bold gradient-text">Вход для админа</h2><button onClick={() => setShowAdminLogin(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div><input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none focus:border-orange-500/50 transition-all" /><button onClick={handleAdminLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold hover:from-orange-600 hover:to-pink-600 transition-all">Войти</button></div></div>)}
 
@@ -808,24 +638,21 @@ export default function Home() {
             <>
               <div className="grid grid-cols-2 gap-3 pb-4 auto-rows-fr">
                 {visibleProducts.map((p) => {
-                  const totalStock = p.variants.reduce((s, v) => s + v.stock, 0);
+                  const totalStock = p.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
                   const isAvailable = totalStock > 0 || p.is_preorder;
                   const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                   return (
                     <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all flex flex-col h-full ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
                       <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
-                        {p.image ? (
-                          <img src={`/images/products/${p.image}`} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" loading="eager" />
-                        ) : (
-                          <Package className="w-12 h-12 text-neutral-600" />
-                        )}
+                        <Package className="w-12 h-12 text-neutral-600" />
                         {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
                       </div>
                       <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
                       <div className="flex items-center justify-between mb-2 flex-shrink-0">
                         <span className="text-base font-bold gradient-text">
                           {(() => {
-                            const prices = p.variants.map(v => (v.price !== undefined && v.price !== null && v.price > 0) ? v.price : p.price);
+                            const prices = p.variants.map((v: Variant) => (v.price !== undefined && v.price !== null && v.price > 0) ? v.price : p.price).filter((pr: number) => typeof pr === 'number' && !isNaN(pr) && pr > 0);
+                            if (prices.length === 0) return `${p.price || 0} BYN`;
                             const minP = Math.min(...prices); const maxP = Math.max(...prices);
                             return minP === maxP ? `${minP} BYN` : `${minP}-${maxP} BYN`;
                           })()}
@@ -851,7 +678,26 @@ export default function Home() {
         </div>
       </div>
 
-      {selectedProduct && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }}></div><div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10"><button onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button><div className="p-4">{selectedProduct.image && (<div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-4 flex items-center justify-center border border-white/10"><img src={`/images/products/${selectedProduct.image}`} alt={selectedProduct.name} className="w-full h-full object-contain p-6 rounded-2xl" loading="eager" /></div>)}<h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>{selectedProduct.is_preorder && (<div className="text-center mb-2"><span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">ПРЕДЗАКАЗ</span></div>)}<p className="text-sm text-gray-400 mb-4 text-center">Выберите вкусы и количество</p>{sortedVariants.length > 0 && (<div className="mb-4"><div className="space-y-1.5">{visibleVariants.map((v) => { const avail = getAvailableStock(selectedProduct.id, v.name); const isSelected = selectedVariants.some(sv => sv.name === v.name); const selectedQty = selectedVariants.find(sv => sv.name === v.name)?.quantity || 1; const isAvailable = avail > 0 || selectedProduct.is_preorder; return (<div key={v.name} className={`rounded-lg border transition-all ${isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5'} ${!isAvailable ? 'opacity-50 grayscale-[0.5]' : ''}`}><div className="flex items-center justify-between p-2.5"><div className="flex items-center gap-2 flex-1"><input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" disabled={!isAvailable} /><div><span className={`text-xs font-medium ${!isAvailable ? 'text-gray-500 line-through' : ''}`}>{v.name}</span><span className="text-[10px] text-gray-400 ml-2">{(v.price !== undefined && v.price !== null && v.price > 0) ? v.price : selectedProduct.price} BYN</span></div></div><span className={`text-[10px] font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>{isAvailable ? avail + ' шт.' : 'Нет в наличии'}</span></div>{isSelected && isAvailable && (<div className="flex items-center justify-between px-2.5 pb-2.5 border-t border-white/5 pt-2"><span className="text-[10px] text-gray-400">Количество:</span><div className="flex items-center gap-2"><button onClick={() => updateVariantQuantity(v.name, -1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><Minus className="w-3 h-3" /></button><span className="text-xs font-bold w-6 text-center">{selectedQty}</span><button onClick={() => updateVariantQuantity(v.name, 1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><Plus className="w-3 h-3" /></button></div></div>)}</div>); })}</div>{hiddenVariantsCount > 0 && !showAllVariants && (<button onClick={() => setShowAllVariants(true)} className="w-full mt-2 py-2 rounded-lg border border-orange-500/30 text-orange-400 text-xs">↓ Ещё {hiddenVariantsCount}</button>)}{showAllVariants && hiddenVariantsCount > 0 && (<button onClick={() => setShowAllVariants(false)} className="w-full mt-2 py-2 rounded-lg border border-white/10 text-gray-400 text-xs">↑ Свернуть</button>)}</div>)}{selectedVariants.length > 0 ? (<button onClick={addSelectedToList} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find(x => x.name === sv.name); const price = (v?.price !== undefined && v?.price !== null && v.price > 0) ? v.price : selectedProduct.price; return s + price * sv.quantity; }, 0)} BYN</button>) : (<div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-gray-400 text-sm">Выберите хотя бы один вкус</div>)}</div></div></div>)}
+      {selectedProduct && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }}></div><div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10"><button onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button><div className="p-4"><h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>{selectedProduct.is_preorder && (<div className="text-center mb-2"><span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">ПРЕДЗАКАЗ</span></div>)}<p className="text-sm text-gray-400 mb-4 text-center">Выберите вкусы и количество</p>
+      {sortedVariants.length === 0 && (
+          <div className="text-center py-6">
+            <p className="text-gray-400 text-sm mb-4">Вкусы не указаны</p>
+            <button 
+              onClick={() => {
+                const price = selectedProduct.price || 0;
+                const idx = selectionList.findIndex(i => i.productId === selectedProduct.id && i.variant === 'Стандарт');
+                if (idx >= 0) { const nl = [...selectionList]; nl[idx].quantity += 1; setSelectionList(nl); }
+                else setSelectionList([...selectionList, { productId: selectedProduct.id, productName: selectedProduct.name, variant: 'Стандарт', price, quantity: 1, isPreorder: selectedProduct.is_preorder }]);
+                showNotification('Добавлено: ' + selectedProduct.name);
+                setSelectedProduct(null);
+              }}
+              className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white"
+            >
+              В список • {selectedProduct.price || 0} BYN
+            </button>
+          </div>
+        )}
+        {sortedVariants.length > 0 && (<div className="mb-4"><div className="space-y-1.5">{visibleVariants.map((v: Variant) => { const avail = getAvailableStock(selectedProduct.id, v.name); const isSelected = selectedVariants.some(sv => sv.name === v.name); const selectedQty = selectedVariants.find(sv => sv.name === v.name)?.quantity || 1; const isAvailable = avail > 0 || selectedProduct.is_preorder; return (<div key={v.name} className={`rounded-lg border transition-all ${isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/5 bg-white/5'} ${!isAvailable ? 'opacity-50 grayscale-[0.5]' : ''}`}><div className="flex items-center justify-between p-2.5"><div className="flex items-center gap-2 flex-1"><input type="checkbox" checked={isSelected} onChange={() => isAvailable && toggleVariantSelection(v.name)} className="w-4 h-4 rounded accent-orange-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50" disabled={!isAvailable} /><div><span className={`text-xs font-medium ${!isAvailable ? 'text-gray-500 line-through' : ''}`}>{v.name}</span><span className="text-[10px] text-gray-400 ml-2">{(v.price !== undefined && v.price !== null && v.price > 0) ? v.price : selectedProduct.price} BYN</span></div></div><span className={`text-[10px] font-medium ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>{isAvailable ? avail + ' шт.' : 'Нет в наличии'}</span></div>{isSelected && isAvailable && (<div className="flex items-center justify-between px-2.5 pb-2.5 border-t border-white/5 pt-2"><span className="text-[10px] text-gray-400">Количество:</span><div className="flex items-center gap-2"><button onClick={() => updateVariantQuantity(v.name, -1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><Minus className="w-3 h-3" /></button><span className="text-xs font-bold w-6 text-center">{selectedQty}</span><button onClick={() => updateVariantQuantity(v.name, 1)} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center"><Plus className="w-3 h-3" /></button></div></div>)}</div>); })}</div>{hiddenVariantsCount > 0 && !showAllVariants && (<button onClick={() => setShowAllVariants(true)} className="w-full mt-2 py-2 rounded-lg border border-orange-500/30 text-orange-400 text-xs">↓ Ещё {hiddenVariantsCount}</button>)}{showAllVariants && hiddenVariantsCount > 0 && (<button onClick={() => setShowAllVariants(false)} className="w-full mt-2 py-2 rounded-lg border border-white/10 text-gray-400 text-xs">↑ Свернуть</button>)}</div>)}{selectedVariants.length > 0 ? (<button onClick={addSelectedToList} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">В список • {selectedVariants.reduce((s, sv) => { const v = selectedProduct.variants.find((x: Variant) => x.name === sv.name); const price = (v?.price !== undefined && v?.price !== null && v.price > 0) ? v.price : selectedProduct.price; return s + price * sv.quantity; }, 0)} BYN</button>) : (<div className="w-full py-3 rounded-xl font-bold bg-white/5 text-center text-gray-400 text-sm">Выберите хотя бы один вкус</div>)}</div></div></div>)}
 
       {showList && (<div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-3"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowList(false)}></div><div className="relative glass-panel w-full max-w-md rounded-t-3xl sm:rounded-2xl max-h-[90vh] overflow-y-auto relative z-10"><div className="sticky top-0 z-10 bg-black/80 backdrop-blur-xl border-b border-white/5 p-3 flex items-center justify-between"><h2 className="text-lg font-bold">Мой список</h2><div className="flex items-center gap-1.5">{selectionList.length > 0 && <button onClick={clearList} className="text-[10px] text-red-400">Очистить</button>}<button onClick={() => setShowList(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center hover:scale-110 transition-all shadow-lg shadow-orange-500/30"><Cloud className="w-5 h-5 text-white" /></button></div></div><div className="p-3">{selectionList.length === 0 ? (<div className="text-center py-8"><ShoppingBag className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Список пуст</p></div>) : (<div>{groupedSelectionList.map(([productName, items]) => (<div key={productName} className="mb-3"><div className="text-xs font-bold text-orange-400 mb-1.5 px-1">{productName}</div><div className="space-y-1.5">{items.map((item) => { const idx = selectionList.indexOf(item); return (<div key={idx} className={`glass-card p-2.5 ${item.isPreorder ? 'border-orange-500/30' : ''}`}><div className="flex items-start justify-between mb-1.5"><div className="flex-1"><p className="text-xs font-medium">{item.variant}{item.isPreorder && <span className="ml-1 text-[9px] text-orange-400">[ПРЕДЗАКАЗ]</span>}</p><p className="text-[10px] text-gray-400">{item.price} BYN</p></div><button onClick={() => removeFromList(idx)} className="w-6 h-6 rounded-md bg-red-500/10 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button></div><div className="flex items-center justify-between"><div className="flex items-center gap-2"><button onClick={() => updateListQuantity(idx, -1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Minus className="w-2.5 h-2.5" /></button><span className="text-xs font-bold w-5 text-center">{item.quantity}</span><button onClick={() => updateListQuantity(idx, 1)} className="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center"><Plus className="w-2.5 h-2.5" /></button></div><span className="text-sm font-bold gradient-text">{item.price * item.quantity} BYN</span></div></div>); })}</div></div>))}<div className="border-t border-white/10 pt-3 mt-3"><div className="flex items-center justify-between mb-3"><span className="text-gray-400 text-sm">Итого:</span><span className="text-xl font-bold gradient-text">{totalListPrice.toFixed(2)} BYN</span></div><button onClick={() => setShowSendConfirm(true)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white flex items-center justify-center gap-1.5"><Send className="w-4 h-4" /> Отправить менеджеру</button></div></div>)}</div></div></div>)}
 
