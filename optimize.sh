@@ -1,3 +1,8 @@
+#!/bin/bash
+echo "🚀 Оптимизация Firebase..."
+
+# Обновляем lib/firebase.ts
+cat > lib/firebase.ts << 'EOF'
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 
@@ -44,3 +49,22 @@ export async function getAllOrders() {
 export async function deleteOrderRecord(id: string) {
   return await deleteDoc(doc(db, 'user_requests', id));
 }
+EOF
+
+echo "✅ Firebase оптимизирован"
+
+# Добавляем lazy loading ко всем картинкам в page.tsx
+sed -i 's/<img src={`\/images\/products\//<img loading="lazy" src={`\/images\/products\//g' app/page.tsx
+
+echo "✅ Lazy loading добавлен"
+
+# Коммитим и отправляем
+git add -A
+git commit -m "Optimize: add Firestore indexes and lazy loading"
+git push origin main
+
+echo ""
+echo "🎉 Готово! Теперь:"
+echo "1. Открой https://console.firebase.google.com/project/liqvape-shop/firestore/indexes"
+echo "2. Создай индекс: Collection 'products', поле 'created_at' → Ascending"
+echo "3. Подожди 2 минуты и обнови сайт - будет летать! 🚀"

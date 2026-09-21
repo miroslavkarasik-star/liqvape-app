@@ -585,7 +585,7 @@ export default function Home() {
                   
                   {editingProduct.image && (
                     <div className="mt-3 relative">
-                      <img src={`/images/products/${editingProduct.image}`} alt={editingProduct.name || 'Товар'} className="w-full h-40 object-contain rounded-xl bg-black/30" />
+                      <img loading="lazy" src={`/images/products/${editingProduct.image}`} alt={editingProduct.name || 'Товар'} className="w-full h-40 object-contain rounded-xl bg-black/30" />
                       <button onClick={removeImage} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-600 flex items-center justify-center"><X className="w-4 h-4" /></button>
                       <p className="text-xs text-gray-400 mt-2 text-center">{editingProduct.image}</p>
                     </div>
@@ -745,7 +745,7 @@ export default function Home() {
                     <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all flex flex-col h-full ${isAvailable ? 'cursor-pointer hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/20' : 'opacity-40 cursor-not-allowed'}`}>
                       <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
                         {p.image ? (
-                          <img src={`/images/products/${p.image}`} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />
+                          <img loading="lazy" src={`/images/products/${p.image}`} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" />
                         ) : (
                           <Package className="w-12 h-12 text-neutral-600" />
                         )}
@@ -782,7 +782,7 @@ export default function Home() {
         </div>
       </div>
 
-      {selectedProduct && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }}></div><div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10"><button onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button><div className="p-4">{selectedProduct.image && (<div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-4 flex items-center justify-center border border-white/10"><img src={`/images/products/${selectedProduct.image}`} alt={selectedProduct.name} className="w-full h-full object-contain p-6 rounded-2xl" /></div>)}<h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>{selectedProduct.is_preorder && (<div className="text-center mb-2"><span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">ПРЕДЗАКАЗ</span></div>)}<p className="text-sm text-gray-400 mb-4 text-center">Выберите вкусы и количество</p>
+      {selectedProduct && (<div className="fixed inset-0 z-50 flex items-center justify-center p-4"><div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }}></div><div className="relative glass-panel w-full max-w-sm max-h-[90vh] overflow-y-auto relative z-10"><button onClick={() => { setSelectedProduct(null); setSelectedVariants([]); }} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center z-10"><X className="w-4 h-4" /></button><div className="p-4">{selectedProduct.image && (<div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-4 flex items-center justify-center border border-white/10"><img loading="lazy" src={`/images/products/${selectedProduct.image}`} alt={selectedProduct.name} className="w-full h-full object-contain p-6 rounded-2xl" /></div>)}<h2 className="text-xl font-bold mb-1 text-center">{selectedProduct.name}</h2>{selectedProduct.is_preorder && (<div className="text-center mb-2"><span className="text-[10px] px-2 py-1 rounded-full bg-orange-500/20 text-orange-400">ПРЕДЗАКАЗ</span></div>)}<p className="text-sm text-gray-400 mb-4 text-center">Выберите вкусы и количество</p>
       {sortedVariants.length === 0 && (
           <div className="text-center py-6">
             <p className="text-gray-400 text-sm mb-4">Вкусы не указаны</p>
