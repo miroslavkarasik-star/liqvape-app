@@ -44,6 +44,7 @@ export default function Home() {
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState(false);
+  const [showRain, setShowRain] = useState(() => localStorage.getItem("liqvape_show_rain") !== "false");
   
   // Реальный прогресс загрузки
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -76,6 +77,12 @@ export default function Home() {
     if (saved) { try { setSelectionList(JSON.parse(saved)); } catch(e) {} }
   }, []);
   useEffect(() => { localStorage.setItem('liqvape_selection_list', JSON.stringify(selectionList)); }, [selectionList]);
+
+  const toggleRain = () => {
+    const newState = !showRain;
+    setShowRain(newState);
+    localStorage.setItem("liqvape_show_rain", String(newState));
+  };
 
   const loadAvailableImages = useCallback(async () => {
     try {
@@ -341,8 +348,8 @@ export default function Home() {
   }, [products, adminSearch, adminCategory]);
 
   // === ЭКРАН ЗАГРУЗКИ С РЕАЛЬНЫМ ПРОГРЕССОМ И КАПЛЯМИ ДОЖДЯ ===
-  if (isLoading) {
     return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
         <style jsx global>{`
           @keyframes rain {
@@ -357,28 +364,16 @@ export default function Home() {
             background: linear-gradient(to bottom, transparent, rgba(100, 150, 255, 0.3));
             animation: rain linear infinite;
           }
+        @keyframes rain {
+          0% { transform: translateY(-100vh); }
+          100% { transform: translateY(100vh); }
+        }
           @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(0, -20px) scale(1.05); } }
           .lava-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: float 6s ease-in-out infinite; }
           .blob-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 94, 0, 0.5), transparent); top: -100px; left: -100px; }
           .blob-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 20, 147, 0.5), transparent); bottom: -100px; right: -100px; animation-delay: -3s; }
         `}</style>
         
-        {/* Капли дождя */}
-        {[...Array(30)].map((_, i) => (
-          <div
-            key={i}
-            className="rain-drop"
-            style={{
-              left: `${Math.random() * 100}%`,
-              height: `${Math.random() * 20 + 10}px`,
-              animationDuration: `${Math.random() * 2 + 1}s`,
-              animationDelay: `${Math.random() * 2}s`
-            }}
-          />
-        ))}
-        
-        <div className="lava-blob blob-1"></div>
-        <div className="lava-blob blob-2"></div>
         
         <div className="relative z-10 flex flex-col items-center text-center w-full max-w-md">
           <div className="relative w-24 h-24 mb-6">
@@ -576,24 +571,13 @@ export default function Home() {
         .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.25; animation: float 25s infinite ease-in-out; }
         .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.4), transparent); top: -150px; left: -150px; }
         .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.4), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
+        @keyframes rain {
+          0% { transform: translateY(-100vh); }
+          100% { transform: translateY(100vh); }
+        }
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
       `}</style>
       
-      {/* Капли дождя на фоне */}
-      {[...Array(20)].map((_, i) => (
-        <div
-          key={i}
-          className="rain-drop"
-          style={{
-            left: `${Math.random() * 100}%`,
-            height: `${Math.random() * 15 + 5}px`,
-            animationDuration: `${Math.random() * 3 + 2}s`,
-            animationDelay: `${Math.random() * 3}s`
-          }}
-        />
-      ))}
-      
-      <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div></div>
 
       {notification && (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"><div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}><div className="flex flex-col items-center text-center"><div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>{notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}</div><p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p></div></div></div>)}
 
@@ -610,6 +594,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40"><Cloud className="w-5 h-5 text-white" strokeWidth={2.5} /></div>
             <div><h1 className="text-2xl font-bold"><span className="text-white">Liq</span><span className="gradient-text">Vape</span></h1><p className="text-[10px] text-gray-500">premium shop</p></div>
+            {showRain && <button onClick={toggleRain} className="w-9 h-9 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mr-1" title="Выключить дождь"><span className="text-blue-400 text-lg">💧</span></button>}
             <div className="ml-auto"><button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center"><Settings className="w-4 h-4 text-orange-400" /></button></div>
           </div>
         </div>
