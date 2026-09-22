@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, ImageIcon } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, LogIn, ImageIcon } from 'lucide-react';
 import { db, getAllProducts, createProduct, updateProduct, deleteProductRecord, createOrder, getAllOrders, deleteOrderRecord } from '@/lib/firebase';
 
 interface ImageFile { name: string; url: string; }
@@ -44,21 +44,27 @@ export default function Home() {
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState(false);
-  const [showRain, setShowRain] = useState(() => localStorage.getItem("liqvape_show_rain") !== "false");
   
   // Реальный прогресс загрузки
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Подключение к серверу...');
-  const [totalProducts, setTotalProducts] = useState(0);
-  const [loadedProducts, setLoadedProducts] = useState(0);
+  
+  // Состояние дождя (читаем из localStorage при старте)
+  const [showRain, setShowRain] = useState(true);
   
   const [availableImages, setAvailableImages] = useState<ImageFile[]>([]);
   const [showImageGallery, setShowImageGallery] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
-      (window as any).Telegram.WebApp.ready();
-      (window as any).Telegram.WebApp.expand();
+    if (typeof window !== 'undefined') {
+      const savedRain = localStorage.getItem('liqvape_show_rain');
+      if (savedRain !== null) {
+        setShowRain(savedRain === 'true');
+      }
+      if ((window as any).Telegram?.WebApp) {
+        (window as any).Telegram.WebApp.ready();
+        (window as any).Telegram.WebApp.expand();
+      }
     }
   }, []);
 
@@ -81,7 +87,7 @@ export default function Home() {
   const toggleRain = () => {
     const newState = !showRain;
     setShowRain(newState);
-    localStorage.setItem("liqvape_show_rain", String(newState));
+    localStorage.setItem('liqvape_show_rain', String(newState));
   };
 
   const loadAvailableImages = useCallback(async () => {
@@ -106,11 +112,9 @@ export default function Home() {
       if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
         const parsed = JSON.parse(cached);
         setProducts(parsed);
-        setTotalProducts(parsed.length);
-        setLoadedProducts(parsed.length);
         setLoadingProgress(100);
         setLoadingMessage('Загружено из кэша');
-        setTimeout(() => { setIsLoading(false); }, 500);
+        setTimeout(() => { setIsLoading(false); }, 600);
         loadProductsFromDB(includeHidden).catch(() => {});
         return;
       }
@@ -127,17 +131,13 @@ export default function Home() {
       setLoadingProgress(10);
       setLoadingMessage('Подключение к базе данных...');
       
-      // Имитация реального прогресса
       const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => {
-          if (prev >= 90) return prev;
-          return prev + 5;
-        });
-      }, 200);
+        setLoadingProgress(prev => { if (prev >= 90) return prev; return prev + 5; });
+      }, 150);
       
       const records = await getAllProducts();
-      
       clearInterval(progressInterval);
+      
       setLoadingProgress(95);
       setLoadingMessage(`Обработка ${records.length} товаров...`);
       
@@ -154,12 +154,9 @@ export default function Home() {
       }));
       
       setProducts(parsed);
-      setTotalProducts(parsed.length);
-      setLoadedProducts(parsed.length);
       setLoadingProgress(100);
       setLoadingMessage('Готово! Все товары загружены');
-      
-      setTimeout(() => { setIsLoading(false); }, 800);
+      setTimeout(() => { setIsLoading(false); }, 600);
       
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       localStorage.setItem(cacheKey, JSON.stringify(parsed));
@@ -347,33 +344,18 @@ export default function Home() {
       .sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }));
   }, [products, adminSearch, adminCategory]);
 
-  // === ЭКРАН ЗАГРУЗКИ С РЕАЛЬНЫМ ПРОГРЕССОМ И КАПЛЯМИ ДОЖДЯ ===
+  // === ЭКРАН ЗАГРУЗКИ (БЕЗ ДОЖДЯ) ===
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
         <style jsx global>{`
-          @keyframes rain {
-            0% { transform: translateY(-100vh); opacity: 0; }
-            10% { opacity: 0.3; }
-            90% { opacity: 0.3; }
-            100% { transform: translateY(100vh); opacity: 0; }
-          }
-          .rain-drop {
-            position: absolute;
-            width: 2px;
-            background: linear-gradient(to bottom, transparent, rgba(100, 150, 255, 0.3));
-            animation: rain linear infinite;
-          }
-        @keyframes rain {
-          0% { transform: translateY(-100vh); }
-          100% { transform: translateY(100vh); }
-        }
           @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(0, -20px) scale(1.05); } }
           .lava-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: float 6s ease-in-out infinite; }
           .blob-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 94, 0, 0.5), transparent); top: -100px; left: -100px; }
           .blob-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 20, 147, 0.5), transparent); bottom: -100px; right: -100px; animation-delay: -3s; }
         `}</style>
-        
+        <div className="lava-blob blob-1"></div>
+        <div className="lava-blob blob-2"></div>
         
         <div className="relative z-10 flex flex-col items-center text-center w-full max-w-md">
           <div className="relative w-24 h-24 mb-6">
@@ -382,15 +364,8 @@ export default function Home() {
             <Cloud className="absolute inset-0 m-auto w-10 h-10 text-orange-400 animate-pulse" />
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent mb-3">LiqVape</h2>
-          <p className="text-gray-300 text-base font-medium mb-2">{loadingMessage}</p>
+          <p className="text-gray-300 text-base font-medium mb-4">{loadingMessage}</p>
           
-          {totalProducts > 0 && (
-            <p className="text-sm text-gray-400 mb-4">
-              Загружено {loadedProducts} из {totalProducts} товаров
-            </p>
-          )}
-          
-          {/* Прогресс-бар */}
           <div className="w-full bg-white/10 rounded-full h-3 mb-3 overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-500 ease-out"
@@ -550,18 +525,10 @@ export default function Home() {
       <style jsx global>{`
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
         @keyframes rain {
-          0% { transform: translateY(-100vh); opacity: 0; }
-          10% { opacity: 0.2; }
-          90% { opacity: 0.2; }
+          0% { transform: translateY(-20px); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
           100% { transform: translateY(100vh); opacity: 0; }
-        }
-        .rain-drop {
-          position: fixed;
-          width: 1px;
-          background: linear-gradient(to bottom, transparent, rgba(100, 150, 255, 0.15));
-          animation: rain linear infinite;
-          pointer-events: none;
-          z-index: 1;
         }
         .glass-panel { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.5rem; }
         .glass-card { background: rgba(40, 40, 40, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; transition: all 0.3s ease; }
@@ -571,13 +538,29 @@ export default function Home() {
         .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.25; animation: float 25s infinite ease-in-out; }
         .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.4), transparent); top: -150px; left: -150px; }
         .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.4), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
-        @keyframes rain {
-          0% { transform: translateY(-100vh); }
-          100% { transform: translateY(100vh); }
-        }
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
       `}</style>
       
+      {/* РОВНЫЙ ДОЖДЬ НА ПЕРЕДНЕМ ПЛАНЕ (только если включен) */}
+      {showRain && (
+        <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
+          {[...Array(40)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-[1px] bg-gradient-to-b from-transparent via-blue-300/40 to-blue-300/10"
+              style={{
+                left: `${(i * 2.5) % 100}%`,
+                height: '15px',
+                top: '-20px',
+                animation: `rain ${1.2 + (i % 4) * 0.2}s linear infinite`,
+                animationDelay: `${(i * 0.15) % 2}s`
+              }}
+            />
+          ))}
+        </div>
+      )}
+      
+      <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div></div>
 
       {notification && (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"><div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}><div className="flex flex-col items-center text-center"><div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>{notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}</div><p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p></div></div></div>)}
 
@@ -594,8 +577,17 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40"><Cloud className="w-5 h-5 text-white" strokeWidth={2.5} /></div>
             <div><h1 className="text-2xl font-bold"><span className="text-white">Liq</span><span className="gradient-text">Vape</span></h1><p className="text-[10px] text-gray-500">premium shop</p></div>
-            {showRain && <button onClick={toggleRain} className="w-9 h-9 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mr-1" title="Выключить дождь"><span className="text-blue-400 text-lg">💧</span></button>}
-            <div className="ml-auto"><button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center"><Settings className="w-4 h-4 text-orange-400" /></button></div>
+            <div className="ml-auto flex items-center gap-2">
+              {/* АНИМИРОВАННАЯ КНОПКА-ПЕРЕКЛЮЧАТЕЛЬ ДОЖДЯ */}
+              <button 
+                onClick={toggleRain} 
+                className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${showRain ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-gray-700'}`}
+                title={showRain ? "Выключить дождь" : "Включить дождь"}
+              >
+                <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${showRain ? 'translate-x-6' : 'translate-x-0'}`} />
+              </button>
+              <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center"><Settings className="w-4 h-4 text-orange-400" /></button>
+            </div>
           </div>
         </div>
         <div onClick={() => { if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.openTelegramLink) (window as any).Telegram.WebApp.openTelegramLink(CHANNEL_LINK); else window.open(CHANNEL_LINK, '_blank'); }} className="relative my-3 rounded-xl overflow-hidden cursor-pointer group" style={{ background: 'linear-gradient(90deg, #ff5e00, #ff007f, #ff5e00)', backgroundSize: '200% 100%', animation: 'gradient-shift 3s ease infinite' }}>
@@ -641,7 +633,7 @@ export default function Home() {
                       <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
                     ) : (
                       <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
-                        {isAvailable ? (p.is_preorder ? ' Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
+                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
                       </div>
                     )}
                   </div>

@@ -14,7 +14,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// Загружаем ВСЕ товары БЕЗ orderBy (сортируем на клиенте)
 export async function getAllProducts() {
   const snapshot = await getDocs(collection(db, 'products'));
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
