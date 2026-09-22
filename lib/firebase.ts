@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCw20afz6hEA2O7-Ix7tCuwuX_9JKpybA0",
@@ -14,10 +14,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// Загружаем ВСЕ товары сразу (для 100-200 товаров это работает мгновенно)
+// Загружаем ВСЕ товары БЕЗ orderBy (сортируем на клиенте)
 export async function getAllProducts() {
-  const q = query(collection(db, 'products'), orderBy('created_at', 'desc'));
-  const snapshot = await getDocs(q);
+  const snapshot = await getDocs(collection(db, 'products'));
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
@@ -39,7 +38,7 @@ export async function createOrder(data: any) {
 
 export async function getAllOrders() {
   const snapshot = await getDocs(collection(db, 'user_requests'));
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 export async function deleteOrderRecord(id: string) {
