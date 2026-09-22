@@ -9,8 +9,6 @@ interface Product { id: string; name: string; category: string; price: number; i
 interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
-const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Одноразки': 2, 'Расходники': 3, 'Снюс': 4, 'POD-системы': 5, 'Табак-угли': 6, 'Другое': 7 };
-
 const ADMIN_PASSWORD = 'K7m2Q9';
 const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'LiqVape';
@@ -42,12 +40,16 @@ export default function Home() {
   const [editingProduct, setEditingProduct] = useState<Partial<Product> & { id?: string } | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
   const [showSettings, setShowSettings] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState(false);
+  
+  // Реальный прогресс загрузки
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('Подключение к серверу...');
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [loadedProducts, setLoadedProducts] = useState(0);
   
   const [availableImages, setAvailableImages] = useState<ImageFile[]>([]);
   const [showImageGallery, setShowImageGallery] = useState(false);
@@ -87,6 +89,8 @@ export default function Home() {
     try {
       setIsLoading(true);
       setDbError(false);
+      setLoadingProgress(0);
+      setLoadingMessage('Подключение к серверу...');
       
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       const cached = localStorage.getItem(cacheKey);
@@ -95,7 +99,11 @@ export default function Home() {
       if (cached && cachedTime && (Date.now() - parseInt(cachedTime)) < CACHE_DURATION) {
         const parsed = JSON.parse(cached);
         setProducts(parsed);
-        setIsLoading(false);
+        setTotalProducts(parsed.length);
+        setLoadedProducts(parsed.length);
+        setLoadingProgress(100);
+        setLoadingMessage('Загружено из кэша');
+        setTimeout(() => { setIsLoading(false); }, 500);
         loadProductsFromDB(includeHidden).catch(() => {});
         return;
       }
@@ -109,7 +117,23 @@ export default function Home() {
 
   const loadProductsFromDB = useCallback(async (includeHidden = false) => {
     try {
+      setLoadingProgress(10);
+      setLoadingMessage('Подключение к базе данных...');
+      
+      // Имитация реального прогресса
+      const progressInterval = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + 5;
+        });
+      }, 200);
+      
       const records = await getAllProducts();
+      
+      clearInterval(progressInterval);
+      setLoadingProgress(95);
+      setLoadingMessage(`Обработка ${records.length} товаров...`);
+      
       const parsed: Product[] = records.map((p: any) => ({
         id: p.id || '',
         name: p.name || 'Без названия',
@@ -123,8 +147,12 @@ export default function Home() {
       }));
       
       setProducts(parsed);
-      setIsLoading(false);
-      setDbError(false);
+      setTotalProducts(parsed.length);
+      setLoadedProducts(parsed.length);
+      setLoadingProgress(100);
+      setLoadingMessage('Готово! Все товары загружены');
+      
+      setTimeout(() => { setIsLoading(false); }, 800);
       
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       localStorage.setItem(cacheKey, JSON.stringify(parsed));
@@ -312,27 +340,70 @@ export default function Home() {
       .sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }));
   }, [products, adminSearch, adminCategory]);
 
-  // === КРАСИВАЯ ЗАГРУЗКА С ТЕКСТОМ "ПОДОЖДИТЕ ПОЖАЛУЙСТА" ===
+  // === ЭКРАН ЗАГРУЗКИ С РЕАЛЬНЫМ ПРОГРЕССОМ И КАПЛЯМИ ДОЖДЯ ===
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
         <style jsx global>{`
+          @keyframes rain {
+            0% { transform: translateY(-100vh); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(100vh); opacity: 0; }
+          }
+          .rain-drop {
+            position: absolute;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, rgba(100, 150, 255, 0.3));
+            animation: rain linear infinite;
+          }
           @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(0, -20px) scale(1.05); } }
-          .lava-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 6s ease-in-out infinite; }
-          .blob-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -100px; left: -100px; }
-          .blob-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -100px; right: -100px; animation-delay: -3s; }
+          .lava-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.3; animation: float 6s ease-in-out infinite; }
+          .blob-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 94, 0, 0.5), transparent); top: -100px; left: -100px; }
+          .blob-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 20, 147, 0.5), transparent); bottom: -100px; right: -100px; animation-delay: -3s; }
         `}</style>
+        
+        {/* Капли дождя */}
+        {[...Array(30)].map((_, i) => (
+          <div
+            key={i}
+            className="rain-drop"
+            style={{
+              left: `${Math.random() * 100}%`,
+              height: `${Math.random() * 20 + 10}px`,
+              animationDuration: `${Math.random() * 2 + 1}s`,
+              animationDelay: `${Math.random() * 2}s`
+            }}
+          />
+        ))}
+        
         <div className="lava-blob blob-1"></div>
         <div className="lava-blob blob-2"></div>
         
-        <div className="relative z-10 flex flex-col items-center text-center">
+        <div className="relative z-10 flex flex-col items-center text-center w-full max-w-md">
           <div className="relative w-24 h-24 mb-6">
             <div className="absolute inset-0 rounded-full border-4 border-orange-500/20"></div>
             <div className="absolute inset-0 rounded-full border-4 border-t-orange-500 border-r-pink-500 border-b-transparent border-l-transparent animate-spin"></div>
             <Cloud className="absolute inset-0 m-auto w-10 h-10 text-orange-400 animate-pulse" />
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent mb-3">LiqVape</h2>
-          <p className="text-gray-300 text-base font-medium animate-pulse">Подождите пожалуйста, идёт загрузка товаров...</p>
+          <p className="text-gray-300 text-base font-medium mb-2">{loadingMessage}</p>
+          
+          {totalProducts > 0 && (
+            <p className="text-sm text-gray-400 mb-4">
+              Загружено {loadedProducts} из {totalProducts} товаров
+            </p>
+          )}
+          
+          {/* Прогресс-бар */}
+          <div className="w-full bg-white/10 rounded-full h-3 mb-3 overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${loadingProgress}%` }}
+            ></div>
+          </div>
+          <p className="text-2xl font-bold text-orange-400">{Math.round(loadingProgress)}%</p>
+          
           <div className="mt-8 flex gap-1">
             <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
             <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -483,16 +554,45 @@ export default function Home() {
     <div className="min-h-screen text-white relative bg-black">
       <style jsx global>{`
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        @keyframes rain {
+          0% { transform: translateY(-100vh); opacity: 0; }
+          10% { opacity: 0.2; }
+          90% { opacity: 0.2; }
+          100% { transform: translateY(100vh); opacity: 0; }
+        }
+        .rain-drop {
+          position: fixed;
+          width: 1px;
+          background: linear-gradient(to bottom, transparent, rgba(100, 150, 255, 0.15));
+          animation: rain linear infinite;
+          pointer-events: none;
+          z-index: 1;
+        }
         .glass-panel { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.5rem; }
         .glass-card { background: rgba(40, 40, 40, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; transition: all 0.3s ease; }
         .glass-card:hover { background: rgba(50, 50, 50, 0.8); border-color: rgba(255, 94, 0, 0.4); transform: translateY(-2px); }
         .gradient-text { background: linear-gradient(135deg, #ff5e00, #ff1493); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
         .lava-lamp { position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-        .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.35; animation: float 25s infinite ease-in-out; }
-        .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -150px; left: -150px; }
-        .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
+        .lava-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.25; animation: float 25s infinite ease-in-out; }
+        .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.4), transparent); top: -150px; left: -150px; }
+        .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.4), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
       `}</style>
+      
+      {/* Капли дождя на фоне */}
+      {[...Array(20)].map((_, i) => (
+        <div
+          key={i}
+          className="rain-drop"
+          style={{
+            left: `${Math.random() * 100}%`,
+            height: `${Math.random() * 15 + 5}px`,
+            animationDuration: `${Math.random() * 3 + 2}s`,
+            animationDelay: `${Math.random() * 3}s`
+          }}
+        />
+      ))}
+      
       <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div></div>
 
       {notification && (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"><div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}><div className="flex flex-col items-center text-center"><div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>{notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}</div><p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p></div></div></div>)}
@@ -501,7 +601,7 @@ export default function Home() {
 
       {showSendConfirm && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Отправить заявку?</h2><p className="text-gray-400 text-xs mb-4">Тебя перекинет в Telegram с готовым списком</p><div className="glass-card p-3 mb-4 text-left"><p className="text-xs text-gray-400 mb-1">Товаров: <span className="text-white font-bold">{totalListItems}</span></p><p className="text-xs text-gray-400">Сумма: <span className="gradient-text font-bold">{totalListPrice.toFixed(2)} BYN</span></p></div><div className="flex gap-2"><button onClick={() => setShowSendConfirm(false)} className="flex-1 py-3 rounded-xl bg-white/5 text-gray-400">Отмена</button><button onClick={sendToManager} disabled={isSending} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white disabled:opacity-50">{isSending ? '...' : 'Отправить'}</button></div></div></div>)}
 
-      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><Info className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">О приложении</p><p className="text-[11px] text-gray-400">LiqVape v7.0</p></div></button><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div></button></div></div></div>)}
+      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div></button></div></div></div>)}
 
       {showAdminLogin && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-4"><h2 className="text-lg font-bold gradient-text">Вход для админа</h2><button onClick={() => setShowAdminLogin(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none" /><button onClick={handleAdminLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold">Войти</button></div></div>)}
 
@@ -556,7 +656,7 @@ export default function Home() {
                       <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
                     ) : (
                       <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
-                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
+                        {isAvailable ? (p.is_preorder ? ' Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
                       </div>
                     )}
                   </div>
