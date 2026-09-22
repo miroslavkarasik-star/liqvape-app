@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, LogIn, ImageIcon } from 'lucide-react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, LogIn, ImageIcon, HelpCircle } from 'lucide-react';
 import { db, getAllProducts, createProduct, updateProduct, deleteProductRecord, createOrder, getAllOrders, deleteOrderRecord } from '@/lib/firebase';
 
 interface ImageFile { name: string; url: string; }
@@ -40,16 +40,14 @@ export default function Home() {
   const [editingProduct, setEditingProduct] = useState<Partial<Product> & { id?: string } | null>(null);
   const [formVariants, setFormVariants] = useState<Variant[]>([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [dbError, setDbError] = useState(false);
   
-  // Реальный прогресс загрузки
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('Подключение к серверу...');
-  
-  // Состояние дождя (читаем из localStorage при старте)
   const [showRain, setShowRain] = useState(true);
   
   const [availableImages, setAvailableImages] = useState<ImageFile[]>([]);
@@ -58,9 +56,7 @@ export default function Home() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedRain = localStorage.getItem('liqvape_show_rain');
-      if (savedRain !== null) {
-        setShowRain(savedRain === 'true');
-      }
+      if (savedRain !== null) setShowRain(savedRain === 'true');
       if ((window as any).Telegram?.WebApp) {
         (window as any).Telegram.WebApp.ready();
         (window as any).Telegram.WebApp.expand();
@@ -130,7 +126,6 @@ export default function Home() {
     try {
       setLoadingProgress(10);
       setLoadingMessage('Подключение к базе данных...');
-      
       const progressInterval = setInterval(() => {
         setLoadingProgress(prev => { if (prev >= 90) return prev; return prev + 5; });
       }, 150);
@@ -142,14 +137,10 @@ export default function Home() {
       setLoadingMessage(`Обработка ${records.length} товаров...`);
       
       const parsed: Product[] = records.map((p: any) => ({
-        id: p.id || '',
-        name: p.name || 'Без названия',
-        category: p.category || 'Другое',
-        price: Number(p.price) || 0,
-        image: p.image || undefined,
+        id: p.id || '', name: p.name || 'Без названия', category: p.category || 'Другое',
+        price: Number(p.price) || 0, image: p.image || undefined,
         variants: Array.isArray(p.flavors) ? p.flavors : (typeof p.flavors === 'string' ? JSON.parse(p.flavors) : []),
-        is_hidden: Boolean(p.is_hidden),
-        is_preorder: Boolean(p.is_preorder),
+        is_hidden: Boolean(p.is_hidden), is_preorder: Boolean(p.is_preorder),
         created_at: p.created_at || new Date().toISOString()
       }));
       
@@ -344,7 +335,6 @@ export default function Home() {
       .sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }));
   }, [products, adminSearch, adminCategory]);
 
-  // === ЭКРАН ЗАГРУЗКИ (БЕЗ ДОЖДЯ) ===
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -356,7 +346,6 @@ export default function Home() {
         `}</style>
         <div className="lava-blob blob-1"></div>
         <div className="lava-blob blob-2"></div>
-        
         <div className="relative z-10 flex flex-col items-center text-center w-full max-w-md">
           <div className="relative w-24 h-24 mb-6">
             <div className="absolute inset-0 rounded-full border-4 border-orange-500/20"></div>
@@ -365,15 +354,10 @@ export default function Home() {
           </div>
           <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent mb-3">LiqVape</h2>
           <p className="text-gray-300 text-base font-medium mb-4">{loadingMessage}</p>
-          
           <div className="w-full bg-white/10 rounded-full h-3 mb-3 overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-500 ease-out"
-              style={{ width: `${loadingProgress}%` }}
-            ></div>
+            <div className="h-full bg-gradient-to-r from-orange-500 to-pink-500 rounded-full transition-all duration-500 ease-out" style={{ width: `${loadingProgress}%` }}></div>
           </div>
           <p className="text-2xl font-bold text-orange-400">{Math.round(loadingProgress)}%</p>
-          
           <div className="mt-8 flex gap-1">
             <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
             <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -524,12 +508,7 @@ export default function Home() {
     <div className="min-h-screen text-white relative bg-black">
       <style jsx global>{`
         @keyframes gradient-shift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        @keyframes rain {
-          0% { transform: translateY(-20px); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(100vh); opacity: 0; }
-        }
+        @keyframes rain { 0% { transform: translateY(-20px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(100vh); opacity: 0; } }
         .glass-panel { background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 1.5rem; }
         .glass-card { background: rgba(40, 40, 40, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1rem; transition: all 0.3s ease; }
         .glass-card:hover { background: rgba(50, 50, 50, 0.8); border-color: rgba(255, 94, 0, 0.4); transform: translateY(-2px); }
@@ -541,21 +520,11 @@ export default function Home() {
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
       `}</style>
       
-      {/* РОВНЫЙ ДОЖДЬ НА ПЕРЕДНЕМ ПЛАНЕ (только если включен) */}
       {showRain && (
         <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
           {[...Array(40)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-[1px] bg-gradient-to-b from-transparent via-blue-300/40 to-blue-300/10"
-              style={{
-                left: `${(i * 2.5) % 100}%`,
-                height: '15px',
-                top: '-20px',
-                animation: `rain ${1.2 + (i % 4) * 0.2}s linear infinite`,
-                animationDelay: `${(i * 0.15) % 2}s`
-              }}
-            />
+            <div key={i} className="absolute w-[1px] bg-gradient-to-b from-transparent via-blue-300/40 to-blue-300/10"
+              style={{ left: `${(i * 2.5) % 100}%`, height: '15px', top: '-20px', animation: `rain ${1.2 + (i % 4) * 0.2}s linear infinite`, animationDelay: `${(i * 0.15) % 2}s` }} />
           ))}
         </div>
       )}
@@ -568,7 +537,83 @@ export default function Home() {
 
       {showSendConfirm && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Отправить заявку?</h2><p className="text-gray-400 text-xs mb-4">Тебя перекинет в Telegram с готовым списком</p><div className="glass-card p-3 mb-4 text-left"><p className="text-xs text-gray-400 mb-1">Товаров: <span className="text-white font-bold">{totalListItems}</span></p><p className="text-xs text-gray-400">Сумма: <span className="gradient-text font-bold">{totalListPrice.toFixed(2)} BYN</span></p></div><div className="flex gap-2"><button onClick={() => setShowSendConfirm(false)} className="flex-1 py-3 rounded-xl bg-white/5 text-gray-400">Отмена</button><button onClick={sendToManager} disabled={isSending} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white disabled:opacity-50">{isSending ? '...' : 'Отправить'}</button></div></div></div>)}
 
-      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div></button></div></div></div>)}
+      {/* МОДАЛЬНОЕ ОКНО ИНСТРУКЦИИ */}
+      {showInstructions && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-6 relative z-10">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold gradient-text">Как оформить заказ</h2>
+              <button onClick={() => setShowInstructions(false)} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+            <div className="space-y-4 text-sm text-gray-300">
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 text-orange-400 font-bold">1</div>
+                <div>
+                  <p className="font-bold text-white mb-1">Выберите товар</p>
+                  <p className="text-xs leading-relaxed">Нажмите на карточку понравившегося товара в каталоге.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 text-orange-400 font-bold">2</div>
+                <div>
+                  <p className="font-bold text-white mb-1">Укажите вкус и количество</p>
+                  <p className="text-xs leading-relaxed">В открывшемся окне отметьте нужные варианты галочками, выберите количество и нажмите кнопку «В список».</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 text-orange-400 font-bold">3</div>
+                <div>
+                  <p className="font-bold text-white mb-1">Проверьте корзину</p>
+                  <p className="text-xs leading-relaxed">Нажмите на плавающую кнопку корзины 🛒 внизу справа. Убедитесь, что всё верно. При необходимости измените количество или удалите позиции.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center flex-shrink-0 text-orange-400 font-bold">4</div>
+                <div>
+                  <p className="font-bold text-white mb-1">Отправьте менеджеру</p>
+                  <p className="text-xs leading-relaxed">Нажмите «Отправить менеджеру». Вас автоматически перенаправит в Telegram с уже готовым текстом заказа. Остаётся только нажать кнопку отправки в чате!</p>
+                </div>
+              </div>
+            </div>
+            <button onClick={() => setShowInstructions(false)} className="w-full mt-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold">
+              Понятно!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showSettings && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
+          <div className="glass-panel w-full max-w-sm p-5 relative z-10">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold gradient-text">Настройки</h2>
+              <button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button>
+            </div>
+            <div className="space-y-2.5">
+              <button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 transition-all">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center">
+                  <HelpCircle className="w-5 h-5 text-orange-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-white">Инструкция</p>
+                  <p className="text-[11px] text-gray-400">Как оформить заказ</p>
+                </div>
+              </button>
+              <button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10 transition-all">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center">
+                  <LogIn className="w-5 h-5 text-orange-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-white">Вход в админку</p>
+                  <p className="text-[11px] text-gray-400">Только для администраторов</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showAdminLogin && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-4"><h2 className="text-lg font-bold gradient-text">Вход для админа</h2><button onClick={() => setShowAdminLogin(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none" /><button onClick={handleAdminLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold">Войти</button></div></div>)}
 
@@ -578,12 +623,7 @@ export default function Home() {
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center shadow-lg shadow-orange-500/40"><Cloud className="w-5 h-5 text-white" strokeWidth={2.5} /></div>
             <div><h1 className="text-2xl font-bold"><span className="text-white">Liq</span><span className="gradient-text">Vape</span></h1><p className="text-[10px] text-gray-500">premium shop</p></div>
             <div className="ml-auto flex items-center gap-2">
-              {/* АНИМИРОВАННАЯ КНОПКА-ПЕРЕКЛЮЧАТЕЛЬ ДОЖДЯ */}
-              <button 
-                onClick={toggleRain} 
-                className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${showRain ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-gray-700'}`}
-                title={showRain ? "Выключить дождь" : "Включить дождь"}
-              >
+              <button onClick={toggleRain} className={`relative w-12 h-6 rounded-full transition-colors duration-300 focus:outline-none ${showRain ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-gray-700'}`} title={showRain ? "Выключить дождь" : "Включить дождь"}>
                 <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-300 ${showRain ? 'translate-x-6' : 'translate-x-0'}`} />
               </button>
               <button onClick={() => setShowSettings(true)} className="w-9 h-9 rounded-lg bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center"><Settings className="w-4 h-4 text-orange-400" /></button>
