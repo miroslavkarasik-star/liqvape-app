@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy, limit, startAfter } from "firebase/firestore";
+import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCw20afz6hEA2O7-Ix7tCuwuX_9JKpybA0",
@@ -14,23 +14,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
-// Пагинация - грузим по 20 товаров
-export async function getProductsPage(lastDoc?: any, pageSize = 20) {
-  let q = query(collection(db, 'products'), orderBy('created_at', 'desc'), limit(pageSize));
-  if (lastDoc) {
-    q = query(collection(db, 'products'), orderBy('created_at', 'desc'), startAfter(lastDoc), limit(pageSize));
-  }
-  const snapshot = await getDocs(q);
-  return {
-    products: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-    lastDoc: snapshot.docs[snapshot.docs.length - 1] || null,
-    hasMore: snapshot.docs.length === pageSize
-  };
-}
-
-// Все товары (для админки)
+// Загружаем ВСЕ товары сразу (для 100-200 товаров это работает мгновенно)
 export async function getAllProducts() {
-  const snapshot = await getDocs(collection(db, 'products'));
+  const q = query(collection(db, 'products'), orderBy('created_at', 'desc'));
+  const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 

@@ -1,9 +1,12 @@
 'use client';
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, ImageIcon, Wifi, WifiOff } from 'lucide-react';
-import { db, getProductsPage, getAllProducts, createProduct, updateProduct, deleteProductRecord, createOrder, getAllOrders, deleteOrderRecord } from '@/lib/firebase';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, Cloud, Package, X, Plus, Minus, ShoppingBag, Trash2, CheckCircle, AlertCircle, Edit, Send, Settings, HelpCircle, Info, LogIn, ImageIcon } from 'lucide-react';
+import { db, getAllProducts, createProduct, updateProduct, deleteProductRecord, createOrder, getAllOrders, deleteOrderRecord } from '@/lib/firebase';
 
 interface ImageFile { name: string; url: string; }
+interface Variant { name: string; stock: number; price?: number; }
+interface Product { id: string; name: string; category: string; price: number; image?: string; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
+interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
 
 const CATEGORIES = ['Все', 'Жидкости', 'Расходники', 'Снюс', 'POD-системы', 'Одноразки', 'Табак-угли', 'Другое'];
 const CATEGORY_PRIORITY: Record<string, number> = { 'Жидкости': 1, 'Одноразки': 2, 'Расходники': 3, 'Снюс': 4, 'POD-системы': 5, 'Табак-угли': 6, 'Другое': 7 };
@@ -13,12 +16,6 @@ const MANAGER_USERNAME = 'LiqVape_2';
 const CHANNEL_USERNAME = 'LiqVape';
 const CHANNEL_LINK = 'https://t.me/' + CHANNEL_USERNAME;
 const PRICE_LINK = 'https://docs.google.com/spreadsheets/d/11o1xhXau8w_nv0RjdHh3fmDgMXolTJJo3sBlxturhI4/edit?gid=0#gid=0';
-
-interface Variant { name: string; stock: number; price?: number; }
-interface Product { id: string; name: string; category: string; price: number; image?: string; variants: Variant[]; is_hidden: boolean; is_preorder: boolean; created_at?: string; }
-interface ListItem { productId: string; productName: string; variant: string; price: number; quantity: number; isPreorder: boolean; }
-
-const PAGE_SIZE = 20;
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 export default function Home() {
@@ -49,61 +46,12 @@ export default function Home() {
   const [showAbout, setShowAbout] = useState(false);
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [showFirstTimeTutorial, setShowFirstTimeTutorial] = useState(false);
-  const [tutorialStep, setTutorialStep] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [lastDoc, setLastDoc] = useState<any>(null);
   const [dbError, setDbError] = useState(false);
-  const [connectionSpeed, setConnectionSpeed] = useState<'fast' | 'medium' | 'slow' | 'offline'>('fast');
-  const [isOnline, setIsOnline] = useState(true);
   
   const [availableImages, setAvailableImages] = useState<ImageFile[]>([]);
   const [showImageGallery, setShowImageGallery] = useState(false);
 
-  // Проверка скорости соединения
-  useEffect(() => {
-    const checkConnection = () => {
-      if (!navigator.onLine) {
-        setConnectionSpeed('offline');
-        setIsOnline(false);
-        return;
-      }
-
-      setIsOnline(true);
-      
-      const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-      
-      if (connection) {
-        const downlink = connection.downlink;
-        const effectiveType = connection.effectiveType;
-        
-        if (effectiveType === 'slow-2g' || effectiveType === '2g' || downlink < 1) {
-          setConnectionSpeed('slow');
-        } else if (effectiveType === '3g' || downlink < 5) {
-          setConnectionSpeed('medium');
-        } else {
-          setConnectionSpeed('fast');
-        }
-      }
-    };
-
-    checkConnection();
-    window.addEventListener('online', checkConnection);
-    window.addEventListener('offline', checkConnection);
-    
-    if ((navigator as any).connection) {
-      (navigator as any).connection.addEventListener('change', checkConnection);
-    }
-
-    return () => {
-      window.removeEventListener('online', checkConnection);
-      window.removeEventListener('offline', checkConnection);
-    };
-  }, []);
-
-  // Telegram Mini App
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp) {
       (window as any).Telegram.WebApp.ready();
@@ -132,9 +80,7 @@ export default function Home() {
       const resp = await fetch('/api/images');
       const data = await resp.json();
       setAvailableImages(data);
-    } catch (e) {
-      console.error('Error loading images:', e);
-    }
+    } catch (e) { console.error('Error loading images:', e); }
   }, []);
 
   const loadProducts = useCallback(async (includeHidden = false) => {
@@ -142,7 +88,6 @@ export default function Home() {
       setIsLoading(true);
       setDbError(false);
       
-      // Проверяем кэш
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       const cached = localStorage.getItem(cacheKey);
       const cachedTime = localStorage.getItem(cacheKey + '_time');
@@ -151,11 +96,9 @@ export default function Home() {
         const parsed = JSON.parse(cached);
         setProducts(parsed);
         setIsLoading(false);
-        // Тихое обновление
         loadProductsFromDB(includeHidden).catch(() => {});
         return;
       }
-      
       await loadProductsFromDB(includeHidden);
     } catch (e) {
       console.error('Load error:', e);
@@ -166,9 +109,8 @@ export default function Home() {
 
   const loadProductsFromDB = useCallback(async (includeHidden = false) => {
     try {
-      const { products: newProducts, lastDoc: newLastDoc, hasMore: newHasMore } = await getProductsPage(undefined, PAGE_SIZE);
-      
-      const parsed: Product[] = newProducts.map((p: any) => ({
+      const records = await getAllProducts();
+      const parsed: Product[] = records.map((p: any) => ({
         id: p.id || '',
         name: p.name || 'Без названия',
         category: p.category || 'Другое',
@@ -181,12 +123,9 @@ export default function Home() {
       }));
       
       setProducts(parsed);
-      setLastDoc(newLastDoc);
-      setHasMore(newHasMore);
       setIsLoading(false);
       setDbError(false);
       
-      // Кэшируем
       const cacheKey = includeHidden ? 'liqvape_products_admin' : 'liqvape_products';
       localStorage.setItem(cacheKey, JSON.stringify(parsed));
       localStorage.setItem(cacheKey + '_time', Date.now().toString());
@@ -197,35 +136,6 @@ export default function Home() {
     }
   }, []);
 
-  const loadMoreProducts = useCallback(async () => {
-    if (isLoadingMore || !hasMore) return;
-    
-    try {
-      setIsLoadingMore(true);
-      const { products: newProducts, lastDoc: newLastDoc, hasMore: newHasMore } = await getProductsPage(lastDoc, PAGE_SIZE);
-      
-      const parsed: Product[] = newProducts.map((p: any) => ({
-        id: p.id || '',
-        name: p.name || 'Без названия',
-        category: p.category || 'Другое',
-        price: Number(p.price) || 0,
-        image: p.image || undefined,
-        variants: Array.isArray(p.flavors) ? p.flavors : (typeof p.flavors === 'string' ? JSON.parse(p.flavors) : []),
-        is_hidden: Boolean(p.is_hidden),
-        is_preorder: Boolean(p.is_preorder),
-        created_at: p.created_at || new Date().toISOString()
-      }));
-      
-      setProducts(prev => [...prev, ...parsed]);
-      setLastDoc(newLastDoc);
-      setHasMore(newHasMore);
-      setIsLoadingMore(false);
-    } catch (e) {
-      console.error('Load more error:', e);
-      setIsLoadingMore(false);
-    }
-  }, [isLoadingMore, hasMore, lastDoc]);
-
   const loadAllRequests = useCallback(async () => {
     try {
       const records = await getAllOrders();
@@ -235,10 +145,7 @@ export default function Home() {
 
   useEffect(() => {
     loadProducts(isAdmin);
-    if (isAdmin) {
-      loadAllRequests();
-      loadAvailableImages();
-    }
+    if (isAdmin) { loadAllRequests(); loadAvailableImages(); }
   }, [isAdmin, loadProducts, loadAllRequests, loadAvailableImages]);
 
   const showNotification = (message: string, type: 'error' | 'success' = 'success') => {
@@ -263,9 +170,9 @@ export default function Home() {
       const aAvail = a.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
       const bAvail = b.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
       const getPriority = (inStock: boolean, isPreorder: boolean) => inStock ? 1 : (isPreorder ? 2 : 3);
-      const aP = getPriority(aAvail > 0, a.is_preorder);
-      const bP = getPriority(bAvail > 0, b.is_preorder);
-      if (aP !== bP) return aP - bP;
+      if (getPriority(aAvail > 0, a.is_preorder) !== getPriority(bAvail > 0, b.is_preorder)) {
+        return getPriority(aAvail > 0, a.is_preorder) - getPriority(bAvail > 0, b.is_preorder);
+      }
       return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
     });
   }, [filteredProducts, selectedCategory, isAdmin]);
@@ -326,18 +233,13 @@ export default function Home() {
     message += `\n💰 Итого: ${totalPrice.toFixed(2)} BYN`;
     const link = `https://t.me/${MANAGER_USERNAME}?text=${encodeURIComponent(message)}`;
     if (typeof window !== 'undefined') {
-      if ((window as any).Telegram?.WebApp?.openTelegramLink) {
-        (window as any).Telegram.WebApp.openTelegramLink(link);
-      } else {
-        window.open(link, '_blank');
-      }
+      if ((window as any).Telegram?.WebApp?.openTelegramLink) (window as any).Telegram.WebApp.openTelegramLink(link);
+      else window.open(link, '_blank');
     }
     setSelectionList([]); setShowList(false); setShowSendConfirm(false);
     showNotification('Переходим в Telegram...', 'success');
-    
-    try { 
-      await createOrder({ items: JSON.stringify(selectionList), total_price: totalPrice, username: 'Клиент', status: 'new' });
-    } catch(e) { console.error('Background save failed:', e); }
+    try { await createOrder({ items: JSON.stringify(selectionList), total_price: totalPrice, username: 'Клиент', status: 'new' }); } 
+    catch(e) { console.error('Background save failed:', e); }
     finally { setIsSending(false); }
   };
 
@@ -371,70 +273,18 @@ export default function Home() {
   };
 
   const saveProduct = async () => {
-    if (!editingProduct?.name || !editingProduct.price) { 
-      showNotification('Заполните название и цену', 'error'); 
-      return; 
-    }
-    
+    if (!editingProduct?.name || !editingProduct.price) { showNotification('Заполните название и цену', 'error'); return; }
     try {
-      const data = {
-        name: editingProduct.name,
-        price: Number(editingProduct.price),
-        category: editingProduct.category || 'Другое',
-        flavors: formVariants,
-        image: editingProduct.image || null,
-        is_hidden: Boolean(editingProduct.is_hidden),
-        is_preorder: Boolean(editingProduct.is_preorder),
-      };
-
-      if (editingProduct.id) {
-        await updateProduct(editingProduct.id, data);
-        showNotification('Товар обновлён', 'success');
-      } else {
-        await createProduct(data);
-        showNotification('Товар добавлен', 'success');
-      }
-      
-      setShowProductForm(false); 
-      setEditingProduct(null); 
-      setFormVariants([]); 
-      await loadProducts(true);
-    } catch(e) { 
-      showNotification('Ошибка: ' + (e as Error).message, 'error'); 
-    }
+      const data = { name: editingProduct.name, price: Number(editingProduct.price), category: editingProduct.category || 'Другое', flavors: formVariants, image: editingProduct.image || null, is_hidden: Boolean(editingProduct.is_hidden), is_preorder: Boolean(editingProduct.is_preorder) };
+      if (editingProduct.id) { await updateProduct(editingProduct.id, data); showNotification('Товар обновлён', 'success'); } 
+      else { await createProduct(data); showNotification('Товар добавлен', 'success'); }
+      setShowProductForm(false); setEditingProduct(null); setFormVariants([]); await loadProducts(true);
+    } catch(e) { showNotification('Ошибка: ' + (e as Error).message, 'error'); }
   };
 
-  const toggleHidden = async (p: Product) => { 
-    try {
-      await updateProduct(p.id, { is_hidden: !p.is_hidden });
-      await loadProducts(true); 
-    } catch(e) { showNotification('Ошибка', 'error'); }
-  };
-  
-  const togglePreorder = async (p: Product) => { 
-    try {
-      await updateProduct(p.id, { is_preorder: !p.is_preorder });
-      await loadProducts(true); 
-    } catch(e) { showNotification('Ошибка', 'error'); }
-  };
-  
-  const deleteProduct = async (id: string) => {
-    if (!confirm('Удалить товар?')) return;
-    try {
-      await deleteProductRecord(id);
-      await loadProducts(true);
-      showNotification('Товар удалён');
-    } catch(e) { showNotification('Ошибка', 'error'); }
-  };
-  
-  const deleteRequest = async (id: string) => {
-    if (!confirm('Заказ обработан? Удалить из списка?')) return;
-    try {
-      await deleteOrderRecord(id);
-      await loadAllRequests();
-      showNotification('Заказ удален', 'success');
-    } catch(e) { showNotification('Ошибка', 'error'); }
-  };
+  const toggleHidden = async (p: Product) => { try { await updateProduct(p.id, { is_hidden: !p.is_hidden }); await loadProducts(true); } catch(e) { showNotification('Ошибка', 'error'); } };
+  const deleteProduct = async (id: string) => { if (!confirm('Удалить товар?')) return; try { await deleteProductRecord(id); await loadProducts(true); showNotification('Товар удалён'); } catch(e) { showNotification('Ошибка', 'error'); } };
+  const deleteRequest = async (id: string) => { if (!confirm('Заказ обработан? Удалить из списка?')) return; try { await deleteOrderRecord(id); await loadAllRequests(); showNotification('Заказ удален', 'success'); } catch(e) { showNotification('Ошибка', 'error'); } };
 
   const sortedVariants = useMemo(() => {
     if (!selectedProduct) return [];
@@ -450,34 +300,57 @@ export default function Home() {
   const hiddenVariantsCount = sortedVariants.length - 5;
   const totalListItems = selectionList.reduce((s, i) => s + i.quantity, 0);
   const totalListPrice = selectionList.reduce((s, i) => s + i.price * i.quantity, 0);
+  
   const groupedSelectionList = useMemo(() => {
     const grouped: Record<string, ListItem[]> = {};
     selectionList.forEach(item => { if (!grouped[item.productName]) grouped[item.productName] = []; grouped[item.productName].push(item); });
     return Object.entries(grouped);
   }, [selectionList]);
-  
+
   const filteredAdminProducts = useMemo(() => {
-    const filtered = products.filter(p => p.name.toLowerCase().includes(adminSearch.toLowerCase()) && (adminCategory === 'Все' || p.category === adminCategory));
-    return filtered.sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }));
+    return products.filter(p => p.name.toLowerCase().includes(adminSearch.toLowerCase()) && (adminCategory === 'Все' || p.category === adminCategory))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' }));
   }, [products, adminSearch, adminCategory]);
 
-  // ЗАГЛУШКА ПРИ ОШИБКЕ БАЗЫ
+  // === КРАСИВАЯ ЗАГРУЗКА С ТЕКСТОМ "ПОДОЖДИТЕ ПОЖАЛУЙСТА" ===
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <style jsx global>{`
+          @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(0, -20px) scale(1.05); } }
+          .lava-blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 6s ease-in-out infinite; }
+          .blob-1 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -100px; left: -100px; }
+          .blob-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -100px; right: -100px; animation-delay: -3s; }
+        `}</style>
+        <div className="lava-blob blob-1"></div>
+        <div className="lava-blob blob-2"></div>
+        
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="relative w-24 h-24 mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-orange-500/20"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-orange-500 border-r-pink-500 border-b-transparent border-l-transparent animate-spin"></div>
+            <Cloud className="absolute inset-0 m-auto w-10 h-10 text-orange-400 animate-pulse" />
+          </div>
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent mb-3">LiqVape</h2>
+          <p className="text-gray-300 text-base font-medium animate-pulse">Подождите пожалуйста, идёт загрузка товаров...</p>
+          <div className="mt-8 flex gap-1">
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (dbError) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center animate-pulse">
-            <AlertCircle className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent mb-6">Технические работы</h1>
-          <div className="space-y-4 text-sm text-gray-300 mb-8">
-            <p className="text-white font-semibold">Сервер временно недоступен</p>
-            <p>Мы уже работаем над восстановлением</p>
-          </div>
-          <div className="space-y-4">
-            <a href={PRICE_LINK} target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-lg">📊 Открыть PRICE</a>
-            <a href="https://t.me/LiqVape_2" target="_blank" rel="noopener noreferrer" className="block w-full py-3.5 rounded-xl bg-white/10 border border-white/20 text-white font-medium">✈️ Написать менеджеру</a>
-          </div>
+          <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
+          <h1 className="text-2xl font-bold text-white mb-4">Ошибка соединения</h1>
+          <p className="text-gray-400 mb-6">Проверьте интернет и попробуйте обновить страницу.</p>
+          <button onClick={() => window.location.reload()} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold">Обновить</button>
         </div>
       </div>
     );
@@ -496,7 +369,7 @@ export default function Home() {
           </div>
           <div className="flex gap-2 mb-4">
             <button onClick={() => setAdminTab('products')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold ${adminTab === 'products' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>Товары</button>
-            <button onClick={() => setAdminTab('requests')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold ${adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>Заказы {allRequests.length > 0 && <span className="ml-1 px-2 py-0.5 rounded-full bg-red-500 text-[10px]">{allRequests.length}</span>}</button>
+            <button onClick={() => setAdminTab('requests')} className={`flex-1 py-2.5 rounded-xl text-sm font-bold ${adminTab === 'requests' ? 'bg-gradient-to-r from-orange-500 to-pink-500' : 'bg-white/5 text-gray-400'}`}>Заказы</button>
           </div>
           {adminTab === 'products' ? (
             <div>
@@ -619,36 +492,16 @@ export default function Home() {
         .lava-blob-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(255, 94, 0, 0.6), transparent); top: -150px; left: -150px; }
         .lava-blob-2 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(255, 20, 147, 0.6), transparent); bottom: -150px; right: -150px; animation-delay: -8s; }
         @keyframes float { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, -80px) scale(1.1); } 66% { transform: translate(-60px, 60px) scale(0.9); } }
-        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
       `}</style>
       <div className="lava-lamp"><div className="lava-blob lava-blob-1"></div><div className="lava-blob lava-blob-2"></div></div>
 
-      {/* Индикатор плохого соединения */}
-      {!isOnline && (
-        <div className="fixed top-0 left-0 right-0 z-[200] bg-red-500 text-white text-center py-2 text-sm font-medium">
-          <WifiOff className="w-4 h-4 inline mr-2" />Нет подключения к интернету
-        </div>
-      )}
-      {isOnline && connectionSpeed === 'slow' && (
-        <div className="fixed top-0 left-0 right-0 z-[200] bg-yellow-500 text-black text-center py-2 text-sm font-medium">
-          <Wifi className="w-4 h-4 inline mr-2" />Медленное соединение
-        </div>
-      )}
-
       {notification && (<div className="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none"><div className={`w-full max-w-[280px] rounded-xl p-3 backdrop-blur-2xl border shadow-2xl transition-all ${notificationVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'} ${notification.type === 'error' ? 'bg-red-500/20 border-red-500/40' : 'bg-green-500/20 border-green-500/40'}`}><div className="flex flex-col items-center text-center"><div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${notification.type === 'error' ? 'bg-red-500/30' : 'bg-green-500/30'}`}>{notification.type === 'error' ? <AlertCircle className="w-5 h-5 text-red-300" /> : <CheckCircle className="w-5 h-5 text-green-300" />}</div><p className={`text-xs font-medium ${notification.type === 'error' ? 'text-red-100' : 'text-green-100'}`}>{notification.message}</p></div></div></div>)}
-
-      {showFirstTimeTutorial && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 relative z-10">{tutorialStep === 0 && (<div className="text-center"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><ShoppingBag className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-3">Добро пожаловать!</h2><p className="text-gray-400 text-xs mb-4">Быстрый гайд по заказу</p><button onClick={() => setTutorialStep(1)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Начать</button></div>)}{tutorialStep === 1 && (<div className="text-center"><div className="text-4xl mb-4">🛍️</div><h2 className="text-xl font-bold text-white mb-3">Шаг 1: Выбирай товары</h2><p className="text-gray-400 text-xs mb-4">Нажми на карточку чтобы выбрать вкус</p><button onClick={() => setTutorialStep(2)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 2 && (<div className="text-center"><div className="text-4xl mb-4">📋</div><h2 className="text-xl font-bold text-white mb-3">Шаг 2: Смотри список</h2><p className="text-gray-400 text-xs mb-4">Кнопка корзины внизу справа</p><button onClick={() => setTutorialStep(3)} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Далее</button></div>)}{tutorialStep === 3 && (<div className="text-center"><div className="text-4xl mb-4">📤</div><h2 className="text-xl font-bold text-white mb-3">Шаг 3: Отправляй</h2><p className="text-gray-400 text-xs mb-4">Нажми "Отправить" для перехода в Telegram</p><button onClick={() => { setShowFirstTimeTutorial(false); setTutorialStep(0); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white">Понятно!</button></div>)}</div></div>)}
 
       {showSubscribePrompt && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><button onClick={() => setShowSubscribePrompt(false)} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5"><X className="w-4 h-4 text-gray-400" /></button><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Подпишись на канал</h2><button onClick={() => { if (typeof window !== 'undefined' && (window as any).Telegram?.WebApp?.openTelegramLink) (window as any).Telegram.WebApp.openTelegramLink(CHANNEL_LINK); else window.open(CHANNEL_LINK, '_blank'); setTimeout(() => setShowSubscribePrompt(false), 1000); }} className="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white mb-2">Подписаться</button><button onClick={() => setShowSubscribePrompt(false)} className="w-full py-2.5 rounded-xl bg-white/5 text-gray-400 text-xs">Продолжить</button></div></div>)}
 
       {showSendConfirm && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Отправить заявку?</h2><p className="text-gray-400 text-xs mb-4">Тебя перекинет в Telegram с готовым списком</p><div className="glass-card p-3 mb-4 text-left"><p className="text-xs text-gray-400 mb-1">Товаров: <span className="text-white font-bold">{totalListItems}</span></p><p className="text-xs text-gray-400">Сумма: <span className="gradient-text font-bold">{totalListPrice.toFixed(2)} BYN</span></p></div><div className="flex gap-2"><button onClick={() => setShowSendConfirm(false)} className="flex-1 py-3 rounded-xl bg-white/5 text-gray-400">Отмена</button><button onClick={sendToManager} disabled={isSending} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white disabled:opacity-50">{isSending ? '...' : 'Отправить'}</button></div></div></div>)}
 
-      {showInstructions && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm max-h-[80vh] overflow-y-auto p-5 relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowInstructions(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">Инструкция</h2><div className="w-10"></div></div><div className="space-y-3 text-xs text-gray-300"><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">1. Выбор товара</h3><p>Нажми на карточку товара</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">2. Выбор вкуса</h3><p>Отметь галочкой нужные вкусы</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">3. Просмотр списка</h3><p>Кнопка корзины внизу справа</p></div><div className="glass-card p-3"><h3 className="font-bold text-orange-400 mb-1">4. Отправка</h3><p>Нажми "Отправить"</p></div></div></div></div>)}
-
-      {showAbout && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="flex items-center justify-between mb-5"><button onClick={() => { setShowAbout(false); setShowSettings(true); }} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/20 to-pink-500/20 border border-orange-500/30 flex items-center justify-center"><svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg></button><h2 className="text-xl font-bold gradient-text">О приложении</h2><div className="w-10"></div></div><div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-10 h-10 text-white" /></div><h3 className="text-xl font-bold mb-1">Liq<span className="text-orange-500">Vape</span></h3><p className="text-gray-400 text-xs mb-4">Premium vape shop</p><div className="glass-card p-3 mb-4 text-left space-y-1 text-xs"><p className="text-gray-400">Версия: <span className="text-white">6.0.0 (Optimized)</span></p><p className="text-gray-400">Канал: <span className="text-orange-400">@{CHANNEL_USERNAME}</span></p><p className="text-gray-400">Менеджер: <span className="text-orange-400">@{MANAGER_USERNAME}</span></p></div><p className="text-[10px] text-gray-500">© 2026 LiqVape</p></div></div>)}
-
-      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowInstructions(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><HelpCircle className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Инструкция</p><p className="text-[11px] text-gray-400">Как пользоваться</p></div></button><button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><Info className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">О приложении</p><p className="text-[11px] text-gray-400">LiqVape v6.0</p></div></button><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div></button></div></div></div>)}
+      {showSettings && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold gradient-text">Настройки</h2><button onClick={() => setShowSettings(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><div className="space-y-2.5"><button onClick={() => { setShowSettings(false); setShowAbout(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><Info className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">О приложении</p><p className="text-[11px] text-gray-400">LiqVape v7.0</p></div></button><button onClick={() => { setShowSettings(false); setShowAdminLogin(true); }} className="w-full glass-card p-4 flex items-center gap-3 text-left hover:bg-white/10"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500/30 to-pink-500/30 flex items-center justify-center"><LogIn className="w-5 h-5 text-orange-400" /></div><div className="flex-1"><p className="text-sm font-bold text-white">Вход в админку</p><p className="text-[11px] text-gray-400">Только для администраторов</p></div></button></div></div></div>)}
 
       {showAdminLogin && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-5 relative z-10"><div className="flex items-center justify-between mb-4"><h2 className="text-lg font-bold gradient-text">Вход для админа</h2><button onClick={() => setShowAdminLogin(false)} className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Cloud className="w-5 h-5 text-white" /></button></div><input type="password" placeholder="Пароль" value={adminPassword} onChange={e => setAdminPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdminLogin()} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 mb-3 text-sm text-white outline-none" /><button onClick={handleAdminLogin} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-sm font-bold">Войти</button></div></div>)}
 
@@ -669,64 +522,47 @@ export default function Home() {
           <div className="flex gap-2 overflow-x-auto pb-3 mb-4">{CATEGORIES.map((c) => (<button key={c} onClick={() => setSelectedCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ${selectedCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{c}</button>))}</div>
           <div className="mb-4 text-xs text-gray-500">Найдено: <span className="text-orange-500 font-bold">{sortedProducts.length}</span> товаров</div>
           
-          {isLoading ? (
-            <div className="grid grid-cols-2 gap-3">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="glass-card p-3">
-                  <div className="w-full aspect-square skeleton rounded-2xl mb-3"></div>
-                  <div className="h-4 skeleton rounded mb-2"></div>
-                  <div className="h-3 skeleton rounded w-2/3"></div>
-                </div>
-              ))}
-            </div>
-          ) : sortedProducts.length === 0 ? (
+          {sortedProducts.length === 0 ? (
             <div className="glass-panel p-8 text-center"><Package className="w-12 h-12 mx-auto mb-3 text-gray-700" /><p className="text-gray-500 text-sm">Товары не найдены</p></div>
           ) : (
-            <>
-              <div className="grid grid-cols-2 gap-3 pb-4">
-                {sortedProducts.map((p) => {
-                  const totalStock = p.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
-                  const isAvailable = totalStock > 0 || p.is_preorder;
-                  const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
-                  return (
-                    <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all flex flex-col h-full ${isAvailable ? 'cursor-pointer hover:border-orange-500/50' : 'opacity-40 cursor-not-allowed'}`}>
-                      <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
-                        {p.image ? (
-                          <img src={`/images/products/${p.image}`} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" loading="lazy" />
-                        ) : (
-                          <Package className="w-12 h-12 text-neutral-600" />
-                        )}
-                        {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
-                      </div>
-                      <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
-                      <div className="flex items-center justify-between mb-2 flex-shrink-0">
-                        <span className="text-base font-bold gradient-text">
-                          {(() => {
-                            const prices = p.variants.map((v: Variant) => (v.price !== undefined && v.price !== null && v.price > 0) ? v.price : p.price).filter((pr: number) => typeof pr === 'number' && !isNaN(pr) && pr > 0);
-                            if (prices.length === 0) return `${p.price || 0} BYN`;
-                            const minP = Math.min(...prices); const maxP = Math.max(...prices);
-                            return minP === maxP ? `${minP} BYN` : `${minP}-${maxP} BYN`;
-                          })()}
-                        </span>
-                        <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
-                      </div>
-                      {inList > 0 ? (
-                        <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
+            <div className="grid grid-cols-2 gap-3 pb-4">
+              {sortedProducts.map((p) => {
+                const totalStock = p.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
+                const isAvailable = totalStock > 0 || p.is_preorder;
+                const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
+                return (
+                  <div key={p.id} onClick={() => { if (isAvailable) openProductModal(p); }} className={`glass-card p-3 transition-all flex flex-col h-full ${isAvailable ? 'cursor-pointer hover:border-orange-500/50' : 'opacity-40 cursor-not-allowed'}`}>
+                    <div className="w-full aspect-square bg-gradient-to-br from-neutral-800 to-neutral-900 rounded-2xl mb-3 flex items-center justify-center relative overflow-hidden border border-white/10 flex-shrink-0">
+                      {p.image ? (
+                        <img src={`/images/products/${p.image}`} alt={p.name} className="w-full h-full object-contain p-4 rounded-2xl" loading="lazy" />
                       ) : (
-                        <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
-                          {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
-                        </div>
+                        <Package className="w-12 h-12 text-neutral-600" />
                       )}
+                      {p.is_preorder && (<div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-gradient-to-r from-orange-500 to-pink-500 text-white text-[10px] font-bold">ПРЕДЗАКАЗ</div>)}
                     </div>
-                  );
-                })}
-              </div>
-              {hasMore && (
-                <button onClick={loadMoreProducts} disabled={isLoadingMore} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold disabled:opacity-50">
-                  {isLoadingMore ? 'Загрузка...' : 'Загрузить ещё'}
-                </button>
-              )}
-            </>
+                    <h3 className="font-semibold text-sm mb-2 line-clamp-2 text-center text-white leading-tight flex-grow">{p.name}</h3>
+                    <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                      <span className="text-base font-bold gradient-text">
+                        {(() => {
+                          const prices = p.variants.map((v: Variant) => (v.price !== undefined && v.price !== null && v.price > 0) ? v.price : p.price).filter((pr: number) => typeof pr === 'number' && !isNaN(pr) && pr > 0);
+                          if (prices.length === 0) return `${p.price || 0} BYN`;
+                          const minP = Math.min(...prices); const maxP = Math.max(...prices);
+                          return minP === maxP ? `${minP} BYN` : `${minP}-${maxP} BYN`;
+                        })()}
+                      </span>
+                      <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
+                    </div>
+                    {inList > 0 ? (
+                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
+                    ) : (
+                      <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
+                        {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
