@@ -184,6 +184,10 @@ export default function Home() {
     return v ? v.stock : 0;
   };
 
+  const getTotalStock = (product: Product) => {
+    return product.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+  };
+
   const filteredProducts = products.filter(p => {
     return (!p.is_hidden || isAdmin) && p.name.toLowerCase().includes(search.toLowerCase()) && (selectedCategory === 'Все' || p.category === selectedCategory);
   });
@@ -298,7 +302,15 @@ export default function Home() {
   const saveProduct = async () => {
     if (!editingProduct?.name || !editingProduct.price) { showNotification('Заполните название и цену', 'error'); return; }
     try {
-      const data = { name: editingProduct.name, price: Number(editingProduct.price), category: editingProduct.category || 'Другое', flavors: formVariants, image: editingProduct.image || null, is_hidden: Boolean(editingProduct.is_hidden), is_preorder: Boolean(editingProduct.is_preorder) };
+      const data = { 
+        name: editingProduct.name, 
+        price: Number(editingProduct.price) || 0, 
+        category: editingProduct.category || 'Другое', 
+        flavors: formVariants.map(v => ({ ...v, stock: v.stock || 0, price: v.price || 0 })), 
+        image: editingProduct.image || null, 
+        is_hidden: Boolean(editingProduct.is_hidden), 
+        is_preorder: Boolean(editingProduct.is_preorder) 
+      };
       if (editingProduct.id) { await updateProduct(editingProduct.id, data); showNotification('Товар обновлён', 'success'); } 
       else { await createProduct(data); showNotification('Товар добавлен', 'success'); }
       setShowProductForm(false); setEditingProduct(null); setFormVariants([]); await loadProducts(true);
@@ -306,6 +318,7 @@ export default function Home() {
   };
 
   const toggleHidden = async (p: Product) => { try { await updateProduct(p.id, { is_hidden: !p.is_hidden }); await loadProducts(true); } catch(e) { showNotification('Ошибка', 'error'); } };
+  const togglePreorder = async (p: Product) => { try { await updateProduct(p.id, { is_preorder: !p.is_preorder }); await loadProducts(true); } catch(e) { showNotification('Ошибка', 'error'); } };
   const deleteProduct = async (id: string) => { if (!confirm('Удалить товар?')) return; try { await deleteProductRecord(id); await loadProducts(true); showNotification('Товар удалён'); } catch(e) { showNotification('Ошибка', 'error'); } };
   const deleteRequest = async (id: string) => { if (!confirm('Заказ обработан? Удалить из списка?')) return; try { await deleteOrderRecord(id); await loadAllRequests(); showNotification('Заказ удален', 'success'); } catch(e) { showNotification('Ошибка', 'error'); } };
 
@@ -402,16 +415,28 @@ export default function Home() {
               <div className="mb-3 relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" /><input type="text" placeholder="Поиск..." value={adminSearch} onChange={e => setAdminSearch(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
               <div className="flex gap-2 overflow-x-auto pb-3 mb-3">{CATEGORIES.map((c) => (<button key={c} onClick={() => setAdminCategory(c)} className={`px-4 py-2 rounded-full whitespace-nowrap text-xs font-medium ${adminCategory === c ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}>{c}</button>))}</div>
               <div className="space-y-2">
-                {filteredAdminProducts.map(p => (
-                  <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
-                    <div className="flex items-start justify-between mb-2"><div className="flex-1"><h3 className="font-bold text-sm">{p.name}</h3><p className="text-[11px] text-gray-400">{p.price} BYN • {p.category}</p></div></div>
-                    <div className="flex gap-1 flex-wrap">
-                      <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px] flex items-center justify-center gap-1"><Edit className="w-3 h-3" /> Изменить</button>
-                      <button onClick={() => toggleHidden(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{p.is_hidden ? 'Показать' : 'Скрыть'}</button>
-                      <button onClick={() => deleteProduct(p.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
+                {filteredAdminProducts.map(p => {
+                  const totalStock = getTotalStock(p);
+                  return (
+                    <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-sm">{p.name}</h3>
+                          <p className="text-[11px] text-gray-400">
+                            {p.price} BYN • {p.category} • {totalStock > 0 ? `${totalStock} шт.` : 'Нет в наличии'}
+                            {p.is_preorder && <span className="ml-2 text-orange-400">[ПРЕДЗАКАЗ]</span>}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 flex-wrap">
+                        <button onClick={() => openProductForm(p)} className="flex-1 py-1.5 rounded-md bg-white/5 text-[10px] flex items-center justify-center gap-1"><Edit className="w-3 h-3" /> Изменить</button>
+                        <button onClick={() => toggleHidden(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_hidden ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>{p.is_hidden ? 'Показать' : 'Скрыть'}</button>
+                        <button onClick={() => togglePreorder(p)} className={`flex-1 py-1.5 rounded-md text-[10px] ${p.is_preorder ? 'bg-orange-500/20 text-orange-400' : 'bg-white/5 text-gray-400'}`}>{p.is_preorder ? 'Предзаказ ВКЛ' : 'Предзаказ ВЫКЛ'}</button>
+                        <button onClick={() => deleteProduct(p.id)} className="w-10 py-1.5 rounded-md bg-red-500/20 text-red-400 flex items-center justify-center"><Trash2 className="w-3 h-3" /></button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -442,9 +467,21 @@ export default function Home() {
                 <div className="flex items-center justify-between mb-5"><h2 className="text-xl font-bold text-orange-400">{editingProduct.id ? 'Редактирование' : 'Новый товар'}</h2><button onClick={() => setShowProductForm(false)} className="w-9 h-9 rounded-full bg-white/5"><X className="w-5 h-5" /></button></div>
                 <div className="mb-4"><label className="text-xs text-gray-400 mb-1.5 block">Название</label><input type="text" value={editingProduct.name || ''} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
                 <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div><label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label><input type="number" value={editingProduct.price || ''} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
+                  <div><label className="text-xs text-gray-400 mb-1.5 block">Цена (BYN)</label><input type="number" value={editingProduct.price === 0 ? '' : editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: e.target.value === '' ? 0 : Number(e.target.value)})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none" /></div>
                   <div><label className="text-xs text-gray-400 mb-1.5 block">Категория</label><select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none">{CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}</select></div>
                 </div>
+                
+                {/* Переключатель предзаказа */}
+                <div className="mb-4">
+                  <label className="text-xs text-gray-400 mb-1.5 block">Режим продажи</label>
+                  <button 
+                    onClick={() => setEditingProduct({...editingProduct, is_preorder: !editingProduct.is_preorder})}
+                    className={`w-full py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${editingProduct.is_preorder ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white' : 'bg-white/5 text-gray-400'}`}
+                  >
+                    {editingProduct.is_preorder ? '✓ Предзаказ включён' : 'Обычная продажа'}
+                  </button>
+                </div>
+
                 <div className="mb-4">
                   <label className="text-xs text-gray-400 mb-1.5 block">Фото</label>
                   <button onClick={() => { loadAvailableImages(); setShowImageGallery(true); }} className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold flex items-center justify-center gap-2"><ImageIcon className="w-5 h-5" /> Выбрать из галереи</button>
@@ -461,8 +498,8 @@ export default function Home() {
                     {formVariants.map((v, i) => (
                       <div key={i} className="flex gap-2 items-center bg-black/30 rounded-xl p-2">
                         <input type="text" placeholder="Название" value={v.name} onChange={e => { const nv = [...formVariants]; nv[i].name = e.target.value; setFormVariants(nv); }} className="flex-1 bg-transparent border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none" />
-                        <input type="number" placeholder="Кол-во" value={v.stock} onChange={e => { const nv = [...formVariants]; nv[i].stock = Number(e.target.value) || 0; setFormVariants(nv); }} className="w-20 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
-                        <input type="number" placeholder="Цена" value={v.price || ''} onChange={e => { const nv = [...formVariants]; nv[i].price = Number(e.target.value); setFormVariants(nv); }} className="w-20 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
+                        <input type="number" placeholder="Кол-во" value={v.stock === 0 ? '' : v.stock} onChange={e => { const nv = [...formVariants]; nv[i].stock = e.target.value === '' ? 0 : Number(e.target.value); setFormVariants(nv); }} className="w-20 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
+                        <input type="number" placeholder="Цена" value={v.price === 0 ? '' : v.price} onChange={e => { const nv = [...formVariants]; nv[i].price = e.target.value === '' ? 0 : Number(e.target.value); setFormVariants(nv); }} className="w-20 bg-transparent border border-white/10 rounded-lg px-2 py-2 text-xs text-white outline-none text-center" />
                         <button onClick={() => setFormVariants(formVariants.filter((_, x) => x !== i))} className="w-9 h-9 rounded-lg bg-red-500/20 text-red-400"><X className="w-4 h-4" /></button>
                       </div>
                     ))}
@@ -537,7 +574,6 @@ export default function Home() {
 
       {showSendConfirm && (<div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"><div className="glass-panel w-full max-w-sm p-6 text-center relative z-10"><div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-orange-500 to-pink-500 flex items-center justify-center"><Send className="w-10 h-10 text-white" /></div><h2 className="text-xl font-bold text-white mb-2">Отправить заявку?</h2><p className="text-gray-400 text-xs mb-4">Тебя перекинет в Telegram с готовым списком</p><div className="glass-card p-3 mb-4 text-left"><p className="text-xs text-gray-400 mb-1">Товаров: <span className="text-white font-bold">{totalListItems}</span></p><p className="text-xs text-gray-400">Сумма: <span className="gradient-text font-bold">{totalListPrice.toFixed(2)} BYN</span></p></div><div className="flex gap-2"><button onClick={() => setShowSendConfirm(false)} className="flex-1 py-3 rounded-xl bg-white/5 text-gray-400">Отмена</button><button onClick={sendToManager} disabled={isSending} className="flex-1 py-3 rounded-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 text-white disabled:opacity-50">{isSending ? '...' : 'Отправить'}</button></div></div></div>)}
 
-      {/* МОДАЛЬНОЕ ОКНО ИНСТРУКЦИИ */}
       {showInstructions && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
           <div className="glass-panel w-full max-w-sm p-6 relative z-10">
@@ -644,7 +680,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-2 gap-3 pb-4">
               {sortedProducts.map((p) => {
-                const totalStock = p.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
+                const totalStock = getTotalStock(p);
                 const isAvailable = totalStock > 0 || p.is_preorder;
                 const inList = selectionList.filter(i => i.productId === p.id).reduce((s, i) => s + i.quantity, 0);
                 return (
@@ -670,7 +706,7 @@ export default function Home() {
                       <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
                     </div>
                     {inList > 0 ? (
-                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
+                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0"> в списке: {inList}</div>
                     ) : (
                       <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
                         {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
