@@ -192,13 +192,27 @@ export default function Home() {
     return (!p.is_hidden || isAdmin) && p.name.toLowerCase().includes(search.toLowerCase()) && (selectedCategory === 'Все' || p.category === selectedCategory);
   });
 
+  const getBrandPriority = (name: string) => {
+    for (const [brand, priority] of Object.entries(CONSUMABLE_BRAND_PRIORITY)) {
+      if (name.toUpperCase().includes(brand.toUpperCase())) return priority;
+    }
+    return 999;
+  };
+
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
+      // Сначала сортируем по наличию/предзаказу
       const aAvail = a.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
       const bAvail = b.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
       const getPriority = (inStock: boolean, isPreorder: boolean) => inStock ? 1 : (isPreorder ? 2 : 3);
       if (getPriority(aAvail > 0, a.is_preorder) !== getPriority(bAvail > 0, b.is_preorder)) {
         return getPriority(aAvail > 0, a.is_preorder) - getPriority(bAvail > 0, b.is_preorder);
+      }
+      // В категории "Расходники" сортируем по приоритету бренда
+      if (a.category === 'Расходники' && b.category === 'Расходники') {
+        const aBrand = getBrandPriority(a.name);
+        const bBrand = getBrandPriority(b.name);
+        if (aBrand !== bBrand) return aBrand - bBrand;
       }
       return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
     });
