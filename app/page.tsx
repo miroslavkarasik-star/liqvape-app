@@ -181,7 +181,7 @@ export default function Home() {
     const product = products.find(p => p.id === productId);
     if (!product) return 0;
     const v = product.variants.find((x: Variant) => x.name === variant);
-    return v ? v.stock : 0;
+    return v ? (v.stock || 0) : 0;
   };
 
   const getTotalStock = (product: Product) => {
@@ -192,18 +192,11 @@ export default function Home() {
     return (!p.is_hidden || isAdmin) && p.name.toLowerCase().includes(search.toLowerCase()) && (selectedCategory === 'Все' || p.category === selectedCategory);
   });
 
-  const getBrandPriority = (name: string) => {
-    for (const [brand, priority] of Object.entries(CONSUMABLE_BRAND_PRIORITY)) {
-      if (name.toUpperCase().includes(brand.toUpperCase())) return priority;
-    }
-    return 999;
-  };
-
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
       // 1. Сначала сортируем по наличию / предзаказу (это всегда важнее)
-      const aAvail = a.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
-      const bAvail = b.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
+      const aAvail = a.variants.reduce((s: number, v: Variant) => s + (v.stock || 0), 0);
+      const bAvail = b.variants.reduce((s: number, v: Variant) => s + (v.stock || 0), 0);
       const getPriority = (inStock: boolean, isPreorder: boolean) => inStock ? 1 : (isPreorder ? 2 : 3);
       if (getPriority(aAvail > 0, a.is_preorder) !== getPriority(bAvail > 0, b.is_preorder)) {
         return getPriority(aAvail > 0, a.is_preorder) - getPriority(bAvail > 0, b.is_preorder);
@@ -269,7 +262,7 @@ export default function Home() {
     const p = products.find(x => x.id === item.productId);
     const v = p?.variants.find((x: Variant) => x.name === item.variant);
     const nq = item.quantity + d;
-    if (v && nq > v.stock && !item.isPreorder) { showNotification('Максимум: ' + v.stock, 'error'); return; }
+    if (v && nq > (v.stock || 0) && !item.isPreorder) { showNotification('Максимум: ' + v.stock, 'error'); return; }
     if (nq <= 0) setSelectionList(selectionList.filter((_, x) => x !== i));
     else { const nl = [...selectionList]; nl[i].quantity = nq; setSelectionList(nl); }
   };
@@ -500,7 +493,6 @@ export default function Home() {
                   <div><label className="text-xs text-gray-400 mb-1.5 block">Категория</label><select value={editingProduct.category || 'Другое'} onChange={e => setEditingProduct({...editingProduct, category: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm text-white outline-none">{CATEGORIES.filter(c => c !== 'Все').map(c => <option key={c} value={c} className="bg-black">{c}</option>)}</select></div>
                 </div>
                 
-                {/* Переключатель предзаказа */}
                 <div className="mb-4">
                   <label className="text-xs text-gray-400 mb-1.5 block">Режим продажи</label>
                   <button 
@@ -735,7 +727,7 @@ export default function Home() {
                       <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-full">{p.category}</span>
                     </div>
                     {inList > 0 ? (
-                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0"> в списке: {inList}</div>
+                      <div className="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500/20 to-pink-500/20 border border-orange-500/40 text-orange-400 text-xs font-bold text-center flex-shrink-0">🛒 в списке: {inList}</div>
                     ) : (
                       <div className={`w-full py-2.5 rounded-xl text-xs font-bold text-center flex-shrink-0 ${isAvailable ? 'bg-gradient-to-r from-orange-500 to-pink-500 text-white shadow-lg shadow-orange-500/30' : 'bg-white/5 text-gray-500'}`}>
                         {isAvailable ? (p.is_preorder ? '📦 Предзаказ' : '➕ Выбрать') : 'Нет в наличии'}
