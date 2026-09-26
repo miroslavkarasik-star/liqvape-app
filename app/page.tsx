@@ -201,19 +201,34 @@ export default function Home() {
 
   const sortedProducts = useMemo(() => {
     return [...filteredProducts].sort((a, b) => {
-      // Сначала сортируем по наличию/предзаказу
+      // 1. Сначала сортируем по наличию / предзаказу (это всегда важнее)
       const aAvail = a.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
       const bAvail = b.variants.reduce((s: number, v: Variant) => s + v.stock, 0);
       const getPriority = (inStock: boolean, isPreorder: boolean) => inStock ? 1 : (isPreorder ? 2 : 3);
       if (getPriority(aAvail > 0, a.is_preorder) !== getPriority(bAvail > 0, b.is_preorder)) {
         return getPriority(aAvail > 0, a.is_preorder) - getPriority(bAvail > 0, b.is_preorder);
       }
-      // В категории "Расходники" сортируем по приоритету бренда
-      if (a.category === 'Расходники' && b.category === 'Расходники') {
-        const aBrand = getBrandPriority(a.name);
-        const bBrand = getBrandPriority(b.name);
-        if (aBrand !== bBrand) return aBrand - bBrand;
+
+      // 2. Если выбрана категория "Расходники", применяем приоритет брендов
+      if (selectedCategory === 'Расходники') {
+        const getBrandPriority = (name: string) => {
+          const n = name.toUpperCase();
+          if (n.includes('XROS')) return 1;
+          if (n.includes('VMATE')) return 2;
+          if (n.includes('BOOST HERO')) return 3;
+          if (n.includes('KNIGHT') || n.includes('PASITO')) return 4; // Knight и Pasito вместе
+          return 999; // Все остальные
+        };
+        
+        const pA = getBrandPriority(a.name);
+        const pB = getBrandPriority(b.name);
+        
+        if (pA !== pB) {
+          return pA - pB;
+        }
       }
+
+      // 3. Если приоритет совпал или это другая категория, сортируем по алфавиту
       return a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
     });
   }, [filteredProducts, selectedCategory, isAdmin]);
