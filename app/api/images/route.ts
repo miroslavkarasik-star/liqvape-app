@@ -14,7 +14,7 @@ export async function GET() {
     
     const files = fs.readdirSync(imagesDir);
     
-    // Фильтруем только картинки
+    // Фильтруем  только картинки
     const images = files
       .filter(f => f.endsWith('.png') || f.endsWith('.jpg') || f.endsWith('.jpeg') || f.endsWith('.webp'))
       .map(f => ({
